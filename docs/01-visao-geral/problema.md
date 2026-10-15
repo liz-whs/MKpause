@@ -1,3 +1,5 @@
+**Português** · [English](./problema.en.md)
+
 # Problema
 
 Estudantes podem enfrentar momentos de sobrecarga emocional durante sua rotina escolar sem possuir um processo estruturado para reconhecer seu estado, realizar uma pausa e utilizar estratégias de autorregulação.

@@ -1,3 +1,5 @@
+**Português** · [English](./casos-de-uso.en.md)
+
 # Casos de Uso
 
 Este documento descreve os principais casos de uso do **MKpause**, apresentando os atores envolvidos, objetivos, pré-condições, fluxos principais e relacionamentos entre funcionalidades.
@@ -6,18 +8,18 @@ Os casos de uso complementam o diagrama UML disponível na documentação do pro
 
 ---
 
-# 🔐 UC01 — Realizar Login
+## UC01 — Realizar Login
 
-**Atores:**  
+**Atores:**
 Estudante, Professor, Psicólogo Escolar, Psicólogo Clínico e Administrador.
 
-**Objetivo:**  
+**Objetivo:**
 Permitir que um usuário cadastrado tenha acesso às funcionalidades correspondentes ao seu perfil.
 
-**Pré-condição:**  
+**Pré-condição:**
 O usuário deve possuir cadastro ativo no sistema.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O usuário acessa a página de login.
 2. O usuário informa suas credenciais.
@@ -26,7 +28,7 @@ O usuário deve possuir cadastro ativo no sistema.
 5. O sistema inicia a sessão autenticada.
 6. O usuário é direcionado para sua área correspondente.
 
-## Fluxo alternativo
+### Fluxo alternativo
 
 **Credenciais inválidas**
 
@@ -35,16 +37,16 @@ O usuário deve possuir cadastro ativo no sistema.
 3. O sistema informa o problema ao usuário.
 4. O usuário pode tentar novamente.
 
-**Pós-condição:**  
+**Pós-condição:**
 O usuário permanece autenticado no sistema.
 
 ---
 
-# 🧘 UC02 — Realizar Sessão de Autorregulação
+## UC02 — Realizar Sessão de Autorregulação
 
 **Ator principal:** Estudante
 
-**Objetivo:**  
+**Objetivo:**
 Permitir que o estudante realize uma sessão utilizando os recursos de autorregulação disponibilizados pelo MKpause.
 
 **Pré-condições:**
@@ -52,7 +54,7 @@ Permitir que o estudante realize uma sessão utilizando os recursos de autorregu
 - o estudante deve estar autenticado;
 - o estudante deve possuir cadastro ativo.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O estudante inicia uma sessão.
 2. O sistema solicita o registro do humor inicial.
@@ -65,10 +67,10 @@ Permitir que o estudante realize uma sessão utilizando os recursos de autorregu
 9. O sistema registra as informações da sessão.
 10. A sessão passa a compor o histórico do estudante.
 
-**Pós-condição:**  
+**Pós-condição:**
 A sessão e seus respectivos registros permanecem armazenados no histórico do estudante.
 
-## Relacionamentos
+### Relacionamentos
 
 A realização da sessão envolve funcionalidades como:
 
@@ -82,17 +84,17 @@ Dependendo do resultado da avaliação, também poderá ocorrer a emissão de um
 
 ---
 
-# 🙂 UC03 — Registrar Humor
+## UC03 — Registrar Humor
 
 **Ator principal:** Estudante
 
-**Objetivo:**  
+**Objetivo:**
 Registrar o estado emocional informado pelo estudante durante uma sessão.
 
-**Pré-condição:**  
+**Pré-condição:**
 O estudante deve estar realizando uma sessão de autorregulação.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O sistema apresenta as opções disponíveis para registro do estado.
 2. O estudante seleciona a opção correspondente.
@@ -100,45 +102,45 @@ O estudante deve estar realizando uma sessão de autorregulação.
 4. O registro é associado à sessão atual.
 5. O sistema identifica se o registro corresponde ao momento pré ou pós-sessão.
 
-**Pós-condição:**  
+**Pós-condição:**
 O registro de humor permanece associado à sessão.
 
 ---
 
-# 🔎 UC04 — Avaliar Estado
+## UC04 — Avaliar Estado
 
 **Ator relacionado:** Estudante
 
-**Objetivo:**  
+**Objetivo:**
 Avaliar o estado informado pelo estudante para determinar o comportamento adequado do sistema durante a sessão.
 
-**Pré-condição:**  
+**Pré-condição:**
 Deve existir um registro de humor válido.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O sistema recebe o estado registrado.
 2. O sistema aplica os critérios definidos para avaliação.
 3. O sistema determina a classificação correspondente.
 4. O fluxo da sessão continua de acordo com o resultado.
 
-## Fluxo alternativo
+### Fluxo alternativo
 
 Caso a avaliação identifique uma situação prevista pelas regras de alerta, o fluxo de emissão de alerta poderá ser iniciado.
 
-**Pós-condição:**  
+**Pós-condição:**
 O estado registrado possui uma avaliação correspondente utilizada pelo fluxo da sessão.
 
 ---
 
-# 🚨 UC05 — Emitir Alerta
+## UC05 — Emitir Alerta
 
 **Ator de origem:** Estudante
 
-**Atores receptores:**  
+**Atores receptores:**
 Professor, Psicólogo Escolar e Psicólogo Clínico, conforme vínculos e permissões.
 
-**Objetivo:**  
+**Objetivo:**
 Registrar e comunicar uma situação que necessite atenção dos profissionais responsáveis pelo acompanhamento do estudante.
 
 **Pré-condições:**
@@ -146,7 +148,7 @@ Registrar e comunicar uma situação que necessite atenção dos profissionais r
 - o estudante deve estar identificado;
 - devem existir informações suficientes para registrar o alerta.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O estudante solicita auxílio ou ocorre uma condição prevista para emissão de alerta.
 2. O sistema identifica a classificação da situação.
@@ -156,26 +158,26 @@ Registrar e comunicar uma situação que necessite atenção dos profissionais r
 6. O sistema identifica os profissionais destinatários de acordo com os vínculos.
 7. O alerta é disponibilizado aos profissionais autorizados.
 
-**Pós-condição:**  
+**Pós-condição:**
 O alerta permanece registrado no sistema.
 
-## Regra relacionada
+### Regra relacionada
 
 Situações classificadas nos níveis **2 e 3**, conforme as regras atuais do projeto, podem resultar na emissão de alerta.
 
 ---
 
-# 📚 UC06 — Consultar Histórico
+## UC06 — Consultar Histórico
 
 **Ator principal:** Estudante
 
-**Objetivo:**  
+**Objetivo:**
 Permitir que o estudante consulte informações sobre suas sessões anteriores.
 
-**Pré-condição:**  
+**Pré-condição:**
 O estudante deve estar autenticado.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O estudante acessa seu histórico.
 2. O sistema identifica o estudante autenticado.
@@ -183,17 +185,17 @@ O estudante deve estar autenticado.
 4. O sistema apresenta as sessões anteriores.
 5. O estudante pode consultar as informações disponibilizadas sobre cada sessão.
 
-**Pós-condição:**  
+**Pós-condição:**
 Nenhum dado é alterado.
 
 ---
 
-# 👥 UC07 — Consultar Estudantes
+## UC07 — Consultar Estudantes
 
-**Atores:**  
+**Atores:**
 Professor, Psicólogo Escolar e Psicólogo Clínico, conforme suas permissões.
 
-**Objetivo:**  
+**Objetivo:**
 Permitir que profissionais consultem estudantes vinculados ao seu acompanhamento.
 
 **Pré-condições:**
@@ -201,7 +203,7 @@ Permitir que profissionais consultem estudantes vinculados ao seu acompanhamento
 - o profissional deve estar autenticado;
 - deve existir vínculo ou autorização correspondente.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O profissional acessa a área de estudantes.
 2. O sistema identifica seu perfil.
@@ -210,17 +212,17 @@ Permitir que profissionais consultem estudantes vinculados ao seu acompanhamento
 5. O profissional seleciona um estudante.
 6. O sistema apresenta as informações permitidas para aquele perfil.
 
-**Pós-condição:**  
+**Pós-condição:**
 Nenhum dado é alterado.
 
 ---
 
-# 📝 UC08 — Registrar Observação
+## UC08 — Registrar Observação
 
-**Atores:**  
+**Atores:**
 Professor e Psicólogo Escolar.
 
-**Objetivo:**  
+**Objetivo:**
 Permitir que profissionais escolares registrem observações relacionadas a um estudante.
 
 **Pré-condições:**
@@ -228,7 +230,7 @@ Permitir que profissionais escolares registrem observações relacionadas a um e
 - o profissional deve estar autenticado;
 - deve possuir acesso autorizado ao estudante.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O profissional acessa o estudante.
 2. O profissional seleciona a opção de registrar observação.
@@ -238,10 +240,10 @@ Permitir que profissionais escolares registrem observações relacionadas a um e
 6. O sistema registra a observação.
 7. A observação é associada ao estudante e ao profissional responsável.
 
-**Pós-condição:**  
+**Pós-condição:**
 A observação permanece registrada no sistema.
 
-## Observação sobre os atores
+### Observação sobre os atores
 
 Professor e Psicólogo Escolar podem executar este caso de uso **independentemente**.
 
@@ -249,18 +251,18 @@ A associação de ambos ao mesmo caso de uso não exige participação simultân
 
 ---
 
-# 🚨 UC09 — Consultar Alertas
+## UC09 — Consultar Alertas
 
-**Atores:**  
+**Atores:**
 Professor, Psicólogo Escolar e Psicólogo Clínico, conforme permissões.
 
-**Objetivo:**  
+**Objetivo:**
 Permitir que profissionais autorizados consultem alertas relacionados aos estudantes acompanhados.
 
-**Pré-condição:**  
+**Pré-condição:**
 O profissional deve estar autenticado e possuir acesso ao estudante relacionado ao alerta.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O profissional acessa sua área de alertas.
 2. O sistema identifica os alertas aos quais possui acesso.
@@ -268,16 +270,16 @@ O profissional deve estar autenticado e possuir acesso ao estudante relacionado 
 4. O profissional seleciona um alerta.
 5. O sistema apresenta suas informações.
 
-**Pós-condição:**  
+**Pós-condição:**
 Nenhum dado principal é alterado pela simples consulta.
 
 ---
 
-# 📋 UC10 — Consultar Ficha de Acompanhamento
+## UC10 — Consultar Ficha de Acompanhamento
 
 **Ator principal:** Psicólogo Clínico
 
-**Objetivo:**  
+**Objetivo:**
 Permitir a consulta das informações da ficha de acompanhamento de um estudante autorizado.
 
 **Pré-condições:**
@@ -285,26 +287,26 @@ Permitir a consulta das informações da ficha de acompanhamento de um estudante
 - o psicólogo deve estar autenticado;
 - deve possuir acesso autorizado ao estudante.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O psicólogo seleciona um estudante acompanhado.
 2. O sistema verifica o vínculo e as permissões.
 3. O sistema recupera a ficha correspondente.
 4. O sistema apresenta as informações autorizadas.
 
-**Pós-condição:**  
+**Pós-condição:**
 Nenhum dado é alterado.
 
 ---
 
-# ⚙️ UC11 — Gerenciar Estudantes
+## UC11 — Gerenciar Estudantes
 
 **Ator principal:** Administrador
 
-**Objetivo:**  
+**Objetivo:**
 Permitir a administração dos cadastros de estudantes.
 
-## Operações
+### Operações
 
 O administrador pode:
 
@@ -313,22 +315,22 @@ O administrador pode:
 - atualizar;
 - remover, quando permitido pelas regras de integridade.
 
-**Pré-condição:**  
+**Pré-condição:**
 O administrador deve estar autenticado.
 
-**Pós-condição:**  
+**Pós-condição:**
 Os dados do estudante são atualizados de acordo com a operação realizada.
 
 ---
 
-# 👨‍🏫 UC12 — Gerenciar Professores
+## UC12 — Gerenciar Professores
 
 **Ator principal:** Administrador
 
-**Objetivo:**  
+**Objetivo:**
 Permitir o gerenciamento dos professores cadastrados no MKpause.
 
-## Operações
+### Operações
 
 - cadastrar;
 - consultar;
@@ -337,16 +339,16 @@ Permitir o gerenciamento dos professores cadastrados no MKpause.
 
 ---
 
-# 🧠 UC13 — Gerenciar Psicólogos
+## UC13 — Gerenciar Psicólogos
 
 **Ator principal:** Administrador
 
-**Objetivo:**  
+**Objetivo:**
 Permitir o gerenciamento dos psicólogos cadastrados na plataforma.
 
 A funcionalidade deve considerar os diferentes perfis profissionais existentes no sistema.
 
-## Operações
+### Operações
 
 - cadastrar;
 - consultar;
@@ -355,21 +357,21 @@ A funcionalidade deve considerar os diferentes perfis profissionais existentes n
 
 ---
 
-# 🔗 UC14 — Gerenciar Vínculos
+## UC14 — Gerenciar Vínculos
 
 **Ator principal:** Administrador
 
-**Objetivo:**  
+**Objetivo:**
 Permitir o gerenciamento das relações necessárias entre estudantes e profissionais ou responsáveis.
 
-## Vínculos previstos
+### Vínculos previstos
 
 - estudante ↔ professor;
 - estudante ↔ psicólogo escolar;
 - estudante ↔ psicólogo clínico;
 - estudante ↔ responsável.
 
-## Fluxo principal
+### Fluxo principal
 
 1. O administrador acessa o gerenciamento de vínculos.
 2. Seleciona o estudante.
@@ -377,34 +379,34 @@ Permitir o gerenciamento das relações necessárias entre estudantes e profissi
 4. O sistema valida a possibilidade do vínculo.
 5. O sistema registra a relação.
 
-**Pós-condição:**  
+**Pós-condição:**
 O vínculo passa a ser considerado nas regras de acesso correspondentes.
 
 ---
 
-# 📋 UC15 — Gerenciar Ficha de Acompanhamento
+## UC15 — Gerenciar Ficha de Acompanhamento
 
 **Ator principal:** Administrador
 
-**Objetivo:**  
+**Objetivo:**
 Permitir o gerenciamento das fichas de acompanhamento relacionadas aos estudantes.
 
-**Pré-condição:**  
+**Pré-condição:**
 O administrador deve estar autenticado.
 
-**Pós-condição:**  
+**Pós-condição:**
 As informações da ficha permanecem associadas ao estudante correspondente.
 
 ---
 
-# 🎮 UC16 — Gerenciar Conteúdos
+## UC16 — Gerenciar Conteúdos
 
 **Ator principal:** Administrador
 
-**Objetivo:**  
+**Objetivo:**
 Permitir o gerenciamento dos recursos de autorregulação disponibilizados aos estudantes.
 
-## Conteúdos
+### Conteúdos
 
 Podem ser gerenciados recursos como:
 
@@ -413,7 +415,7 @@ Podem ser gerenciados recursos como:
 - exercícios;
 - atividades de autorregulação.
 
-## Operações
+### Operações
 
 - cadastrar;
 - consultar;
@@ -423,9 +425,9 @@ Podem ser gerenciados recursos como:
 
 ---
 
-# Relações entre Casos de Uso
+## Relações entre Casos de Uso
 
-## `<<include>>`
+### `<<include>>`
 
 Uma relação `<<include>>` indica que um comportamento é incorporado obrigatoriamente ao fluxo do caso de uso principal quando aquela relação se aplica ao modelo definido.
 
@@ -433,7 +435,7 @@ No fluxo de autorregulação, funcionalidades essenciais da sessão podem ser re
 
 Exemplo conceitual:
 
-```text id="g6njpi"
+```text
 Realizar sessão de autorregulação
             |
             | <<include>>
@@ -443,7 +445,7 @@ Realizar sessão de autorregulação
 
 ---
 
-## `<<extend>>`
+### `<<extend>>`
 
 Uma relação `<<extend>>` representa um comportamento adicional que ocorre somente sob determinadas condições.
 
@@ -451,7 +453,7 @@ A emissão de alerta pode ser representada dessa forma quando ocorre apenas dian
 
 Exemplo conceitual:
 
-```text id="7u80wm"
+```text
         Emitir alerta
               |
               | <<extend>>
@@ -463,7 +465,7 @@ A direção exata das relações deve permanecer consistente com a versão final
 
 ---
 
-# Resumo
+## Resumo
 
 | ID | Caso de Uso | Ator principal |
 |---|---|---|

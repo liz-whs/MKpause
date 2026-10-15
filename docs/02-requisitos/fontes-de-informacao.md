@@ -1,3 +1,5 @@
+**Português** · [English](./fontes-de-informacao.en.md)
+
 # Fontes de Informação
 
 A definição dos requisitos do **MKpause** utiliza diferentes fontes de informação para compreender o contexto do problema, identificar necessidades dos usuários e orientar as funcionalidades propostas para a plataforma.
@@ -6,7 +8,7 @@ A utilização de múltiplas fontes permite analisar o problema sob diferentes p
 
 ---
 
-# 📚 Pesquisa Bibliográfica e Documental
+## Pesquisa Bibliográfica e Documental
 
 Pesquisas bibliográficas e documentais são utilizadas para compreender conceitos relacionados à:
 
@@ -19,7 +21,7 @@ Pesquisas bibliográficas e documentais são utilizadas para compreender conceit
 
 Essas pesquisas auxiliam principalmente na compreensão do domínio no qual o MKpause está inserido e na identificação de cuidados necessários durante o desenvolvimento da solução.
 
-## Contribuição para o projeto
+### Contribuição para o projeto
 
 A pesquisa documental auxilia na definição de:
 
@@ -32,7 +34,7 @@ A pesquisa documental auxilia na definição de:
 
 ---
 
-# 👥 Usuários e Stakeholders
+## Usuários e Stakeholders
 
 As necessidades dos diferentes usuários envolvidos no processo constituem uma das principais fontes para definição das funcionalidades.
 
@@ -45,7 +47,7 @@ Os principais grupos considerados são:
 - responsáveis;
 - administradores da plataforma.
 
-## Contribuição para o projeto
+### Contribuição para o projeto
 
 A análise das necessidades desses usuários auxilia na definição de:
 
@@ -60,7 +62,7 @@ A análise das necessidades desses usuários auxilia na definição de:
 
 ---
 
-# 🗣️ Levantamento com Potenciais Usuários
+## Levantamento com Potenciais Usuários
 
 O contato com potenciais usuários e pessoas relacionadas ao contexto escolar pode ser utilizado para compreender dificuldades, necessidades e expectativas relacionadas ao problema abordado.
 
@@ -72,7 +74,7 @@ Entre as técnicas de elicitação aplicáveis ao projeto estão:
 - conversas exploratórias;
 - análise de cenários de uso.
 
-## Contribuição para o projeto
+### Contribuição para o projeto
 
 Essas técnicas podem auxiliar na identificação de:
 
@@ -85,7 +87,7 @@ Essas técnicas podem auxiliar na identificação de:
 
 ---
 
-# 🔎 Análise de Soluções Existentes
+## Análise de Soluções Existentes
 
 A análise de produtos e plataformas relacionadas ao domínio permite observar como problemas semelhantes são tratados em outras soluções.
 
@@ -98,7 +100,7 @@ Essa análise pode considerar:
 - limitações;
 - avaliações realizadas por usuários.
 
-## Contribuição para o projeto
+### Contribuição para o projeto
 
 A análise de soluções existentes auxilia na:
 
@@ -111,7 +113,7 @@ A análise de soluções existentes auxilia na:
 
 ---
 
-# 🎓 Contexto Acadêmico
+## Contexto Acadêmico
 
 O desenvolvimento do MKpause também é orientado pelas atividades, conteúdos e processos de modelagem utilizados durante o curso de **Engenharia de Software da PUCPR**.
 
@@ -132,7 +134,7 @@ Feedbacks recebidos durante avaliações e apresentações também são utilizad
 
 ---
 
-# 🔄 Validação e Refinamento
+## Validação e Refinamento
 
 Os requisitos do MKpause não são considerados informações imutáveis.
 
@@ -150,25 +152,37 @@ Quando uma alteração for realizada, os documentos relacionados devem ser revis
 
 ---
 
-# 📌 Registro das Fontes Consultadas
+## Registro das Fontes Consultadas
 
 As fontes específicas utilizadas durante pesquisas devem ser registradas nesta seção conforme forem incorporadas ao projeto.
 
+### Fontes utilizadas
+
 | Fonte | Tipo | Assunto | Contribuição para o MKpause |
 |---|---|---|---|
-| A definir | Artigo / publicação | Autorregulação | Fundamentação das estratégias de autorregulação |
+| Bentley et al. (2023) | Revisão sistemática | Práticas de respiração | Fundamentação da respiração guiada e da presença de profissionais no processo |
+| Pine et al. (2020) | Revisão sistemática | Jogos casuais | Fundamentação dos jogos curtos, simples e sem penalidade |
+| Valdez e Mehrabian (1994) | Estudo experimental | Cor e emoção | Fundamentação da paleta de cores |
+| Bar e Neta (2006) | Estudo experimental | Preferência por formas curvas | Fundamentação das formas da interface e do mascote |
+| WCAG 2.1 (W3C) | Diretriz | Acessibilidade | Critérios de contraste da paleta (RNF12) |
+
+A análise completa de cada fonte está em [Fundamentação Científica](../07-fundamentacao/README.md).
+
+### Fontes previstas
+
+| Fonte | Tipo | Assunto | Contribuição para o MKpause |
+|---|---|---|---|
 | A definir | Artigo / publicação | Ambiente escolar | Compreensão do contexto dos estudantes |
 | A definir | Fonte oficial | Proteção de dados | Definição de cuidados com dados pessoais |
-| A definir | Diretriz | Acessibilidade | Orientação dos requisitos de acessibilidade |
 | A definir | Pesquisa com usuários | Necessidades dos estudantes | Validação das funcionalidades propostas |
 | A definir | Entrevista / consulta | Acompanhamento profissional | Validação das necessidades dos profissionais |
 | A definir | Produto existente | Soluções similares | Benchmarking e identificação de oportunidades |
 
-> Esta tabela deve ser atualizada somente com fontes efetivamente utilizadas durante o desenvolvimento do projeto.
+> Uma fonte passa da tabela de fontes previstas para a de fontes utilizadas somente depois de ser efetivamente consultada e incorporada ao projeto.
 
 ---
 
-# Relação com os Requisitos
+## Relação com os Requisitos
 
 As informações obtidas por meio dessas fontes servem como apoio para:
 

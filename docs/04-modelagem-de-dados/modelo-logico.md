@@ -1,3 +1,5 @@
+**Português** · [English](./modelo-logico.en.md)
+
 # Modelo Lógico
 
 O modelo lógico do **MKpause** representa a transformação do modelo conceitual para uma estrutura compatível com bancos de dados relacionais.
@@ -16,7 +18,7 @@ O modelo lógico serve como base para a futura construção do modelo físico e 
 
 ---
 
-# Convenções
+## Convenções
 
 Nesta documentação são utilizadas as seguintes identificações:
 
@@ -30,13 +32,13 @@ Nesta documentação são utilizadas as seguintes identificações:
 
 ---
 
-# Tabelas Principais
+## Tabelas Principais
 
-## 🎓 ESTUDANTE
+### ESTUDANTE
 
 Armazena os dados dos estudantes cadastrados no MKpause.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_estudante` — PK
 - nome
@@ -47,7 +49,7 @@ Armazena os dados dos estudantes cadastrados no MKpause.
 - turma
 - situação do cadastro
 
-### Relacionamentos
+#### Relacionamentos
 
 O estudante pode estar relacionado a:
 
@@ -61,11 +63,11 @@ O estudante pode estar relacionado a:
 
 ---
 
-## 👨‍🏫 PROFESSOR
+### PROFESSOR
 
 Armazena os dados dos professores cadastrados.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_professor` — PK
 - nome
@@ -74,7 +76,7 @@ Armazena os dados dos professores cadastrados.
 - informações institucionais
 - situação do cadastro
 
-### Relacionamentos
+#### Relacionamentos
 
 Um professor pode possuir vínculo com diferentes estudantes.
 
@@ -82,11 +84,11 @@ O relacionamento com estudantes é representado por uma tabela associativa.
 
 ---
 
-## 🏫 PSICOLOGO_ESCOLAR
+### PSICOLOGO_ESCOLAR
 
 Armazena os dados dos psicólogos escolares.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_psicologo_escolar` — PK
 - nome
@@ -99,11 +101,11 @@ Armazena os dados dos psicólogos escolares.
 
 ---
 
-## 🧠 PSICOLOGO_CLINICO
+### PSICOLOGO_CLINICO
 
 Armazena os dados dos psicólogos clínicos.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_psicologo_clinico` — PK
 - nome
@@ -115,11 +117,11 @@ Armazena os dados dos psicólogos clínicos.
 
 ---
 
-## 👨‍👩‍👧 RESPONSAVEL
+### RESPONSAVEL
 
 Armazena os dados dos responsáveis vinculados aos estudantes.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_responsavel` — PK
 - nome
@@ -131,11 +133,11 @@ O vínculo entre responsável e estudante pode ser estabelecido após o cadastro
 
 ---
 
-## ⚙️ ADMINISTRADOR
+### ADMINISTRADOR
 
 Armazena os dados dos usuários responsáveis pela administração da plataforma.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_administrador` — PK
 - nome
@@ -145,11 +147,11 @@ Armazena os dados dos usuários responsáveis pela administração da plataforma
 
 ---
 
-# 🧘 SESSAO
+### SESSAO
 
 Representa uma sessão de autorregulação realizada por um estudante.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_sessao` — PK
 - `id_estudante` — FK
@@ -158,9 +160,9 @@ Representa uma sessão de autorregulação realizada por um estudante.
 - horário de término
 - informações relacionadas à sessão
 
-### Relacionamento
+#### Relacionamento
 
-```text id="w6qgpy"
+```text
 ESTUDANTE
     1
     │
@@ -175,11 +177,11 @@ Cada sessão pertence a um único estudante.
 
 ---
 
-# 🙂 REGISTRO_HUMOR
+### REGISTRO_HUMOR
 
 Armazena os estados emocionais informados durante uma sessão.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_registro_humor` — PK
 - `id_sessao` — FK
@@ -192,9 +194,9 @@ O atributo responsável pelo momento permite distinguir registros como:
 - pré-sessão;
 - pós-sessão.
 
-### Relacionamento
+#### Relacionamento
 
-```text id="40xigv"
+```text
 SESSAO
    1
    │
@@ -205,11 +207,11 @@ REGISTRO_HUMOR
 
 ---
 
-# 🎮 ATIVIDADE
+### ATIVIDADE
 
 Representa os recursos de autorregulação disponibilizados aos estudantes.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_atividade` — PK
 - nome
@@ -228,11 +230,11 @@ Uma atividade pode representar:
 
 ---
 
-# 🚨 ALERTA
+### ALERTA
 
 Armazena os alertas relacionados aos estudantes.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_alerta` — PK
 - `id_estudante` — FK
@@ -243,9 +245,9 @@ Armazena os alertas relacionados aos estudantes.
 - situação
 - informações relacionadas ao alerta
 
-### Relacionamentos
+#### Relacionamentos
 
-```text id="z7occu"
+```text
 ESTUDANTE 1 ───── N ALERTA
 ```
 
@@ -257,11 +259,11 @@ Os destinatários devem ser determinados pelos vínculos e regras de acesso da p
 
 ---
 
-# 📝 OBSERVACAO
+### OBSERVACAO
 
 Armazena observações registradas sobre estudantes.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_observacao` — PK
 - `id_estudante` — FK
@@ -279,11 +281,11 @@ A estratégia utilizada para representar diferentes tipos de autor deverá perma
 
 ---
 
-# 📋 FICHA_ACOMPANHAMENTO
+### FICHA_ACOMPANHAMENTO
 
 Armazena informações utilizadas no acompanhamento do estudante.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_ficha` — PK
 - `id_estudante` — FK
@@ -292,7 +294,7 @@ Armazena informações utilizadas no acompanhamento do estudante.
 - data da última atualização
 - situação
 
-### Relacionamento
+#### Relacionamento
 
 A ficha está associada ao estudante correspondente.
 
@@ -300,11 +302,11 @@ Caso a regra do projeto determine **uma única ficha por estudante**, `id_estuda
 
 ---
 
-# 📢 AVISO
+### AVISO
 
 Armazena comunicados disponibilizados aos usuários.
 
-### Estrutura geral
+#### Estrutura geral
 
 - `id_aviso` — PK
 - título
@@ -316,17 +318,17 @@ Armazena comunicados disponibilizados aos usuários.
 
 ---
 
-# Tabelas Associativas
+## Tabelas Associativas
 
 Relacionamentos N:N identificados no modelo conceitual são transformados em tabelas associativas no modelo lógico.
 
 ---
 
-## 🔗 PROFESSOR_ESTUDANTE
+### PROFESSOR_ESTUDANTE
 
 Representa o vínculo entre professores e estudantes.
 
-```text id="afudfr"
+```text
 PROFESSOR
     │
     │ 1
@@ -340,7 +342,7 @@ PROFESSOR_ESTUDANTE
 ESTUDANTE
 ```
 
-### Estrutura
+#### Estrutura
 
 - `id_professor` — PK/FK
 - `id_estudante` — PK/FK
@@ -351,22 +353,22 @@ Informações específicas do vínculo também podem ser adicionadas quando nece
 
 ---
 
-## 🔗 PSICOLOGO_ESCOLAR_ESTUDANTE
+### PSICOLOGO_ESCOLAR_ESTUDANTE
 
 Representa os vínculos entre psicólogos escolares e estudantes.
 
-### Estrutura
+#### Estrutura
 
 - `id_psicologo_escolar` — PK/FK
 - `id_estudante` — PK/FK
 
 ---
 
-## 🔗 PSICOLOGO_CLINICO_ESTUDANTE
+### PSICOLOGO_CLINICO_ESTUDANTE
 
 Representa os vínculos entre psicólogos clínicos e estudantes.
 
-### Estrutura
+#### Estrutura
 
 - `id_psicologo_clinico` — PK/FK
 - `id_estudante` — PK/FK
@@ -375,28 +377,28 @@ Esse vínculo pode ser utilizado pelas regras de autorização para determinar q
 
 ---
 
-## 🔗 ESTUDANTE_RESPONSAVEL
+### ESTUDANTE_RESPONSAVEL
 
 Representa o relacionamento entre estudantes e responsáveis.
 
-### Estrutura
+#### Estrutura
 
 - `id_estudante` — PK/FK
 - `id_responsavel` — PK/FK
 - relação ou grau de vínculo, quando necessário
 - situação do vínculo
 
-### Transformação
+#### Transformação
 
 Modelo conceitual:
 
-```text id="mrl7fi"
+```text
 ESTUDANTE N ───── N RESPONSAVEL
 ```
 
 Modelo lógico:
 
-```text id="1bs04n"
+```text
 ESTUDANTE
     │
     ▼
@@ -408,28 +410,28 @@ RESPONSAVEL
 
 ---
 
-## 🔗 SESSAO_ATIVIDADE
+### SESSAO_ATIVIDADE
 
 Representa quais atividades foram utilizadas em determinada sessão.
 
-### Estrutura
+#### Estrutura
 
 - `id_sessao` — PK/FK
 - `id_atividade` — PK/FK
 
 Podem ser adicionadas informações específicas da utilização da atividade, caso sejam necessárias posteriormente.
 
-### Transformação
+#### Transformação
 
 Modelo conceitual:
 
-```text id="1qihhu"
+```text
 SESSAO N ───── N ATIVIDADE
 ```
 
 Modelo lógico:
 
-```text id="1x4rxc"
+```text
 SESSAO
    │
    ▼
@@ -441,7 +443,7 @@ ATIVIDADE
 
 ---
 
-# Resumo das Relações
+## Resumo das Relações
 
 | Origem | Relação | Destino | Implementação |
 |---|---|---|---|
@@ -460,7 +462,7 @@ ATIVIDADE
 
 ---
 
-# Integridade Referencial
+## Integridade Referencial
 
 As chaves estrangeiras devem garantir que relacionamentos inválidos não sejam criados.
 
@@ -475,7 +477,7 @@ As regras específicas para exclusão e atualização deverão ser definidas no 
 
 ---
 
-# Exclusões e Histórico
+## Exclusões e Histórico
 
 Registros históricos relevantes não devem ser eliminados automaticamente sem análise de suas dependências.
 
@@ -492,11 +494,11 @@ Essa decisão deve ser formalizada durante a implementação do banco de dados.
 
 ---
 
-# Modelo Conceitual x Modelo Lógico
+## Modelo Conceitual x Modelo Lógico
 
 Exemplo de transformação:
 
-```text id="q7xk51"
+```text
 MODELO CONCEITUAL
 
 ESTUDANTE N ───────── N PROFESSOR
@@ -522,23 +524,17 @@ A tabela associativa resolve o relacionamento N:N dentro do modelo relacional.
 
 ---
 
-# Diagrama Lógico
+## Diagrama Lógico
 
-O diagrama do modelo lógico está armazenado em:
+O diagrama do modelo lógico está disponível em PDF:
 
-[`diagramas/`](./diagramas/)
-
-Quando o arquivo estiver disponível como imagem:
-
-```md id="ad4v2y"
-![Modelo Lógico do MKpause](./diagramas/modelo-logico.png)
-```
+[Modelo Lógico do MKpause (PDF)](./diagramas/modelo-logico.pdf)
 
 Também é recomendado manter o arquivo editável utilizado na ferramenta de modelagem junto à documentação do projeto.
 
 ---
 
-# Próxima Etapa
+## Próxima Etapa
 
 O modelo lógico serve como base para o **modelo físico**, no qual serão definidos aspectos específicos do SGBD escolhido, incluindo:
 

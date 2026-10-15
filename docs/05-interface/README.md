@@ -1,3 +1,5 @@
+**Português** · [English](./README.en.md)
+
 # Interface — MKpause
 
 Esta seção reúne a documentação relacionada à **interface e à experiência de uso do MKpause**, incluindo wireframes, protótipos e decisões de interface desenvolvidas durante o projeto.
@@ -6,7 +8,7 @@ As interfaces devem refletir os requisitos, casos de uso e regras de negócio de
 
 ---
 
-## 📌 Estrutura
+## Estrutura
 
 ```text
 05-interface/
@@ -17,7 +19,7 @@ As interfaces devem refletir os requisitos, casos de uso e regras de negócio de
 
 ### Wireframes
 
-O diretório [`wireframes/`](./wireframes/) é destinado às representações estruturais das telas do MKpause.
+O diretório `wireframes/` (criado quando a primeira versão for validada) é destinado às representações estruturais das telas do MKpause.
 
 Os wireframes são utilizados para definir aspectos como:
 
@@ -34,7 +36,7 @@ Nesta etapa, o foco principal está na **estrutura e no funcionamento da interfa
 
 ### Protótipos
 
-O diretório [`prototipos/`](./prototipos/) reúne as versões visuais das interfaces desenvolvidas para o MKpause.
+O diretório `prototipos/` (criado quando a primeira versão for validada) reúne as versões visuais das interfaces desenvolvidas para o MKpause.
 
 Os protótipos podem representar aspectos como:
 
@@ -47,9 +49,11 @@ Os protótipos podem representar aspectos como:
 - feedback visual;
 - experiência de utilização.
 
+As diretrizes de identidade visual e sua fundamentação estão em [Paleta de Cores](../07-fundamentacao/paleta-de-cores.md) e [Formas Arredondadas e Mascote](../07-fundamentacao/formas-e-mascote.md).
+
 ---
 
-# Perfis da Interface
+## Perfis da Interface
 
 Como o MKpause possui diferentes tipos de usuários, a interface deve considerar as necessidades e permissões específicas de cada perfil.
 
@@ -65,7 +69,7 @@ As funcionalidades apresentadas em cada interface devem respeitar as permissões
 
 ---
 
-# Fluxo do Estudante
+## Fluxo do Estudante
 
 Um dos principais fluxos da interface corresponde à realização de uma sessão de autorregulação.
 
@@ -93,7 +97,7 @@ Dependendo do estado identificado e das regras de negócio, o fluxo também pode
 
 ---
 
-# Interface dos Profissionais
+## Interface dos Profissionais
 
 Professor, Psicólogo Escolar e Psicólogo Clínico possuem interfaces voltadas principalmente ao acompanhamento dos estudantes aos quais possuem acesso.
 
@@ -110,7 +114,7 @@ As funcionalidades específicas podem variar de acordo com o perfil profissional
 
 ---
 
-# Interface Administrativa
+## Interface Administrativa
 
 A área administrativa deve fornecer recursos para gerenciamento da plataforma, incluindo:
 
@@ -124,7 +128,7 @@ A área administrativa deve fornecer recursos para gerenciamento da plataforma, 
 
 ---
 
-# Princípios de Interface
+## Princípios de Interface
 
 A interface do MKpause deve buscar:
 
@@ -142,7 +146,7 @@ Como o sistema envolve informações sensíveis e situações de acompanhamento,
 
 ---
 
-# Responsividade
+## Responsividade
 
 As interfaces devem ser planejadas considerando diferentes tamanhos de tela sempre que isso estiver dentro do escopo da implementação.
 
@@ -150,7 +154,7 @@ A organização das informações deve permanecer compreensível e utilizável n
 
 ---
 
-# Acessibilidade
+## Acessibilidade
 
 As decisões de interface devem considerar os requisitos de acessibilidade definidos para o MKpause.
 
@@ -166,7 +170,7 @@ Entre os pontos importantes estão:
 
 ---
 
-# Validação
+## Validação
 
 Os wireframes e protótipos devem ser validados pela equipe antes de serem considerados versões definitivas da documentação.
 
@@ -181,9 +185,9 @@ Durante a validação, devem ser observados principalmente:
 
 ---
 
-# Status
+## Status
 
-> 🚧 **Em validação**
+> **Em validação**
 
 Os wireframes e protótipos do MKpause estão sujeitos a revisão pela equipe.
 
@@ -193,6 +197,7 @@ Após a validação, os arquivos aprovados devem ser adicionados aos respectivos
 
 ## Documentos relacionados
 
-- [Requisitos](../02-requisitos/)
-- [Casos de Uso](../03-casos-de-uso/)
-- [Modelagem de Dados](../04-modelagem-de-dados/)
+- [Requisitos](../02-requisitos/README.md)
+- [Casos de Uso](../03-casos-de-uso/README.md)
+- [Modelagem de Dados](../04-modelagem-de-dados/README.md)
+- [Fundamentação Científica](../07-fundamentacao/README.md)

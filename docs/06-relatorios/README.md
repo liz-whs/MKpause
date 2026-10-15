@@ -1,3 +1,5 @@
+**Português** · [English](./README.en.md)
+
 # Relatórios — MKpause
 
 Esta seção reúne relatórios, análises e documentos complementares produzidos durante o desenvolvimento do **MKpause**.
@@ -6,7 +8,7 @@ O objetivo deste diretório é manter registros importantes do processo de desen
 
 ---
 
-# 📌 Conteúdos
+## Conteúdos
 
 Este diretório pode armazenar documentos relacionados a:
 
@@ -24,7 +26,7 @@ Este diretório pode armazenar documentos relacionados a:
 
 ---
 
-# Organização
+## Organização
 
 Os documentos devem possuir nomes que permitam identificar facilmente seu conteúdo.
 
@@ -43,7 +45,7 @@ A estrutura pode ser expandida conforme novos documentos forem produzidos.
 
 ---
 
-# Versionamento
+## Versionamento
 
 Sempre que possível, documentos que possam ser mantidos em formatos textuais devem utilizar formatos compatíveis com versionamento.
 
@@ -70,7 +72,7 @@ Isso facilita a visualização das alterações realizadas ao longo do desenvolv
 
 ---
 
-# Registro de Relatórios
+## Registro de Relatórios
 
 À medida que novos documentos forem adicionados, eles podem ser registrados nesta página.
 
@@ -80,7 +82,7 @@ Isso facilita a visualização das alterações realizadas ao longo do desenvolv
 
 ---
 
-# Relação com a Documentação
+## Relação com a Documentação
 
 Os relatórios complementam a documentação principal do projeto.
 
@@ -94,15 +96,16 @@ docs/
 ├── 03-casos-de-uso/
 ├── 04-modelagem-de-dados/
 ├── 05-interface/
-└── 06-relatorios/
+├── 06-relatorios/
+└── 07-fundamentacao/
 ```
 
 Os documentos das seções anteriores representam a especificação atual do sistema, enquanto esta seção pode preservar análises, resultados e materiais produzidos durante sua evolução.
 
 ---
 
-# Status
+## Status
 
-> 📂 Seção preparada para receber os relatórios e documentos complementares do projeto.
+> Seção preparada para receber os relatórios e documentos complementares do projeto.
 
 Novos documentos devem ser adicionados conforme forem produzidos e validados pela equipe.

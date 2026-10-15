@@ -1,3 +1,5 @@
+**Português** · [English](./contexto.en.md)
+
 # Contexto
 
 O ambiente escolar envolve não apenas o desenvolvimento acadêmico dos estudantes, mas também situações de pressão, ansiedade, frustração, conflitos e sobrecarga que podem afetar seu bem-estar e sua participação nas atividades escolares.

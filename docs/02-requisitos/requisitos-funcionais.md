@@ -1,3 +1,5 @@
+**Português** · [English](./requisitos-funcionais.en.md)
+
 # Requisitos Funcionais
 
 Os requisitos funcionais descrevem as funcionalidades que o **MKpause** deve disponibilizar aos diferentes usuários do sistema.
@@ -6,193 +8,193 @@ Os requisitos estão organizados de acordo com o perfil responsável pela intera
 
 ---
 
-# 🎓 Estudante
+## Estudante
 
-## RF01 — Realizar login
+### RF01 — Realizar login
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o estudante realize login utilizando suas credenciais cadastradas.
 
 **Ator:** Estudante
 
 ---
 
-## RF02 — Acessar atividades e jogos
+### RF02 — Acessar atividades e jogos
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o estudante acesse atividades e jogos disponibilizados para auxiliar no processo de autorregulação.
 
 **Ator:** Estudante
 
 ---
 
-## RF03 — Acessar vídeos
+### RF03 — Acessar vídeos
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o estudante visualize vídeos disponibilizados como recursos de apoio à autorregulação.
 
 **Ator:** Estudante
 
 ---
 
-## RF04 — Registrar humor inicial
+### RF04 — Registrar humor inicial
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o estudante registre seu estado emocional antes de realizar uma atividade de autorregulação.
 
 **Ator:** Estudante
 
 ---
 
-## RF05 — Registrar sessão de autorregulação
+### RF05 — Registrar sessão de autorregulação
 
-**Descrição:**  
+**Descrição:**
 O sistema deve registrar as informações relacionadas à sessão de autorregulação realizada pelo estudante.
 
 **Ator:** Estudante
 
 ---
 
-## RF06 — Registrar humor final
+### RF06 — Registrar humor final
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o estudante registre seu estado emocional após a realização da atividade de autorregulação.
 
 **Ator:** Estudante
 
 ---
 
-## RF07 — Registrar observações da sessão
+### RF07 — Registrar observações da sessão
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir o registro de informações ou observações relacionadas à experiência do estudante durante a sessão.
 
 **Ator:** Estudante
 
 ---
 
-## RF08 — Solicitar auxílio
+### RF08 — Solicitar auxílio
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o estudante solicite auxílio por meio da emissão de um alerta quando necessitar de acompanhamento.
 
 **Ator:** Estudante
 
-**Relacionamentos:**  
+**Relacionamentos:**
 O alerta poderá ser encaminhado aos profissionais responsáveis pelo acompanhamento do estudante de acordo com os vínculos cadastrados no sistema.
 
 ---
 
-## RF09 — Visualizar histórico de sessões
+### RF09 — Visualizar histórico de sessões
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o estudante consulte o histórico de suas sessões de autorregulação.
 
 **Ator:** Estudante
 
 ---
 
-# 🧠 Psicólogo Clínico
+## Psicólogo Clínico
 
-## RF10 — Realizar login
+### RF10 — Realizar login
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico realize login utilizando suas credenciais cadastradas.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF11 — Consultar estudantes acompanhados
+### RF11 — Consultar estudantes acompanhados
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico consulte os estudantes vinculados ao seu acompanhamento.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF12 — Consultar histórico do estudante
+### RF12 — Consultar histórico do estudante
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico consulte o histórico de sessões dos estudantes vinculados ao seu acompanhamento.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF13 — Consultar registros de humor
+### RF13 — Consultar registros de humor
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico consulte os registros de humor relacionados às sessões dos estudantes acompanhados.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF14 — Consultar observações
+### RF14 — Consultar observações
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico consulte observações relacionadas aos estudantes sob seu acompanhamento, respeitando suas permissões de acesso.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF15 — Receber alertas
+### RF15 — Receber alertas
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico receba alertas relacionados aos estudantes vinculados ao seu acompanhamento.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF16 — Consultar ficha de acompanhamento
+### RF16 — Consultar ficha de acompanhamento
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico consulte a ficha de acompanhamento dos estudantes vinculados a ele.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF17 — Registrar informações de acompanhamento
+### RF17 — Registrar informações de acompanhamento
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico registre informações relacionadas ao acompanhamento do estudante dentro das permissões estabelecidas para seu perfil.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-## RF18 — Consultar avisos
+### RF18 — Consultar avisos
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o psicólogo clínico consulte avisos disponibilizados na plataforma.
 
 **Ator:** Psicólogo Clínico
 
 ---
 
-# 🏫 Profissionais Escolares
+## Profissionais Escolares
 
 Os requisitos desta seção contemplam funcionalidades disponibilizadas aos profissionais responsáveis pelo acompanhamento do estudante no ambiente escolar, considerando as permissões específicas de **Professor** e **Psicólogo Escolar**.
 
 ---
 
-## RF19 — Realizar login
+### RF19 — Realizar login
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que professores e psicólogos escolares realizem login utilizando suas credenciais cadastradas.
 
 **Atores:** Professor e Psicólogo Escolar
 
 ---
 
-## RF20 — Consultar estudantes vinculados
+### RF20 — Consultar estudantes vinculados
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o professor e o psicólogo escolar consultem os estudantes vinculados a eles.
 
 **Atores:** Professor e Psicólogo Escolar
@@ -201,128 +203,128 @@ O sistema deve permitir que o professor e o psicólogo escolar consultem os estu
 
 ---
 
-## RF21 — Receber alertas
+### RF21 — Receber alertas
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que os profissionais escolares recebam alertas relacionados aos estudantes vinculados a eles.
 
 **Atores:** Professor e Psicólogo Escolar
 
 ---
 
-## RF22 — Consultar alertas
+### RF22 — Consultar alertas
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que professores e psicólogos escolares consultem os alertas recebidos relacionados aos estudantes acompanhados.
 
 **Atores:** Professor e Psicólogo Escolar
 
 ---
 
-## RF23 — Registrar observações
+### RF23 — Registrar observações
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que professores e psicólogos escolares registrem observações relacionadas aos estudantes vinculados.
 
 **Atores:** Professor e Psicólogo Escolar
 
 ---
 
-## RF24 — Consultar informações autorizadas
+### RF24 — Consultar informações autorizadas
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que professores e psicólogos escolares consultem informações dos estudantes de acordo com as permissões estabelecidas para cada perfil.
 
 **Atores:** Professor e Psicólogo Escolar
 
 ---
 
-## RF25 — Consultar avisos
+### RF25 — Consultar avisos
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que professores e psicólogos escolares consultem avisos disponibilizados na plataforma.
 
 **Atores:** Professor e Psicólogo Escolar
 
 ---
 
-# ⚙️ Administrador
+## Administrador
 
-## RF26 — Realizar login
+### RF26 — Realizar login
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador realize login utilizando suas credenciais cadastradas.
 
 **Ator:** Administrador
 
 ---
 
-## RF27 — Gerenciar estudantes
+### RF27 — Gerenciar estudantes
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador cadastre, consulte, atualize e remova estudantes.
 
 **Ator:** Administrador
 
 ---
 
-## RF28 — Gerenciar professores
+### RF28 — Gerenciar professores
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador cadastre, consulte, atualize e remova professores.
 
 **Ator:** Administrador
 
 ---
 
-## RF29 — Gerenciar psicólogos escolares
+### RF29 — Gerenciar psicólogos escolares
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador cadastre, consulte, atualize e remova psicólogos escolares.
 
 **Ator:** Administrador
 
 ---
 
-## RF30 — Gerenciar psicólogos clínicos
+### RF30 — Gerenciar psicólogos clínicos
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador cadastre, consulte, atualize e remova psicólogos clínicos.
 
 **Ator:** Administrador
 
 ---
 
-## RF31 — Gerenciar fichas de acompanhamento
+### RF31 — Gerenciar fichas de acompanhamento
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador cadastre, consulte, atualize e gerencie fichas de acompanhamento relacionadas aos estudantes.
 
 **Ator:** Administrador
 
 ---
 
-## RF32 — Gerenciar vínculos entre estudantes e professores
+### RF32 — Gerenciar vínculos entre estudantes e professores
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador estabeleça e gerencie os vínculos entre estudantes e professores.
 
 **Ator:** Administrador
 
 ---
 
-## RF33 — Gerenciar vínculos entre estudantes e psicólogos
+### RF33 — Gerenciar vínculos entre estudantes e psicólogos
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir que o administrador estabeleça e gerencie os vínculos entre estudantes e psicólogos escolares ou clínicos.
 
 **Ator:** Administrador
 
 ---
 
-## RF34 — Gerenciar vínculos com responsáveis
+### RF34 — Gerenciar vínculos com responsáveis
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir o gerenciamento dos vínculos entre estudantes e seus responsáveis.
 
 O responsável não participa diretamente do cadastro inicial do estudante. O estabelecimento do vínculo ocorre posteriormente por meio do processo definido pelo sistema, como envio de convite ou mecanismo equivalente.
@@ -331,16 +333,16 @@ O responsável não participa diretamente do cadastro inicial do estudante. O es
 
 ---
 
-## RF35 — Gerenciar conteúdos de autorregulação
+### RF35 — Gerenciar conteúdos de autorregulação
 
-**Descrição:**  
+**Descrição:**
 O sistema deve permitir o gerenciamento dos conteúdos disponibilizados aos estudantes durante as sessões de autorregulação, incluindo atividades, jogos, vídeos e demais recursos previstos pela plataforma.
 
 **Ator:** Administrador
 
 ---
 
-# Resumo dos Requisitos
+## Resumo dos Requisitos
 
 | Intervalo | Perfil | Quantidade |
 |---|---|---:|
