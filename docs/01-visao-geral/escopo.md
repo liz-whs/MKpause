@@ -1,3 +1,5 @@
+**Português** · [English](./escopo.en.md)
+
 # Escopo
 
 O escopo do MKpause compreende funcionalidades relacionadas à **autorregulação de estudantes**, ao registro das sessões realizadas e ao acompanhamento dessas informações por usuários autorizados.

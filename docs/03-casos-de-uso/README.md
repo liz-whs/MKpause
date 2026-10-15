@@ -1,3 +1,5 @@
+**Português** · [English](./README.en.md)
+
 # Casos de Uso — MKpause
 
 Esta seção apresenta a modelagem de casos de uso do **MKpause**, descrevendo os atores que interagem com a plataforma e as principais funcionalidades disponibilizadas para cada perfil.
@@ -6,7 +8,7 @@ Os casos de uso foram definidos a partir dos requisitos funcionais e das regras 
 
 ---
 
-## 📌 Documentação
+## Documentação
 
 - [Atores do Sistema](./atores.md)
 - [Especificação dos Casos de Uso](./casos-de-uso.md)
@@ -15,25 +17,25 @@ Os casos de uso foram definidos a partir dos requisitos funcionais e das regras 
 
 ---
 
-# Diagrama de Casos de Uso
+## Diagrama de Casos de Uso
 
 O diagrama apresenta as principais interações entre os usuários e o MKpause.
 
-![Diagrama de Casos de Uso do MKpause](./diagramas/diagrama-casos-de-uso.png)
+![Diagrama de Casos de Uso do MKpause](./diagramas/diagrama-casos-de-uso.jpeg)
 
 ---
 
-# Atores
+## Atores
 
 Os principais atores representados no sistema são:
 
 | Ator | Responsabilidade |
 |---|---|
-| 🎓 Estudante | Utilizar os recursos de autorregulação e consultar seu histórico |
-| 👨‍🏫 Professor | Acompanhar estudantes no ambiente escolar |
-| 🏫 Psicólogo Escolar | Realizar acompanhamento dos estudantes no contexto escolar |
-| 🧠 Psicólogo Clínico | Consultar informações necessárias ao acompanhamento clínico |
-| ⚙️ Administrador | Gerenciar usuários, fichas, conteúdos e vínculos |
+| Estudante | Utilizar os recursos de autorregulação e consultar seu histórico |
+| Professor | Acompanhar estudantes no ambiente escolar |
+| Psicólogo Escolar | Realizar acompanhamento dos estudantes no contexto escolar |
+| Psicólogo Clínico | Consultar informações necessárias ao acompanhamento clínico |
+| Administrador | Gerenciar usuários, fichas, conteúdos e vínculos |
 
 O **Responsável** faz parte do domínio do MKpause, mas sua participação no diagrama depende das funcionalidades com as quais interage diretamente.
 
@@ -41,11 +43,11 @@ Sua existência como entidade ou vínculo no sistema não exige que ele seja rep
 
 ---
 
-# Fluxo principal de autorregulação
+## Fluxo principal de autorregulação
 
 Um dos principais processos representados no diagrama é:
 
-## Realizar Sessão de Autorregulação
+### Realizar Sessão de Autorregulação
 
 Esse caso de uso concentra o principal fluxo utilizado pelo estudante.
 
@@ -78,7 +80,7 @@ Ao final do processo, os registros realizados passam a compor o histórico do es
 
 ---
 
-# Alertas
+## Alertas
 
 A emissão de alertas ocorre de acordo com as condições definidas pelas regras de negócio.
 
@@ -94,7 +96,7 @@ O recebimento depende dos vínculos e permissões existentes no sistema.
 
 ---
 
-# Observações
+## Observações
 
 Professor e Psicólogo Escolar podem registrar observações relacionadas aos estudantes aos quais possuem acesso.
 
@@ -110,9 +112,9 @@ Cada profissional pode realizar a ação individualmente de acordo com suas perm
 
 ---
 
-# Relações entre Casos de Uso
+## Relações entre Casos de Uso
 
-## `<<include>>`
+### `<<include>>`
 
 A relação `<<include>>` é utilizada quando um caso de uso incorpora obrigatoriamente o comportamento de outro caso durante sua execução.
 
@@ -120,7 +122,7 @@ No MKpause, ela é utilizada para representar etapas necessárias dentro de dete
 
 ---
 
-## `<<extend>>`
+### `<<extend>>`
 
 A relação `<<extend>>` representa comportamentos condicionais ou adicionais.
 
@@ -130,7 +132,7 @@ A emissão de um alerta, por exemplo, depende da situação identificada durante
 
 ---
 
-# Associação entre ator e caso de uso
+## Associação entre ator e caso de uso
 
 Uma linha entre um ator e um caso de uso indica que aquele ator participa ou interage com aquela funcionalidade.
 
@@ -138,7 +140,7 @@ Ela **não representa obrigatoriamente uma sequência de execução** e também 
 
 ---
 
-# Generalização
+## Generalização
 
 Apesar de Professor e Psicólogo Escolar compartilharem algumas funcionalidades, o modelo atual mantém os dois como atores independentes.
 
@@ -146,7 +148,7 @@ Eles possuem responsabilidades próprias e o compartilhamento de determinadas a�
 
 ---
 
-# Rastreabilidade
+## Rastreabilidade
 
 Os casos de uso são derivados dos requisitos definidos para o MKpause.
 
@@ -174,8 +176,6 @@ Essa estrutura permite acompanhar como uma necessidade identificada durante a an
 
 ## Arquivos
 
-Os arquivos relacionados ao diagrama estão disponíveis no diretório:
-
-[`diagramas/`](./diagramas/)
+O diagrama está disponível em [`diagramas/diagrama-casos-de-uso.jpeg`](./diagramas/diagrama-casos-de-uso.jpeg).
 
 Sempre que o diagrama for atualizado, sua versão disponibilizada no repositório também deve ser atualizada para manter a documentação consistente.

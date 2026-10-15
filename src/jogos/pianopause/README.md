@@ -1,10 +1,12 @@
+**Português** · [English](./README.en.md)
+
 # PianoPause
 
 O **PianoPause** é um dos jogos de autorregulação do MKpause. O estudante toca, no seu próprio ritmo, teclas coloridas que descem pela tela, e cada toque produz uma nota suave. A qualquer momento é possível pausar e fazer uma **respiração guiada**.
 
 O jogo não tem pontuação, erro, derrota nem contagem regressiva visível: a proposta é desacelerar, e não competir.
 
-> Atende ao requisito [RF02 — Acessar atividades e jogos](../../../docs/02-requisitos/requisitos-funcionais.md) e à regra [RN08 — Realização da atividade](../../../docs/02-requisitos/regras-de-negocio.md).
+> Atende ao requisito [RF02 — Acessar atividades e jogos](../../../docs/02-requisitos/requisitos-funcionais.md) e à regra [RN08 — Realização da atividade](../../../docs/02-requisitos/regras-de-negocio.md). A fundamentação do design está em [Atividades de Autorregulação](../../../docs/07-fundamentacao/atividades-de-autorregulacao.md).
 
 ## Autoria
 
@@ -113,6 +115,8 @@ Ao pausar, o jogo mostra um círculo que acompanha um ciclo de **8 segundos**:
 - Um halo externo fica mais visível ao inspirar e mais transparente ao expirar.
 - O ciclo sempre recomeça em "Inspire" ao entrar na pausa.
 
+Os 4 segundos de inspiração e 4 de expiração correspondem a 7,5 respirações por minuto, um ritmo lento. A pesquisa que fundamenta essa escolha está em [Atividades de Autorregulação](../../../docs/07-fundamentacao/atividades-de-autorregulacao.md).
+
 ### Por que o círculo é desenhado assim
 
 A função `desenhar_circulo_fluido()` desenha os círculos com **raio fracionário**: a parte inteira do raio vira o círculo, e a parte decimal vira uma borda semitransparente. Assim o círculo cresce em frações de pixel e a animação não fica "em degraus".
@@ -135,6 +139,8 @@ O jogo usa a paleta do MKpause:
 | Cacao      | `CACAO`    | `#6B403B` | Textos e botões principais            |
 | Peony      | `PEONY`    | `#F7DDD5` | Fundo de todas as telas               |
 | Dusty Rose | `ROSE`     | `#D8A4AF` | Nota Sol                              |
+
+A justificativa da paleta e das formas arredondadas está em [Paleta de Cores](../../../docs/07-fundamentacao/paleta-de-cores.md) e [Formas Arredondadas e Mascote](../../../docs/07-fundamentacao/formas-e-mascote.md).
 
 A janela tem **480 × 720 px** (formato retrato, pensado para celular e tablet).
 

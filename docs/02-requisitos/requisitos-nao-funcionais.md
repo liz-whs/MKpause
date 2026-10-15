@@ -1,3 +1,5 @@
+**Português** · [English](./requisitos-nao-funcionais.en.md)
+
 # Requisitos Não Funcionais
 
 Os requisitos não funcionais definem características de qualidade, restrições e condições que o **MKpause** deve atender durante sua utilização.
@@ -6,27 +8,27 @@ Diferentemente dos requisitos funcionais, que descrevem o que o sistema faz, os 
 
 ---
 
-# 🔐 Segurança
+## Segurança
 
-## RNF01 — Autenticação
+### RNF01 — Autenticação
 
 O sistema deve exigir autenticação para acesso às funcionalidades e informações restritas da plataforma.
 
 ---
 
-## RNF02 — Controle de acesso
+### RNF02 — Controle de acesso
 
 O sistema deve controlar o acesso às funcionalidades e informações de acordo com o perfil do usuário autenticado.
 
 ---
 
-## RNF03 — Controle por vínculo
+### RNF03 — Controle por vínculo
 
 O sistema deve considerar os vínculos existentes entre estudantes e profissionais antes de disponibilizar informações de acompanhamento.
 
 ---
 
-## RNF04 — Proteção das credenciais
+### RNF04 — Proteção das credenciais
 
 As senhas dos usuários não devem ser armazenadas em texto puro.
 
@@ -34,65 +36,67 @@ Devem ser utilizados mecanismos seguros para armazenamento e validação das cre
 
 ---
 
-## RNF05 — Proteção contra acesso não autorizado
+### RNF05 — Proteção contra acesso não autorizado
 
 O sistema deve impedir que usuários acessem informações ou funcionalidades para as quais não possuem autorização.
 
 ---
 
-## RNF06 — Encerramento de sessão
+### RNF06 — Encerramento de sessão
 
 O sistema deve permitir que o usuário encerre sua sessão de autenticação de forma segura.
 
 ---
 
-# 🔒 Privacidade
+## Privacidade
 
-## RNF07 — Proteção dos dados dos estudantes
+### RNF07 — Proteção dos dados dos estudantes
 
 As informações pessoais e de acompanhamento dos estudantes devem possuir acesso restrito aos usuários autorizados.
 
 ---
 
-## RNF08 — Minimização de acesso
+### RNF08 — Minimização de acesso
 
 Cada perfil deve visualizar somente as informações necessárias para executar suas respectivas funções no sistema.
 
 ---
 
-## RNF09 — Privacidade dos registros
+### RNF09 — Privacidade dos registros
 
 Registros de humor, sessões, alertas, observações e fichas de acompanhamento não devem ser disponibilizados publicamente.
 
 ---
 
-## RNF10 — Identificação do usuário responsável
+### RNF10 — Identificação do usuário responsável
 
 Registros que dependam da atuação de um profissional devem manter informações suficientes para identificar o usuário responsável pela ação.
 
 ---
 
-# ♿ Acessibilidade
+## Acessibilidade
 
-## RNF11 — Interface acessível
+### RNF11 — Interface acessível
 
 A interface deve ser desenvolvida considerando princípios de acessibilidade digital.
 
 ---
 
-## RNF12 — Contraste
+### RNF12 — Contraste
 
 Os elementos visuais devem possuir contraste suficiente para permitir a leitura e identificação dos componentes da interface.
 
+Os valores de contraste da paleta atual estão documentados em [Paleta de Cores](../07-fundamentacao/paleta-de-cores.md).
+
 ---
 
-## RNF13 — Navegação compreensível
+### RNF13 — Navegação compreensível
 
 A navegação deve apresentar textos, botões e ações de forma clara e compreensível para os usuários.
 
 ---
 
-## RNF14 — Dependência de cor
+### RNF14 — Dependência de cor
 
 Informações importantes não devem ser comunicadas exclusivamente por meio de cores.
 
@@ -100,21 +104,21 @@ Informações importantes não devem ser comunicadas exclusivamente por meio de 
 
 ---
 
-## RNF15 — Navegação por teclado
+### RNF15 — Navegação por teclado
 
 As principais funcionalidades da aplicação web devem ser acessíveis por meio de navegação utilizando teclado.
 
 ---
 
-# 🖥️ Usabilidade
+## Usabilidade
 
-## RNF16 — Consistência da interface
+### RNF16 — Consistência da interface
 
 Elementos que desempenham funções semelhantes devem possuir comportamento e apresentação consistentes entre as diferentes telas da plataforma.
 
 ---
 
-## RNF17 — Feedback das ações
+### RNF17 — Feedback das ações
 
 O sistema deve fornecer retorno visual ao usuário após ações relevantes, como:
 
@@ -127,119 +131,119 @@ O sistema deve fornecer retorno visual ao usuário após ações relevantes, com
 
 ---
 
-## RNF18 — Mensagens de erro
+### RNF18 — Mensagens de erro
 
 Mensagens de erro devem apresentar informações compreensíveis ao usuário e, quando possível, indicar como corrigir o problema.
 
 ---
 
-## RNF19 — Confirmação de ações críticas
+### RNF19 — Confirmação de ações críticas
 
 Operações que possam causar perda ou remoção de informações devem solicitar confirmação antes de serem concluídas quando aplicável.
 
 ---
 
-## RNF20 — Facilidade de uso
+### RNF20 — Facilidade de uso
 
 Os principais fluxos do estudante, especialmente o início e a realização de uma sessão de autorregulação, devem evitar etapas desnecessárias e apresentar instruções claras.
 
 ---
 
-# 📱 Compatibilidade
+## Compatibilidade
 
-## RNF21 — Interface responsiva
+### RNF21 — Interface responsiva
 
 A interface web deve adaptar sua apresentação a diferentes tamanhos de tela.
 
 ---
 
-## RNF22 — Navegadores modernos
+### RNF22 — Navegadores modernos
 
 O sistema deve ser compatível com versões atuais dos principais navegadores utilizados pelos usuários.
 
 ---
 
-# ⚡ Desempenho
+## Desempenho
 
-## RNF23 — Tempo de resposta adequado
+### RNF23 — Tempo de resposta adequado
 
 As operações comuns da plataforma devem apresentar retorno em tempo adequado para não prejudicar a experiência do usuário em condições normais de utilização.
 
 ---
 
-## RNF24 — Carregamento de conteúdo
+### RNF24 — Carregamento de conteúdo
 
 Conteúdos utilizados durante sessões de autorregulação devem ser carregados de maneira que não interrompa desnecessariamente o fluxo da sessão.
 
 ---
 
-# 💾 Integridade e Confiabilidade
+## Integridade e Confiabilidade
 
-## RNF25 — Integridade dos dados
+### RNF25 — Integridade dos dados
 
 O sistema deve manter a consistência das informações armazenadas e de seus relacionamentos.
 
 ---
 
-## RNF26 — Persistência dos registros
+### RNF26 — Persistência dos registros
 
 Após confirmação de uma operação de registro, as informações devem permanecer armazenadas de forma persistente.
 
 ---
 
-## RNF27 — Preservação do histórico
+### RNF27 — Preservação do histórico
 
 Alterações cadastrais não devem comprometer registros históricos necessários para compreender sessões, alertas e acompanhamentos realizados anteriormente.
 
 ---
 
-## RNF28 — Tratamento de falhas
+### RNF28 — Tratamento de falhas
 
 Falhas durante operações de gravação não devem resultar em registros parcialmente armazenados que comprometam a integridade dos dados.
 
 ---
 
-# 🧩 Manutenibilidade
+## Manutenibilidade
 
-## RNF29 — Organização do código
+### RNF29 — Organização do código
 
 O código-fonte deve ser organizado de forma modular, separando responsabilidades sempre que aplicável.
 
 ---
 
-## RNF30 — Padronização
+### RNF30 — Padronização
 
 O projeto deve manter padrões consistentes de nomenclatura, organização de arquivos e estrutura de código.
 
 ---
 
-## RNF31 — Documentação
+### RNF31 — Documentação
 
 As principais funcionalidades, regras, estruturas e decisões técnicas do sistema devem possuir documentação atualizada no repositório do projeto.
 
 ---
 
-## RNF32 — Versionamento
+### RNF32 — Versionamento
 
 O código-fonte e a documentação do MKpause devem ser mantidos utilizando sistema de controle de versão.
 
 ---
 
-# 📊 Rastreabilidade
+## Rastreabilidade
 
-## RNF33 — Rastreabilidade dos registros
+### RNF33 — Rastreabilidade dos registros
 
 Registros relevantes ao acompanhamento devem possuir informações que permitam identificar quando foram criados e a qual estudante estão relacionados.
 
 ---
 
-## RNF34 — Consistência entre documentação e sistema
+### RNF34 — Consistência entre documentação e sistema
 
 Alterações relevantes nas funcionalidades ou regras do sistema devem ser refletidas na documentação correspondente.
 
 ---
 
-# Resumo
+## Resumo
 
 | Categoria | Requisitos |
 |---|---|

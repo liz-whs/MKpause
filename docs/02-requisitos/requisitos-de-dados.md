@@ -1,3 +1,5 @@
+**Português** · [English](./requisitos-de-dados.en.md)
+
 # Requisitos de Dados
 
 Os requisitos de dados definem as informações que o **MKpause** precisa armazenar, consultar e relacionar para permitir o funcionamento das funcionalidades previstas.
@@ -6,11 +8,11 @@ Este documento descreve os dados em nível de negócio. A definição de chaves 
 
 ---
 
-# 🎓 Estudante
+## Estudante
 
 O sistema deve manter as informações necessárias para identificar o estudante, permitir seu acesso à plataforma e realizar seu acompanhamento.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do estudante;
 - nome;
@@ -22,7 +24,7 @@ O sistema deve manter as informações necessárias para identificar o estudante
 - informações necessárias ao acompanhamento do estudante;
 - situação do cadastro.
 
-## Relacionamentos
+### Relacionamentos
 
 O estudante poderá estar relacionado a:
 
@@ -38,11 +40,11 @@ O estudante poderá estar relacionado a:
 
 ---
 
-# 👨‍🏫 Professor
+## Professor
 
 O sistema deve armazenar informações dos professores responsáveis pelo acompanhamento de estudantes no ambiente escolar.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do professor;
 - nome;
@@ -51,7 +53,7 @@ O sistema deve armazenar informações dos professores responsáveis pelo acompa
 - informações relacionadas à instituição;
 - situação do cadastro.
 
-## Relacionamentos
+### Relacionamentos
 
 O professor poderá estar relacionado a:
 
@@ -61,11 +63,11 @@ O professor poderá estar relacionado a:
 
 ---
 
-# 🏫 Psicólogo Escolar
+## Psicólogo Escolar
 
 O sistema deve armazenar informações dos psicólogos que realizam o acompanhamento dos estudantes dentro do ambiente escolar.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do psicólogo escolar;
 - nome;
@@ -76,7 +78,7 @@ O sistema deve armazenar informações dos psicólogos que realizam o acompanham
 - informações relacionadas à instituição;
 - situação do cadastro.
 
-## Relacionamentos
+### Relacionamentos
 
 O psicólogo escolar poderá estar relacionado a:
 
@@ -86,11 +88,11 @@ O psicólogo escolar poderá estar relacionado a:
 
 ---
 
-# 🧠 Psicólogo Clínico
+## Psicólogo Clínico
 
 O sistema deve armazenar informações dos psicólogos clínicos vinculados ao acompanhamento dos estudantes.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do psicólogo clínico;
 - nome;
@@ -100,7 +102,7 @@ O sistema deve armazenar informações dos psicólogos clínicos vinculados ao a
 - estado do registro profissional;
 - situação do cadastro.
 
-## Relacionamentos
+### Relacionamentos
 
 O psicólogo clínico poderá estar relacionado a:
 
@@ -112,11 +114,11 @@ O psicólogo clínico poderá estar relacionado a:
 
 ---
 
-# 👨‍👩‍👧 Responsável
+## Responsável
 
 O sistema deve manter os dados necessários para identificar e estabelecer o vínculo entre um responsável e um estudante.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do responsável;
 - nome;
@@ -125,7 +127,7 @@ O sistema deve manter os dados necessários para identificar e estabelecer o ví
 - informações necessárias para estabelecimento do vínculo;
 - situação do vínculo ou cadastro.
 
-## Relacionamentos
+### Relacionamentos
 
 O responsável poderá estar relacionado a um ou mais estudantes conforme as regras definidas pelo sistema.
 
@@ -133,11 +135,11 @@ O vínculo do responsável não é criado obrigatoriamente durante o cadastro in
 
 ---
 
-# ⚙️ Administrador
+## Administrador
 
 O sistema deve manter informações necessárias para identificar e autenticar os usuários responsáveis pela administração da plataforma.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do administrador;
 - nome;
@@ -149,11 +151,11 @@ O administrador possui funções relacionadas ao gerenciamento dos usuários, fi
 
 ---
 
-# 🧘 Sessão de Autorregulação
+## Sessão de Autorregulação
 
 Cada utilização dos recursos de autorregulação pelo estudante deve gerar um registro de sessão.
 
-## Dados necessários
+### Dados necessários
 
 - identificador da sessão;
 - estudante responsável pela sessão;
@@ -165,7 +167,7 @@ Cada utilização dos recursos de autorregulação pelo estudante deve gerar um 
 - recursos ou atividades utilizados;
 - informações ou observações relacionadas à sessão.
 
-## Relacionamentos
+### Relacionamentos
 
 Uma sessão está relacionada a:
 
@@ -176,11 +178,11 @@ Uma sessão está relacionada a:
 
 ---
 
-# 🙂 Registro de Humor
+## Registro de Humor
 
 O sistema deve registrar o estado emocional informado pelo estudante durante uma sessão.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do registro;
 - estudante;
@@ -198,11 +200,11 @@ Esses registros permitem comparar o estado informado pelo estudante antes e depo
 
 ---
 
-# 🎮 Atividade de Autorregulação
+## Atividade de Autorregulação
 
 O sistema deve armazenar os recursos disponibilizados aos estudantes durante as sessões.
 
-## Dados necessários
+### Dados necessários
 
 - identificador da atividade;
 - nome;
@@ -211,7 +213,7 @@ O sistema deve armazenar os recursos disponibilizados aos estudantes durante as 
 - conteúdo ou recurso associado;
 - situação de disponibilidade.
 
-## Tipos de conteúdo
+### Tipos de conteúdo
 
 As atividades poderão incluir:
 
@@ -223,11 +225,11 @@ As atividades poderão incluir:
 
 ---
 
-# 🚨 Alerta
+## Alerta
 
 O sistema deve armazenar os alertas emitidos durante a utilização da plataforma.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do alerta;
 - estudante relacionado;
@@ -239,7 +241,7 @@ O sistema deve armazenar os alertas emitidos durante a utilização da plataform
 - profissionais destinatários;
 - informações necessárias para contextualização do alerta.
 
-## Relacionamentos
+### Relacionamentos
 
 Um alerta poderá estar relacionado a:
 
@@ -253,11 +255,11 @@ Os destinatários dependem dos vínculos existentes e das regras de negócio def
 
 ---
 
-# 📝 Observação
+## Observação
 
 O sistema deve permitir o armazenamento de observações relacionadas ao acompanhamento do estudante.
 
-## Dados necessários
+### Dados necessários
 
 - identificador da observação;
 - estudante relacionado;
@@ -267,7 +269,7 @@ O sistema deve permitir o armazenamento de observações relacionadas ao acompan
 - horário;
 - tipo ou origem da observação, quando necessário.
 
-## Autores
+### Autores
 
 De acordo com as permissões atualmente previstas, observações de acompanhamento poderão ser registradas por:
 
@@ -278,11 +280,11 @@ Outros registros relacionados à sessão ou ao acompanhamento clínico devem ser
 
 ---
 
-# 📋 Ficha de Acompanhamento
+## Ficha de Acompanhamento
 
 O sistema deve manter uma ficha contendo informações utilizadas no acompanhamento do estudante.
 
-## Dados necessários
+### Dados necessários
 
 - identificador da ficha;
 - estudante relacionado;
@@ -295,11 +297,11 @@ A ficha deve estar associada ao estudante e possuir acesso controlado conforme o
 
 ---
 
-# 📢 Aviso
+## Aviso
 
 O sistema deve armazenar avisos disponibilizados aos usuários da plataforma.
 
-## Dados necessários
+### Dados necessários
 
 - identificador do aviso;
 - título;
@@ -311,7 +313,7 @@ O sistema deve armazenar avisos disponibilizados aos usuários da plataforma.
 
 ---
 
-# 🔗 Vínculos
+## Vínculos
 
 O MKpause deve armazenar os relacionamentos necessários entre estudantes e as pessoas responsáveis por seu acompanhamento.
 
@@ -326,7 +328,7 @@ Esses vínculos são utilizados para determinar quais profissionais podem consul
 
 ---
 
-# 🔐 Controle de Acesso aos Dados
+## Controle de Acesso aos Dados
 
 O acesso às informações armazenadas deve considerar o perfil do usuário autenticado e seus vínculos.
 
@@ -336,7 +338,7 @@ Por exemplo, profissionais que acompanham estudantes devem visualizar apenas as 
 
 ---
 
-# Resumo das principais entidades de dados
+## Resumo das principais entidades de dados
 
 | Entidade | Finalidade |
 |---|---|

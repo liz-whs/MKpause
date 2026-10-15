@@ -1,3 +1,5 @@
+**Português** · [English](./modelo-conceitual.en.md)
+
 # Modelo Conceitual
 
 O modelo conceitual do **MKpause** representa as principais entidades existentes no domínio da aplicação e os relacionamentos entre elas.
@@ -6,7 +8,7 @@ Nesta etapa, o foco está na representação das informações do negócio, sem 
 
 ---
 
-# Objetivo
+## Objetivo
 
 O modelo conceitual busca representar:
 
@@ -18,9 +20,9 @@ O modelo conceitual busca representar:
 
 ---
 
-# Principais Entidades
+## Principais Entidades
 
-## 🎓 Estudante
+### Estudante
 
 Representa o estudante que utiliza os recursos de autorregulação da plataforma.
 
@@ -39,7 +41,7 @@ O estudante ocupa uma posição central na modelagem do MKpause, pois grande par
 
 ---
 
-## 👨‍🏫 Professor
+### Professor
 
 Representa professores responsáveis pelo acompanhamento de estudantes no contexto escolar.
 
@@ -47,7 +49,7 @@ Um professor pode possuir vínculo com diferentes estudantes e registrar observa
 
 ---
 
-## 🏫 Psicólogo Escolar
+### Psicólogo Escolar
 
 Representa o profissional de psicologia que realiza acompanhamento dentro do contexto da instituição de ensino.
 
@@ -55,7 +57,7 @@ O psicólogo escolar pode estar vinculado a estudantes, receber alertas e regist
 
 ---
 
-## 🧠 Psicólogo Clínico
+### Psicólogo Clínico
 
 Representa o profissional responsável pelo acompanhamento clínico do estudante quando existir vínculo correspondente.
 
@@ -63,7 +65,7 @@ O psicólogo clínico pode consultar informações disponibilizadas pelo sistema
 
 ---
 
-## 👨‍👩‍👧 Responsável
+### Responsável
 
 Representa a pessoa responsável pelo estudante.
 
@@ -71,7 +73,7 @@ O responsável pode ser vinculado ao estudante posteriormente ao cadastro inicia
 
 ---
 
-## 🧘 Sessão
+### Sessão
 
 Representa uma sessão de autorregulação realizada por um estudante.
 
@@ -87,7 +89,7 @@ Um estudante pode realizar diversas sessões ao longo do tempo.
 
 ---
 
-## 🙂 Registro de Humor
+### Registro de Humor
 
 Representa o estado emocional informado pelo estudante durante uma sessão.
 
@@ -100,7 +102,7 @@ Dessa forma, uma mesma sessão pode possuir mais de um registro de humor.
 
 ---
 
-## 🎮 Atividade
+### Atividade
 
 Representa um recurso de autorregulação disponibilizado pela plataforma.
 
@@ -118,7 +120,7 @@ Uma mesma atividade também pode ser utilizada em diferentes sessões.
 
 ---
 
-## 🚨 Alerta
+### Alerta
 
 Representa uma situação registrada pelo sistema que necessita ser comunicada aos profissionais responsáveis pelo acompanhamento.
 
@@ -128,7 +130,7 @@ Dependendo das regras do sistema, profissionais vinculados ao estudante podem re
 
 ---
 
-## 📝 Observação
+## Observação
 
 Representa um registro realizado por um profissional sobre determinado estudante.
 
@@ -141,7 +143,7 @@ Toda observação deve permitir identificar o estudante relacionado e seu autor.
 
 ---
 
-## 📋 Ficha de Acompanhamento
+### Ficha de Acompanhamento
 
 Representa o conjunto de informações utilizadas para acompanhamento do estudante.
 
@@ -149,7 +151,7 @@ A ficha permanece associada ao estudante e seu acesso depende das permissões es
 
 ---
 
-## 📢 Aviso
+### Aviso
 
 Representa comunicados disponibilizados aos usuários da plataforma.
 
@@ -157,9 +159,9 @@ Um aviso pode possuir informações como título, conteúdo, data de publicaçã
 
 ---
 
-# Principais Relacionamentos
+## Principais Relacionamentos
 
-## Estudante — Sessão
+### Estudante — Sessão
 
 ```text
 ESTUDANTE 1 ───────── N SESSÃO
@@ -171,7 +173,7 @@ Cada sessão pertence a um estudante.
 
 ---
 
-## Sessão — Registro de Humor
+### Sessão — Registro de Humor
 
 ```text
 SESSÃO 1 ───────── N REGISTRO_HUMOR
@@ -183,7 +185,7 @@ Cada registro pertence a uma sessão específica.
 
 ---
 
-## Estudante — Professor
+### Estudante — Professor
 
 ```text
 ESTUDANTE N ───────── N PROFESSOR
@@ -195,7 +197,7 @@ Esse relacionamento muitos-para-muitos será convertido em uma estrutura associa
 
 ---
 
-## Estudante — Psicólogo Escolar
+### Estudante — Psicólogo Escolar
 
 O relacionamento permite representar os profissionais responsáveis pelo acompanhamento escolar do estudante.
 
@@ -203,13 +205,13 @@ Dependendo das regras definidas para a instituição, um profissional pode acomp
 
 ---
 
-## Estudante — Psicólogo Clínico
+### Estudante — Psicólogo Clínico
 
 Representa o vínculo necessário para permitir o acompanhamento clínico previsto pela plataforma.
 
 ---
 
-## Estudante — Responsável
+### Estudante — Responsável
 
 ```text
 ESTUDANTE N ───────── N RESPONSÁVEL
@@ -221,7 +223,7 @@ Esse relacionamento também pode exigir uma entidade associativa no modelo lógi
 
 ---
 
-## Estudante — Observação
+### Estudante — Observação
 
 ```text
 ESTUDANTE 1 ───────── N OBSERVAÇÃO
@@ -233,7 +235,7 @@ Cada observação está relacionada a um estudante.
 
 ---
 
-## Sessão — Atividade
+### Sessão — Atividade
 
 ```text
 SESSÃO N ───────── N ATIVIDADE
@@ -247,7 +249,7 @@ Esse relacionamento é transformado em uma tabela associativa no modelo lógico.
 
 ---
 
-## Estudante — Alerta
+### Estudante — Alerta
 
 ```text
 ESTUDANTE 1 ───────── N ALERTA
@@ -259,7 +261,7 @@ Cada alerta possui um estudante de origem.
 
 ---
 
-## Estudante — Ficha de Acompanhamento
+### Estudante — Ficha de Acompanhamento
 
 A ficha de acompanhamento está diretamente relacionada ao estudante.
 
@@ -267,7 +269,7 @@ A cardinalidade deve refletir a regra definida pelo projeto para existência e m
 
 ---
 
-# Relacionamentos Muitos-para-Muitos
+## Relacionamentos Muitos-para-Muitos
 
 Relacionamentos **N:N** são permitidos no modelo conceitual.
 
@@ -287,19 +289,19 @@ No modelo lógico, esses relacionamentos são transformados em tabelas associati
 
 ---
 
-# Conceitual x Lógico
+## Conceitual x Lógico
 
 Um ponto importante é que o modelo conceitual não precisa apresentar tabelas criadas exclusivamente para resolver relacionamentos N:N.
 
 Por exemplo:
 
-### Modelo Conceitual
+#### Modelo Conceitual
 
 ```text
 ESTUDANTE N ───────── N PROFESSOR
 ```
 
-### Modelo Lógico
+#### Modelo Lógico
 
 ```text
 ESTUDANTE
@@ -317,17 +319,11 @@ A tabela associativa surge durante a transformação para o modelo relacional.
 
 ---
 
-# Diagrama
+## Diagrama
 
-O diagrama conceitual deve ser armazenado no diretório:
+O diagrama do modelo conceitual está disponível em PDF:
 
-[`diagramas/`](./diagramas/)
-
-Quando disponível como imagem, ele também pode ser exibido diretamente nesta documentação:
-
-```md
-![Modelo Conceitual do MKpause](./diagramas/modelo-conceitual.png)
-```
+[Modelo Conceitual do MKpause (PDF)](./diagramas/modelo-conceitual.pdf)
 
 ---
 

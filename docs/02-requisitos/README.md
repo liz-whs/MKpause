@@ -1,3 +1,5 @@
+**Português** · [English](./README.en.md)
+
 # Requisitos do MKpause
 
 Esta seção reúne os requisitos definidos para o **MKpause**, descrevendo as funcionalidades oferecidas pelo sistema, suas restrições, os dados necessários para seu funcionamento e as principais regras de negócio.
@@ -10,7 +12,7 @@ A documentação de requisitos serve como referência para as etapas de modelage
 
 ### Requisitos Funcionais
 
-📄 [Requisitos Funcionais](./requisitos-funcionais.md)
+[Requisitos Funcionais](./requisitos-funcionais.md)
 
 Descrevem as funcionalidades e os comportamentos que o sistema deve oferecer aos diferentes usuários.
 
@@ -18,7 +20,7 @@ Descrevem as funcionalidades e os comportamentos que o sistema deve oferecer aos
 
 ### Requisitos Não Funcionais
 
-📄 [Requisitos Não Funcionais](./requisitos-nao-funcionais.md)
+[Requisitos Não Funcionais](./requisitos-nao-funcionais.md)
 
 Definem características de qualidade e restrições relacionadas ao funcionamento da plataforma, incluindo aspectos como segurança, usabilidade, desempenho e acessibilidade.
 
@@ -26,7 +28,7 @@ Definem características de qualidade e restrições relacionadas ao funcionamen
 
 ### Requisitos de Dados
 
-📄 [Requisitos de Dados](./requisitos-de-dados.md)
+[Requisitos de Dados](./requisitos-de-dados.md)
 
 Documentam as informações que precisam ser armazenadas e manipuladas pelo sistema, servindo como apoio para a modelagem conceitual e lógica do banco de dados.
 
@@ -34,7 +36,7 @@ Documentam as informações que precisam ser armazenadas e manipuladas pelo sist
 
 ### Regras de Negócio
 
-📄 [Regras de Negócio](./regras-de-negocio.md)
+[Regras de Negócio](./regras-de-negocio.md)
 
 Apresentam regras que determinam como determinados processos e funcionalidades do MKpause devem funcionar.
 
@@ -42,7 +44,7 @@ Apresentam regras que determinam como determinados processos e funcionalidades d
 
 ### Fontes de Informação
 
-📄 [Fontes de Informação](./fontes-de-informacao.md)
+[Fontes de Informação](./fontes-de-informacao.md)
 
 Registra as fontes utilizadas durante o levantamento e definição dos requisitos do projeto.
 

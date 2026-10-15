@@ -1,3 +1,5 @@
+**Português** · [English](./atores.en.md)
+
 # Atores do Sistema
 
 Os atores representam usuários ou elementos externos que interagem diretamente com as funcionalidades do **MKpause**.
@@ -6,13 +8,13 @@ Um ator em um diagrama de casos de uso representa um **papel desempenhado durant
 
 ---
 
-# 🎓 Estudante
+## Estudante
 
 O **Estudante** é o principal usuário das funcionalidades de autorregulação do MKpause.
 
 Ele utiliza a plataforma para acessar recursos de apoio, registrar seu estado emocional e manter um histórico das sessões realizadas.
 
-## Principais interações
+### Principais interações
 
 O estudante pode:
 
@@ -25,7 +27,7 @@ O estudante pode:
 - emitir alertas nas situações previstas;
 - consultar seu histórico.
 
-## Papel no sistema
+### Papel no sistema
 
 O estudante é o ator central do fluxo:
 
@@ -37,13 +39,13 @@ Durante esse processo, outras funcionalidades são executadas ou disponibilizada
 
 ---
 
-# 👨‍🏫 Professor
+## Professor
 
 O **Professor** participa do acompanhamento dos estudantes no ambiente escolar.
 
 Seu acesso é limitado aos estudantes e informações para os quais possui autorização.
 
-## Principais interações
+### Principais interações
 
 O professor pode:
 
@@ -55,7 +57,7 @@ O professor pode:
 - consultar informações permitidas pelo sistema;
 - consultar avisos.
 
-## Papel no sistema
+### Papel no sistema
 
 O professor atua principalmente no acompanhamento de situações ocorridas no contexto escolar.
 
@@ -63,11 +65,11 @@ Ele não precisa atuar simultaneamente com o Psicólogo Escolar para utilizar fu
 
 ---
 
-# 🏫 Psicólogo Escolar
+## Psicólogo Escolar
 
 O **Psicólogo Escolar** acompanha estudantes dentro do contexto da instituição de ensino.
 
-## Principais interações
+### Principais interações
 
 O psicólogo escolar pode:
 
@@ -79,7 +81,7 @@ O psicólogo escolar pode:
 - consultar informações autorizadas;
 - consultar avisos.
 
-## Papel no sistema
+### Papel no sistema
 
 Professor e Psicólogo Escolar podem possuir acesso a algumas funcionalidades em comum, porém representam **papéis distintos** dentro do sistema.
 
@@ -87,11 +89,11 @@ A existência dessas funcionalidades compartilhadas não representa uma generali
 
 ---
 
-# 🧠 Psicólogo Clínico
+## Psicólogo Clínico
 
 O **Psicólogo Clínico** representa o profissional responsável pelo acompanhamento clínico do estudante quando existir vínculo correspondente no sistema.
 
-## Principais interações
+### Principais interações
 
 O psicólogo clínico pode:
 
@@ -104,7 +106,7 @@ O psicólogo clínico pode:
 - consultar avisos;
 - acessar informações necessárias ao acompanhamento conforme suas permissões.
 
-## Papel no sistema
+### Papel no sistema
 
 O acesso do psicólogo clínico depende dos vínculos e permissões estabelecidos para o estudante.
 
@@ -112,11 +114,11 @@ O perfil profissional não concede acesso automático às informações de todos
 
 ---
 
-# ⚙️ Administrador
+## Administrador
 
 O **Administrador** é responsável pela manutenção das informações necessárias para o funcionamento da plataforma.
 
-## Principais interações
+### Principais interações
 
 O administrador pode:
 
@@ -129,19 +131,19 @@ O administrador pode:
 - gerenciar vínculos;
 - gerenciar conteúdos disponibilizados na plataforma.
 
-## Papel no sistema
+### Papel no sistema
 
 O administrador possui responsabilidades relacionadas à gestão da plataforma e não ao processo de autorregulação realizado pelo estudante.
 
 ---
 
-# 👨‍👩‍👧 Responsável
+## Responsável
 
 O **Responsável** está relacionado ao estudante e pode participar de processos específicos previstos pelo MKpause.
 
 Entretanto, sua existência no domínio do sistema não significa que ele necessariamente apareça como ator em todos os diagramas de casos de uso.
 
-## Cadastro e vínculo
+### Cadastro e vínculo
 
 O responsável **não participa diretamente do cadastro inicial do estudante**.
 
@@ -151,9 +153,9 @@ Por esse motivo, o Responsável não deve ser conectado ao caso de uso de cadast
 
 ---
 
-# Relações entre atores
+## Relações entre atores
 
-## Professor e Psicólogo Escolar
+### Professor e Psicólogo Escolar
 
 Professor e Psicólogo Escolar possuem algumas funcionalidades semelhantes, como:
 
@@ -175,7 +177,7 @@ Cada ator pode executar o caso de uso independentemente.
 
 ---
 
-## Ausência de generalização
+### Ausência de generalização
 
 Apesar de Professor e Psicólogo Escolar compartilharem algumas funcionalidades, eles possuem responsabilidades e permissões próprias.
 
@@ -183,11 +185,11 @@ Por isso, no modelo atual do MKpause, não é utilizada uma generalização entr
 
 ---
 
-# Ator x Entidade
+## Ator x Entidade
 
 É importante diferenciar os conceitos utilizados nos diferentes modelos.
 
-### Caso de Uso
+#### Caso de Uso
 
 Representa quem **interage com o sistema**.
 
@@ -197,7 +199,7 @@ Exemplo:
 Professor → Registrar observação
 ```
 
-### Modelo de Dados
+#### Modelo de Dados
 
 Representa quais informações o sistema **precisa armazenar**.
 
@@ -217,7 +219,7 @@ Da mesma forma, a presença de um ator indica interação com o sistema e não d
 
 ---
 
-# Resumo dos atores
+## Resumo dos atores
 
 | Ator | Papel principal |
 |---|---|
