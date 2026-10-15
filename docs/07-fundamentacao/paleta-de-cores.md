@@ -66,7 +66,8 @@ A tabela apresenta cada cor com medidas objetivas. **L\*** (luminosidade) e **C\
 | Dusty Rose | `#D8A4AF` | 72,4 | 20,9 | vermelho-púrpura | Nota Sol |
 | Grass | `#8D8B4C` | 56,7 | 34,9 | amarelo / verde-amarelado | Linha de toque, borda do tabuleiro |
 | Jungle | `#65613F` | 40,7 | 20,4 | amarelo / verde-amarelado | Botões secundários |
-| Cacao | `#6B403B` | 32,1 | 21,2 | vermelho / amarelo-vermelho | Textos e botões principais |
+| Cacao | `#594131` | 29,7 | 16,0 | amarelo-vermelho | Textos e botões principais |
+| Cacao Hover | `#9D7D63` | 54,8 | 20,7 | amarelo-vermelho | Botões principais sob o cursor |
 
 ---
 
@@ -92,11 +93,12 @@ Contraste medido pela fórmula da WCAG 2.1:
 
 | Combinação | Contraste | Critério WCAG 2.1 |
 |---|---:|---|
-| Cacao sobre Peony | 6,71 : 1 | Atende AA para texto comum (mínimo 4,5 : 1) |
+| Cacao sobre Peony | 7,31 : 1 | Atende AAA para texto comum (mínimo 7 : 1) |
 | Jungle sobre Peony | 4,88 : 1 | Atende AA para texto comum |
-| Branco `#FFFAF7` sobre Cacao (texto dos botões principais) | 8,37 : 1 | Atende AAA para texto comum (mínimo 7 : 1) |
+| Branco `#FFFAF7` sobre Cacao (texto dos botões principais) | 9,11 : 1 | Atende AAA para texto comum |
+| Branco `#FFFAF7` sobre Cacao Hover (botão principal sob o cursor) | 3,65 : 1 | Atende AA apenas para texto grande (mínimo 3 : 1) |
 | Branco `#FFFAF7` sobre Jungle (texto dos botões secundários) | 6,08 : 1 | Atende AA para texto comum |
-| Cacao sobre Leaf (botão selecionado ou sob o cursor) | 4,43 : 1 | Atende AA apenas para texto grande (mínimo 3 : 1) |
+| Cacao sobre Leaf (botão selecionado) | 4,82 : 1 | Atende AA para texto comum |
 
 ### 4. Os tons verde-oliva são acentos
 
@@ -111,7 +113,7 @@ Elas cumprem uma função prática: diferenciam elementos interativos do fundo s
 1. Manter fundos e áreas grandes em tons claros e pouco saturados (L\* acima de 70 e C\* abaixo de 20, como referência).
 2. Não aumentar a saturação dos tons verde-oliva nem usá-los como fundo de telas.
 3. Usar Cacao para textos sobre fundos claros.
-4. Nos botões em Leaf, manter o texto em tamanho grande (pelo menos 18,66 px em negrito ou 24 px regular) ou escurecer levemente o botão, para atingir 4,5 : 1.
+4. No estado hover (Cacao Hover), manter o texto dos botões em tamanho grande (pelo menos 18,66 px em negrito ou 24 px regular), já que o contraste com o texto branco é de 3,65 : 1. Como o hover é um estado temporário, que o usuário provoca ao apontar para o botão, esse valor é aceitável para texto grande.
 5. Não comunicar informações apenas pela cor (RNF14). No PianoPause, cada coluna também tem uma nota sonora própria, o que já atende esse princípio.
 
 ---

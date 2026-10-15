@@ -138,7 +138,8 @@ The game uses the MKpause palette:
 | Grass | `GRASS` | `#8D8B4C` | Hit line and board border |
 | Jungle | `JUNGLE` | `#65613F` | Secondary buttons |
 | Sky | `SKY` | `#AFB8CD` | Note E, center of the circle |
-| Cacao | `CACAO` | `#6B403B` | Text and primary buttons |
+| Cacao | `CACAO` | `#594131` | Text and primary buttons |
+| Cacao Hover | `CACAO_HOVER` | `#9D7D63` | Primary buttons on hover |
 | Peony | `PEONY` | `#F7DDD5` | Background of every screen |
 | Dusty Rose | `ROSE` | `#D8A4AF` | Note G |
 
