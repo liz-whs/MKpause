@@ -29,7 +29,8 @@ As principais decisões do projeto são fundamentadas em pesquisas publicadas:
 | Respiração guiada em ritmo lento e presença de profissionais no processo | Bentley et al. (2023), revisão sistemática |
 | Jogos simples, curtos e sem penalidade | Pine et al. (2020), revisão sistemática |
 | Paleta clara e pouco saturada | Valdez e Mehrabian (1994) |
-| Formas curvas e mascote de silhueta arredondada (chinchila) | Bar e Neta (2006) |
+| Formas curvas na interface e silhueta arredondada do mascote | Bar e Neta (2006) |
+| Chinchila como mascote: um animal que se estressa com facilidade, como o estudante que precisa de uma pausa | Escolha simbólica da equipe |
 
 A análise completa está em [Fundamentação Científica](./docs/07-fundamentacao/README.md).
 

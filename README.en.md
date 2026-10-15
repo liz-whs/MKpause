@@ -29,7 +29,8 @@ The project's main decisions are grounded in published research:
 | Slow-paced guided breathing, with professionals involved in the process | Bentley et al. (2023), systematic review |
 | Simple, short games with no penalties | Pine et al. (2020), systematic review |
 | Light, low-saturation color palette | Valdez & Mehrabian (1994) |
-| Curved shapes and a mascot with a rounded silhouette (a chinchilla) | Bar & Neta (2006) |
+| Curved shapes in the interface and the mascot's rounded silhouette | Bar & Neta (2006) |
+| A chinchilla as mascot: an animal that is easily stressed, like a student who needs a pause | Symbolic choice by the team |
 
 The full analysis is in [Scientific Rationale](./docs/07-fundamentacao/README.en.md).
 

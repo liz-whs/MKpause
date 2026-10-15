@@ -2,7 +2,7 @@
 
 # Rounded Shapes and Mascot
 
-This document explains why the MKpause interface favors curved shapes and why a chinchilla was chosen as the mascot. The main source is Bar and Neta's (2006) study on the human preference for curved objects.
+This document explains why the MKpause interface favors curved shapes and why a chinchilla was chosen as the mascot. The rationale for the shapes is Bar and Neta's (2006) study on the human preference for curved objects.
 
 ---
 
@@ -40,15 +40,17 @@ The breathing animation also avoids abrupt changes: the motion follows a cosine 
 
 ## The chinchilla as mascot
 
-MKpause uses a **chinchilla** as its mascot. The choice meets design criteria consistent with the purpose of the platform.
+MKpause uses a **chinchilla** as its mascot.
 
-### 1. Rounded silhouette
+### 1. An animal that is easily stressed
+
+The main reason for the choice is a direct reference to the purpose of the system: the chinchilla is a highly sensitive animal that easily becomes anxious and stressed by noise, heat, sudden changes and excessive handling. To do well, it needs a calm environment and moments of quiet.
+
+This trait mirrors the situation of the students MKpause serves: people who, faced with the overload of school, need a pause to recover. The mascot represents that need in a gentle way, without exposing or labeling the student. The underlying message is that feeling overwhelmed is common and that taking a pause is a legitimate form of self-care.
+
+### 2. Rounded silhouette
 
 The chinchilla has a compact body, large rounded ears and dense fur, forming a curved silhouette with no sharp points. According to Bar and Neta (2006), contours like these tend to be perceived as more pleasant and less threatening than angular shapes.
-
-### 2. Association with calm and comfort
-
-It is a small animal with a soft appearance and no association with danger. Its image conveys tranquility, which is the state the pause aims to encourage.
 
 ### 3. A non-human character
 
@@ -62,14 +64,15 @@ The main audience is teenage students. A real animal, drawn with simple lines, a
 
 - Keep the silhouette rounded, with no pointed contours.
 - Use the [MKpause palette](./paleta-de-cores.en.md), with light, low-saturation tones prevailing.
-- Show the mascot with calm, neutral expressions.
-- Do not use the mascot to express emotions that could be read as a judgment of the student, such as sadness or disapproval.
+- The mascot can represent the shift from agitation to calm, for example by following the guided breathing, reinforcing the effect of the pause.
+- Do not use the mascot to express states that could be read as a judgment of the student, such as sadness or disapproval.
 
 ---
 
 ## Limitations
 
 - Bar and Neta (2006) studied visual preference for objects. They did not evaluate mascots or digital interfaces specifically.
+- The parallel between the chinchilla's sensitivity and the student's is a symbolic choice by the team, not a research finding.
 - The preference for curves is one factor among many. Acceptance of the mascot should be verified through testing with students.
 
 ---

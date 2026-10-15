@@ -29,6 +29,7 @@ O objetivo é que cada decisão possa ser explicada e verificada, e não apenas 
 | Oferecer jogos simples, curtos e sem penalidade | Jogos casuais apresentaram resultados promissores para ansiedade e estresse | Pine et al. (2020) |
 | Usar fundos claros e pouco saturados | Brilho aumenta o prazer; saturação aumenta a excitação | Valdez e Mehrabian (1994) |
 | Usar formas curvas e um mascote de silhueta arredondada | Objetos curvos são preferidos; contornos angulosos podem transmitir ameaça | Bar e Neta (2006) |
+| Adotar a chinchila como mascote | Animal que se estressa com facilidade e precisa de calma, como o estudante que precisa de uma pausa | Escolha simbólica da equipe |
 
 ---
 

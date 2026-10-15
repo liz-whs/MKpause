@@ -2,7 +2,7 @@
 
 # Formas Arredondadas e Mascote
 
-Este documento explica por que a interface do MKpause privilegia formas curvas e por que a chinchila foi adotada como mascote. A fundamentação principal é o estudo de Bar e Neta (2006) sobre a preferência humana por objetos curvos.
+Este documento explica por que a interface do MKpause privilegia formas curvas e por que a chinchila foi adotada como mascote. A fundamentação das formas é o estudo de Bar e Neta (2006) sobre a preferência humana por objetos curvos.
 
 ---
 
@@ -40,15 +40,17 @@ A animação de respiração também evita mudanças bruscas: o movimento segue 
 
 ## A chinchila como mascote
 
-O MKpause adota uma **chinchila** como mascote. A escolha atende a critérios de design coerentes com o propósito da plataforma.
+O MKpause adota uma **chinchila** como mascote.
 
-### 1. Silhueta arredondada
+### 1. Um animal que se estressa com facilidade
+
+O principal motivo da escolha é uma referência direta ao propósito do sistema: a chinchila é um animal muito sensível, que fica ansioso e estressado com facilidade diante de barulho, calor, mudanças bruscas e manuseio excessivo. Para ficar bem, precisa de um ambiente calmo e de momentos de tranquilidade.
+
+Essa característica espelha a situação do estudante que o MKpause atende: alguém que, diante da sobrecarga do ambiente escolar, precisa de uma pausa para se recuperar. O mascote representa essa necessidade de forma leve, sem expor nem rotular o estudante. A mensagem implícita é que sentir-se sobrecarregado é comum e que fazer uma pausa é uma forma legítima de cuidado.
+
+### 2. Silhueta arredondada
 
 A chinchila tem corpo compacto, orelhas grandes e arredondadas e pelagem densa, que forma uma silhueta curva, sem pontas. Pelo estudo de Bar e Neta (2006), contornos assim tendem a ser percebidos como mais agradáveis e menos ameaçadores do que formas angulosas.
-
-### 2. Associação com calma e acolhimento
-
-É um animal pequeno, de aparência macia e sem associação com perigo. A representação transmite tranquilidade, que é o estado que a pausa busca promover.
 
 ### 3. Personagem não humano
 
@@ -62,14 +64,15 @@ O público principal são estudantes adolescentes. Um animal real, desenhado com
 
 - Manter a silhueta arredondada, sem contornos pontiagudos.
 - Usar as cores da [paleta do MKpause](./paleta-de-cores.md), com predominância de tons claros e pouco saturados.
-- Representar o mascote em expressões calmas e neutras.
-- Não usar o mascote para comunicar estados emocionais que possam ser interpretados como avaliação do estudante, como tristeza ou reprovação.
+- O mascote pode representar a passagem da agitação para a calma, por exemplo ao acompanhar a respiração guiada, reforçando o efeito da pausa.
+- Não usar o mascote para comunicar estados que possam ser interpretados como avaliação do estudante, como tristeza ou reprovação.
 
 ---
 
 ## Limites desta fundamentação
 
 - O estudo de Bar e Neta (2006) trata da preferência visual por objetos. Ele não avaliou mascotes nem interfaces digitais especificamente.
+- A relação entre a sensibilidade da chinchila e a do estudante é uma escolha simbólica da equipe, não um resultado de pesquisa.
 - A preferência por curvas é um fator entre vários. A aceitação do mascote pelo público deve ser verificada em testes com estudantes.
 
 ---

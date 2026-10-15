@@ -29,6 +29,7 @@ The goal is for every decision to be explainable and verifiable, rather than jus
 | Offer simple, short games with no penalties | Casual games showed promising results for anxiety and stress | Pine et al. (2020) |
 | Use light, low-saturation backgrounds | Brightness increases pleasure; saturation increases arousal | Valdez & Mehrabian (1994) |
 | Use curved shapes and a mascot with a rounded silhouette | Curved objects are preferred; sharp contours may convey threat | Bar & Neta (2006) |
+| Adopt the chinchilla as mascot | An animal that is easily stressed and needs calm, like a student who needs a pause | Symbolic choice by the team |
 
 ---
 
