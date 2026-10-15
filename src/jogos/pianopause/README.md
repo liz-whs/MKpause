@@ -6,6 +6,15 @@ O jogo não tem pontuação, erro, derrota nem contagem regressiva visível: a p
 
 > Atende ao requisito [RF02 — Acessar atividades e jogos](../../../docs/02-requisitos/requisitos-funcionais.md) e à regra [RN08 — Realização da atividade](../../../docs/02-requisitos/regras-de-negocio.md).
 
+## Autoria
+
+| Parte | Quem |
+|---|---|
+| Criação do jogo: conceito, mecânica, melodias, sons e código original | **Ana Beatriz Patussi** ([@anaapatussi-prog](https://github.com/anaapatussi-prog)) |
+| Animação mais fluida da respiração guiada, movimento das bolinhas decorativas e esta documentação | **Giovanna Ribas dos Reis** ([@ribasgiovanna](https://github.com/ribasgiovanna)) |
+
+O código do jogo entrou no repositório pelo PR #1, aberto pela Giovanna, por isso o histórico de commits não mostra a autoria da Ana Beatriz. Esta seção registra o crédito.
+
 ---
 
 ## Como executar
