@@ -8,7 +8,7 @@ O jogo não tem pontuação, erro, derrota nem contagem regressiva visível: a p
 
 ---
 
-## ▶️ Como executar
+## Como executar
 
 Requisitos: **Python 3.10+** e **pygame-ce**.
 
@@ -21,7 +21,7 @@ O laço principal é assíncrono (`async def main()` com `await asyncio.sleep(0)
 
 ---
 
-## 🧭 Fluxo de telas
+## Fluxo de telas
 
 ```text
 Início ──(Começar)──► Jogando ──(Pausar / Esc)──► Respiração guiada
@@ -46,7 +46,7 @@ As trocas de tela usam um esmaecimento curto (`opacidade_transicao`).
 
 ---
 
-## 🎮 Controles
+## Controles
 
 | Ação                         | Mouse / toque                 | Teclado |
 |------------------------------|-------------------------------|---------|
@@ -59,7 +59,7 @@ O jogo trata tanto `MOUSEBUTTONDOWN` quanto `FINGERDOWN`, então funciona em tel
 
 ---
 
-## 🎵 Mecânica
+## Mecânica
 
 ### Ritmos
 
@@ -91,7 +91,7 @@ Os sons são **gerados pelo próprio código** (`criar_sons()`): uma onda senoid
 
 ---
 
-## 🌬️ Respiração guiada
+## Respiração guiada
 
 Ao pausar, o jogo mostra um círculo que acompanha um ciclo de **8 segundos**:
 
@@ -112,7 +112,7 @@ Uma versão anterior redimensionava uma imagem a cada quadro (`smoothscale`). Is
 
 ---
 
-## 🎨 Identidade visual
+## Identidade visual
 
 O jogo usa a paleta do MKpause:
 
@@ -131,7 +131,7 @@ A janela tem **480 × 720 px** (formato retrato, pensado para celular e tablet).
 
 ---
 
-## 🗂️ Organização do código
+## Organização do código
 
 Todo o jogo está em [`main.py`](./main.py).
 
@@ -164,7 +164,7 @@ Todo o jogo está em [`main.py`](./main.py).
 
 ---
 
-## ⚠️ Limitações atuais
+## Limitações atuais
 
 - **Sem integração com a plataforma:** o jogo ainda não registra humor inicial/final (RF04, RF06), não salva a sessão (RF05) e não emite alertas. Ele roda de forma independente.
 - **Alguns textos estão sem acento** (por exemplo, "Comecar", "competicao", "Voce"). A fonte usada exibe acentos normalmente (a tela de respiração já mostra "respiração"), então eles podem ser corrigidos.
