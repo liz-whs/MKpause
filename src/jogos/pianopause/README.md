@@ -136,7 +136,8 @@ O jogo usa a paleta do MKpause:
 | Grass      | `GRASS`    | `#8D8B4C` | Linha de toque e borda do tabuleiro   |
 | Jungle     | `JUNGLE`   | `#65613F` | Botões secundários                    |
 | Sky        | `SKY`      | `#AFB8CD` | Nota Mi, centro do círculo            |
-| Cacao      | `CACAO`    | `#6B403B` | Textos e botões principais            |
+| Cacao      | `CACAO`    | `#594131` | Textos e botões principais            |
+| Cacao Hover | `CACAO_HOVER` | `#9D7D63` | Botões principais sob o cursor   |
 | Peony      | `PEONY`    | `#F7DDD5` | Fundo de todas as telas               |
 | Dusty Rose | `ROSE`     | `#D8A4AF` | Nota Sol                              |
 

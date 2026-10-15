@@ -66,7 +66,8 @@ The table lists each color with objective measurements. **L\*** (lightness) and 
 | Dusty Rose | `#D8A4AF` | 72.4 | 20.9 | red-purple | Note G |
 | Grass | `#8D8B4C` | 56.7 | 34.9 | yellow / green-yellow | Hit line, board border |
 | Jungle | `#65613F` | 40.7 | 20.4 | yellow / green-yellow | Secondary buttons |
-| Cacao | `#6B403B` | 32.1 | 21.2 | red / yellow-red | Text and primary buttons |
+| Cacao | `#594131` | 29.7 | 16.0 | yellow-red | Text and primary buttons |
+| Cacao Hover | `#9D7D63` | 54.8 | 20.7 | yellow-red | Primary buttons on hover |
 
 ---
 
@@ -92,11 +93,12 @@ Contrast measured with the WCAG 2.1 formula:
 
 | Combination | Contrast | WCAG 2.1 criterion |
 |---|---:|---|
-| Cacao on Peony | 6.71 : 1 | Meets AA for normal text (minimum 4.5 : 1) |
+| Cacao on Peony | 7.31 : 1 | Meets AAA for normal text (minimum 7 : 1) |
 | Jungle on Peony | 4.88 : 1 | Meets AA for normal text |
-| White `#FFFAF7` on Cacao (primary button text) | 8.37 : 1 | Meets AAA for normal text (minimum 7 : 1) |
+| White `#FFFAF7` on Cacao (primary button text) | 9.11 : 1 | Meets AAA for normal text |
+| White `#FFFAF7` on Cacao Hover (primary button on hover) | 3.65 : 1 | Meets AA for large text only (minimum 3 : 1) |
 | White `#FFFAF7` on Jungle (secondary button text) | 6.08 : 1 | Meets AA for normal text |
-| Cacao on Leaf (selected or hovered button) | 4.43 : 1 | Meets AA for large text only (minimum 3 : 1) |
+| Cacao on Leaf (selected button) | 4.82 : 1 | Meets AA for normal text |
 
 ### 4. The olive tones are accents
 
@@ -111,7 +113,7 @@ They serve a practical purpose: they set interactive elements apart from the bac
 1. Keep backgrounds and large areas in light, low-saturation tones (as a reference, L\* above 70 and C\* below 20).
 2. Do not increase the saturation of the olive tones or use them as screen backgrounds.
 3. Use Cacao for text on light backgrounds.
-4. On Leaf buttons, keep the text large (at least 18.66 px bold or 24 px regular), or darken the button slightly to reach 4.5 : 1.
+4. In the hover state (Cacao Hover), keep button text large (at least 18.66 px bold or 24 px regular), since its contrast with white text is 3.65 : 1. Because hover is a temporary state the user triggers by pointing at the button, this value is acceptable for large text.
 5. Do not convey information through color alone (RNF14). In PianoPause, each column also has its own musical note, which already follows this principle.
 
 ---

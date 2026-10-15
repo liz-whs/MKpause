@@ -25,7 +25,8 @@ LEAF = (193, 188, 119)
 GRASS = (141, 139, 76)
 JUNGLE = (101, 97, 63)
 SKY = (175, 184, 205)
-CACAO = (107, 64, 59)
+CACAO = (89, 65, 49)
+CACAO_HOVER = (157, 125, 99)
 PEONY = (247, 221, 213)
 ROSE = (216, 164, 175)
 BRANCO = (255, 250, 247)
@@ -336,6 +337,10 @@ def botao(
     if selecionado:
         cor_final = LEAF
         texto_final = CACAO
+
+    elif hover and cor == CACAO:
+        cor_final = CACAO_HOVER
+        texto_final = cor_texto
 
     elif hover:
         cor_final = LEAF
