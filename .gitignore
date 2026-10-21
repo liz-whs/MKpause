@@ -1,0 +1,32 @@
+﻿# Variáveis de ambiente e credenciais
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Ambientes e arquivos locais
+.vscode/
+.idea/
+*.log
+relatorio_integridade.txt
+
+# Banco de dados: cópias e backups locais
+*.dump
+*.backup
+*.bak
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
