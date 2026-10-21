@@ -1,0 +1,8 @@
+[flyway]
+locations = ["filesystem:database/migrations"]
+validateMigrationNaming = true
+
+[environments.default]
+url = "jdbc:postgresql://localhost:5432/mkpause"
+user = "postgres"
+password = "${env.FLYWAY_PASSWORD}"
