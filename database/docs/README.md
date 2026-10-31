@@ -5,6 +5,7 @@ Esta pasta reúne a documentação técnica das versões do esquema do banco de 
 ## Documentos
 
 - [`v1-esquema-inicial.md`](v1-esquema-inicial.md): descreve a migração `V1__criacao_do_esquema_inicial.sql`, incluindo tabelas, relacionamentos, restrições, índices, funções, gatilhos, responsabilidades do backend e pendências conhecidas.
+- [`v2-responsavel-como-contato.md`](v2-responsavel-como-contato.md): documenta a migração `V2__ajusta_responsavel_como_contato.sql`, que transforma o responsável em contato sem login, suas pré-condições e a validação local informada pela equipe.
 
 ## Organização
 
