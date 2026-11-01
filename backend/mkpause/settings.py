@@ -114,6 +114,9 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 60 * 60 * 8  # um turno escolar
 SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = not DEBUG  # só HTTPS fora do desenvolvimento
+# A interface web (src/web, Vite) repassa /api para cá; o navegador manda a origem dela.
+CSRF_TRUSTED_ORIGINS = [o for o in env("DJANGO_CSRF_TRUSTED_ORIGINS",
+                                       "http://localhost:5173,http://127.0.0.1:5173").split(",") if o]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["contas.autenticacao.AutenticacaoPorSessao"],

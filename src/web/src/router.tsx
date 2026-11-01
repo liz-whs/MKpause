@@ -5,6 +5,8 @@ import { EstudanteProvider, useEstudante } from './state/EstudanteContext';
 import { SkipLink, useTituloEFoco } from './components/layout/Navegacao';
 import { usePreferencias } from './preferencias/preferencias';
 import { PainelPreferencias } from './preferencias/PainelPreferencias';
+import { api } from './data/api';
+import { useDados } from './data/useDados';
 import { VLibras } from './preferencias/VLibras';
 import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, PrimeiroAcesso } from './features/onboarding/Onboarding';
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
@@ -18,11 +20,13 @@ import { AdminCadastro, AdminConteudos, AdminFichas, AdminLayout, AdminUsuarios,
 
 function Raiz() {
   const { idioma } = usePreferencias();
+  // Telas que leem a api sem useDados redesenham quando a conta do backend termina de carregar.
+  const conta = useDados(() => (api.carregado() ? api.conta()?.id_usuario ?? 'anonimo' : 'carregando'));
   useTituloEFoco();
   return (
     <EstudanteProvider>
       {/* Ao trocar de idioma as telas são remontadas e todo texto passa de novo por t(). */}
-      <Fragment key={idioma}>
+      <Fragment key={`${idioma}-${conta}`}>
         <SkipLink />
         <Outlet />
       </Fragment>

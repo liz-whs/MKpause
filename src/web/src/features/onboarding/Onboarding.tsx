@@ -12,6 +12,8 @@ import { ScreenTitle } from '../../components/student/Bits';
 import { useEstudante } from '../../state/EstudanteContext';
 import { emocaoPorId } from '../../domain/emocoes';
 import { entrarComoProfissional } from '../../state/ProContext';
+import { api } from '../../data/api';
+import type { Perfil } from '../../data/servidor';
 import mascote from '../../assets/chinchila/mascote.svg';
 import { t } from '../../i18n';
 
@@ -211,8 +213,16 @@ function LogoGoogle() {
   );
 }
 
+const DESTINO_DO_PERFIL: Record<Perfil, string> = {
+  estudante: '/primeiro-acesso',
+  professor: '/escola',
+  psicologo_escolar: '/escola',
+  psicologo_clinico: '/clinico',
+  administrador: '/admin',
+};
+
 /**
- * Login de exemplo (sem backend): qualquer senha entra.
+ * Login de exemplo dos testes (sem backend): qualquer senha entra.
  * "professor", "psicologo", "clinico" e "admin" abrem as áreas dos profissionais;
  * qualquer outra matrícula entra como estudante.
  */
@@ -244,10 +254,23 @@ export function Entrar() {
   const erroUsuario = tentou && !usuario.trim() ? t('Digite sua matrícula ou e-mail.') : undefined;
   const erroSenha = tentou && !senha.trim() ? t('Digite sua senha.') : undefined;
 
-  function enviar(e: FormEvent) {
+  const [erroLogin, setErroLogin] = useState<string>();
+
+  async function enviar(e: FormEvent) {
     e.preventDefault();
     setTentou(true);
-    if (usuario.trim() && senha.trim()) navigate(destinoDoLogin(usuario));
+    if (!usuario.trim() || !senha.trim()) return;
+    if (import.meta.env.MODE === 'test') {
+      navigate(destinoDoLogin(usuario));
+      return;
+    }
+    try {
+      setErroLogin(undefined);
+      const conta = await api.entrar(usuario, senha);
+      navigate(DESTINO_DO_PERFIL[conta.perfil]);
+    } catch (erro) {
+      setErroLogin((erro as Error).message);
+    }
   }
 
   return (
@@ -300,6 +323,11 @@ export function Entrar() {
             {mostrar ? t('Ocultar senha') : t('Mostrar senha')}
           </button>
         </div>
+        {erroLogin && (
+          <p role="alert" className="font-semibold text-dark">
+            {erroLogin}
+          </p>
+        )}
         <Button type="submit" block>
           {t('Entrar')}
         </Button>

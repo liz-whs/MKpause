@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api } from '../data/api';
+import { useDados } from '../data/useDados';
 import type { EmocaoId } from '../domain/emocoes';
 import type { AtividadeId, AvisoSaida } from '../domain/tipos';
 import { chaveDia, ehDiaUtil, type CuidadoId } from '../domain/cuidados';
@@ -46,7 +47,7 @@ function estadoInicial(): EstadoPersistido {
     }
   }
   return {
-    apelido: api.estudante.perfil().apelido,
+    apelido: '',
     notificacoes: true,
     diasComCuidado: historicoExemplo(),
     cuidadosHoje: {},
@@ -62,7 +63,7 @@ function useEstadoEstudante() {
     sessionStorage.setItem(CHAVE, JSON.stringify(estado));
   }, [estado]);
 
-  const perfil = api.estudante.perfil();
+  const perfil = useDados(() => api.estudante.perfil());
   const hoje = chaveDia(new Date());
   const feitosHoje = estado.cuidadosHoje[hoje] ?? [];
 
@@ -80,7 +81,7 @@ function useEstadoEstudante() {
   );
 
   return {
-    perfil: { ...perfil, apelido: estado.apelido },
+    perfil: { ...perfil, apelido: estado.apelido || perfil.apelido },
     iniciais: iniciais(perfil.nome),
     notificacoes: estado.notificacoes,
     diasComCuidado: useMemo(() => new Set(estado.diasComCuidado), [estado.diasComCuidado]),
@@ -115,6 +116,7 @@ function useEstadoEstudante() {
 
 
     sair: () => {
+      void api.sair();
       sessionStorage.removeItem(CHAVE);
       setEstado(estadoInicial());
     },

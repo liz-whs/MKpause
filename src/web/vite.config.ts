@@ -35,6 +35,9 @@ function pacotesDosJogos(): Plugin {
 }
 
 export default defineConfig({
+  // A API do Django (backend/) roda em 127.0.0.1:8000; pelo proxy, mesma origem (cookie e CSRF).
+  server: { proxy: { '/api': 'http://127.0.0.1:8000' } },
+  preview: { proxy: { '/api': 'http://127.0.0.1:8000' } },
   plugins: [pacotesDosJogos(), react(), tailwindcss()],
   test: {
     environment: 'jsdom',
