@@ -1,0 +1,122 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fraunces/full.css';
+@import '@fontsource-variable/lexend/index.css';
+@import '@fontsource-variable/caveat/index.css';
+/* Fonte da opção "Fonte mais legível" (só é baixada quando a opção está ligada). */
+@import '@fontsource/atkinson-hyperlegible/400.css';
+@import '@fontsource/atkinson-hyperlegible/700.css';
+@import './tokens.css';
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: var(--color-ink);
+  }
+
+  /* O HANDOFF pede #9D7D63 no hover, mas ele dá 3,3:1 sobre o creme.
+     O link fica em Cacao e ganha um sublinhado mais grosso. */
+  a:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  /* Alvos de foco programático (troca de página, "Pular para o conteúdo"). */
+  main:focus,
+  h1[tabindex='-1']:focus {
+    outline: none;
+  }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 100;
+}
+
+/* ───────────── Preferências de acessibilidade (painel "Acessibilidade e idioma") ───────────── */
+
+/* Alto contraste: preto sobre branco, bordas marcadas nas superfícies. */
+html[data-alto-contraste] {
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-hover: #ececec;
+  --color-ink: #000000;
+  --color-muted: #000000;
+  --color-dark: #000000;
+  --color-line: #000000;
+  --color-disabled: #8a8a8a;
+  --color-peony: #ffe0d6;
+  --color-lavender: #e6dfeb;
+  --color-sky: #dbe3f5;
+  --color-rose: #f6cdd6;
+  --color-leaf: #e4e09a;
+}
+
+html[data-alto-contraste] :is(.bg-surface, .bg-peony, .bg-lavender, .bg-sky, .bg-rose):not([role='switch'] *) {
+  box-shadow: inset 0 0 0 2px #000000;
+}
+
+html[data-alto-contraste] :focus-visible {
+  outline-width: 4px;
+}
+
+/* Fonte mais legível: Atkinson Hyperlegible no texto e nos títulos. */
+html[data-fonte-legivel] {
+  --font-sans: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-display: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  word-spacing: 0.08em;
+}
+
+html[data-fonte-legivel] :is(h1, h2, h3, .font-display) {
+  font-variation-settings: normal;
+}
+
+/* Menos movimento: sem animações nem transições. */
+html[data-menos-movimento] *,
+html[data-menos-movimento] *::before,
+html[data-menos-movimento] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Libras desligado: esconde o VLibras, se ele já tiver sido carregado nesta visita. */
+html[data-sem-libras] :is(#vlibras-access-wrapper, [vw]) {
+  display: none !important;
+}
