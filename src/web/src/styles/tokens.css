@@ -1,0 +1,77 @@
+/*
+ * Design tokens do MKpause (HANDOFF, seção 3).
+ * Cada token vira utilitário do Tailwind: bg-rose, text-ink, rounded-card, etc.
+ */
+@theme {
+  --color-*: initial;
+
+  /* Fundos e superfícies */
+  --color-bg: #f6efe4;
+  --color-surface: #fffaf7;
+
+  /* Texto */
+  --color-ink: #594131;
+  /* Do HANDOFF; não usar em texto nem sob texto: 3,3–3,7:1, abaixo do AA. */
+  --color-ink-hover: #9d7d63;
+  --color-muted: #6e5442;
+  --color-dark: #3e2b20;
+
+  /* Apoio */
+  --color-peony: #f7ddd5;
+  --color-lavender: #ccc3d1;
+  --color-sky: #afb8cd;
+  --color-rose: #d8a4af;
+
+  /* Detalhes (nunca como fundo de tela) */
+  --color-leaf: #c1bc77;
+  --color-grass: #8d8b4c;
+  --color-jungle: #65613f;
+
+  --color-line: #e6d8c6;
+  --color-disabled: #eadbd3;
+
+  /* Mascote e símbolo */
+  --color-ear: #d3a0aa;
+  --color-ear-light: #f3d6ce;
+
+  /* Hover de superfícies claras (protótipo) */
+  --color-surface-hover: #fdf1ec;
+
+  /* Tipografia */
+  --font-display: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Lexend Variable', system-ui, sans-serif;
+  --font-hand: 'Caveat Variable', cursive;
+
+  /* Escala de texto: celular (o computador sobe título de tela e de seção) */
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.4;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.5;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5;
+  --text-button: 1.125rem;
+  --text-button--line-height: 1.2;
+  --text-section: 1.375rem;
+  --text-section--line-height: 1.2;
+  --text-section-lg: 1.5rem;
+  --text-section-lg--line-height: 1.2;
+  --text-screen: 1.875rem;
+  --text-screen--line-height: 1.15;
+  --text-screen-lg: 2.5rem;
+  --text-screen-lg--line-height: 1.1;
+
+  /* Raios */
+  --radius-pill: 999px;
+  --radius-field: 14px;
+  --radius-button: 18px;
+  --radius-card: 22px;
+  --radius-card-lg: 24px;
+  --radius-sheet: 32px;
+
+  /* Espaçamento base 4 */
+  --spacing: 4px;
+
+  /* Breakpoints */
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+}
