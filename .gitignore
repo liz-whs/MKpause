@@ -30,3 +30,5 @@ relatorio_integridade.txt
 .DS_Store
 Thumbs.db
 desktop.ini
+.neon
+node_modules/

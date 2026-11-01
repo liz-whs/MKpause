@@ -38,6 +38,8 @@ def _carregar_env(caminho):
 
 
 _carregar_env(BASE_DIR / ".env")
+# Variáveis do Neon (`neon deploy` grava DATABASE_URL na raiz do repositório).
+_carregar_env(BASE_DIR.parent / ".env.local")
 
 
 def env(nome, padrao=None):
@@ -113,6 +115,10 @@ if url_banco := env("DATABASE_URL"):
                                 PASSWORD=unquote(u.password or ""), HOST=u.hostname, PORT=str(u.port or 5432))
     # O Neon e outros exigem ?sslmode=require na URL.
     DATABASES["default"]["OPTIONS"].update(parse_qsl(u.query))
+    # DATABASE_URL do Neon passa pelo pooler (PgBouncer em modo transação),
+    # que não mantém cursores do lado do servidor entre transações.
+    if "-pooler." in (u.hostname or ""):
+        DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 
 if "test" in sys.argv[1:2]:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
