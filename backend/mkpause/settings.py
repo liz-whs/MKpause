@@ -52,6 +52,11 @@ DEBUG = env("DJANGO_DEBUG", "1") == "1"
 
 ALLOWED_HOSTS = [h for h in env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
 
+# No Render, o endereço público vem nesta variável (ex.: mkpause.onrender.com).
+RENDER_HOST = env("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+
 
 # Application definition
 
@@ -71,6 +76,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serve a interface web já compilada (src/web/dist) no mesmo endereço da API.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -98,6 +105,15 @@ DATABASES = {
     }
 }
 
+# No Render o banco vem como uma URL só (postgresql://usuario:senha@host:porta/banco).
+if url_banco := env("DATABASE_URL"):
+    from urllib.parse import parse_qsl, unquote, urlparse
+    u = urlparse(url_banco)
+    DATABASES["default"].update(NAME=u.path.lstrip("/"), USER=unquote(u.username or ""),
+                                PASSWORD=unquote(u.password or ""), HOST=u.hostname, PORT=str(u.port or 5432))
+    # O Neon e outros exigem ?sslmode=require na URL.
+    DATABASES["default"]["OPTIONS"].update(parse_qsl(u.query))
+
 if "test" in sys.argv[1:2]:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]  # só acelera os testes
@@ -117,6 +133,15 @@ SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = not DEBUG  # só HTTPS fora do dese
 # A interface web (src/web, Vite) repassa /api para cá; o navegador manda a origem dela.
 CSRF_TRUSTED_ORIGINS = [o for o in env("DJANGO_CSRF_TRUSTED_ORIGINS",
                                        "http://localhost:5173,http://127.0.0.1:5173").split(",") if o]
+if RENDER_HOST:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOST}")
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # o Render termina o HTTPS antes
+
+# Interface web compilada (npm run build em src/web). O WhiteNoise serve os arquivos
+# e as rotas que não são /api/ devolvem o index.html (ver mkpause/urls.py).
+INTERFACE_WEB = BASE_DIR.parent / "src" / "web" / "dist"
+WHITENOISE_ROOT = INTERFACE_WEB if INTERFACE_WEB.exists() else None
+STATIC_URL = "static/"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["contas.autenticacao.AutenticacaoPorSessao"],

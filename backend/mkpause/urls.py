@@ -2,7 +2,9 @@
 Rotas da API do MKpause. Tudo responde JSON em /api/.
 A lista completa, com exemplos, está em backend/README.md.
 """
-from django.urls import include, path
+from django.conf import settings
+from django.http import FileResponse, Http404
+from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
 
 from acompanhamento.views import AvisoViewSet, FichaView
@@ -38,3 +40,14 @@ urlpatterns = [
     path("api/admin/vinculos/responsaveis/", contas.VinculoResponsavelView.as_view()),
     path("api/", include(router.urls)),
 ]
+
+
+def interface_web(request):
+    """Rotas da interface (React Router): devolve o index.html compilado."""
+    index = settings.INTERFACE_WEB / "index.html"
+    if not index.exists():
+        raise Http404("Interface web não compilada: rode `npm run build` em src/web.")
+    return FileResponse(index.open("rb"), content_type="text/html")
+
+
+urlpatterns.append(re_path(r"^(?!api/).*$", interface_web))

@@ -1,8 +1,8 @@
 """
 python manage.py criar_demo
 
-Cria contas de demonstração (estudante, professor, psicólogo escolar e
-clínico), os vínculos entre elas e as três atividades da interface web.
+Cria contas de demonstração (administrador, estudante, professor, psicólogo
+escolar e clínico), os vínculos entre elas e as três atividades da interface web.
 Só para o banco de desenvolvimento. Pode rodar de novo: o que já existe fica.
 
 A senha das contas vem de DEMO_SENHA no .env (ou --senha).
@@ -14,8 +14,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from atividades.models import Atividade
-from contas.models import (Estudante, Professor, ProfessorEstudante, PsicologoClinico, PsicologoClinicoEstudante,
-                           PsicologoEscolar, PsicologoEscolarEstudante, Usuario)
+from contas.models import (Administrador, Estudante, Professor, ProfessorEstudante, PsicologoClinico,
+                           PsicologoClinicoEstudante, PsicologoEscolar, PsicologoEscolarEstudante, Usuario)
 from nucleo.conexao import exigir_banco
 
 ESCOLA = "Escola Modelo"
@@ -64,6 +64,9 @@ class Command(BaseCommand):
             pc, _ = PsicologoClinico.objects.get_or_create(
                 usuario=self._usuario("clinico.demo@mkpause.dev", "Carlos Pires", senha),
                 defaults={"registro_profissional": "08/54321", "estado_registro": "PR"})
+
+            Administrador.objects.get_or_create(
+                usuario=self._usuario("admin.demo@mkpause.dev", "Admin Demo", senha))
 
             ProfessorEstudante.objects.get_or_create(professor=prof, estudante=est)
             PsicologoEscolarEstudante.objects.get_or_create(psicologo_escolar=pe, estudante=est)

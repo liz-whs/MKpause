@@ -1,0 +1,26 @@
+# Hospedagem no Render (plano grátis): um serviço com a API Django e a interface web.
+# O banco fica fora (ex.: Neon, PostgreSQL grátis que não expira): cole a URL em DATABASE_URL.
+# Passo a passo em docs/hospedagem.md.
+services:
+  - type: web
+    name: mkpause
+    runtime: python
+    plan: free
+    buildCommand: >-
+      pip install -r backend/requirements.txt &&
+      npm --prefix src/web ci &&
+      npm --prefix src/web run build &&
+      python backend/manage.py aplicar_esquema &&
+      python backend/manage.py criar_demo
+    startCommand: cd backend && gunicorn mkpause.wsgi --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.1"
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false # pedido na criação: URL do Neon
+      - key: DEMO_SENHA
+        sync: false # pedido na criação: senha das contas de demonstração
