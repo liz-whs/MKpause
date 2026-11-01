@@ -13,6 +13,7 @@ import { JogoPianoPauseProvider } from './features/session/JogoPianoPause';
 import { AgoraRespira, AvisoSaida, ForaDaSala, VoceSeCuidou } from './features/levels/Niveis';
 import { EscolaAlertas, EscolaAvisos, EscolaEstudante, EscolaEstudantes, EscolaLayout } from './features/school/Escola';
 import { ClinicoAcompanhados, ClinicoAlertas, ClinicoEstudante, ClinicoFicha, ClinicoLayout } from './features/clinical/Clinico';
+import { PerfilProfissional } from './features/pro/PerfilProfissional';
 import { AdminCadastro, AdminConteudos, AdminFichas, AdminLayout, AdminUsuarios, AdminVinculos } from './features/admin/Admin';
 
 function Raiz() {
@@ -94,6 +95,7 @@ export const rotas: RouteObject[] = [
           { path: 'avisos', element: <EscolaAvisos />, handle: { titulo: 'Avisos de saída' } },
           { path: 'estudantes', element: <EscolaEstudantes />, handle: { titulo: 'Estudantes' } },
           { path: 'estudantes/:id', element: <EscolaEstudante />, handle: { titulo: 'Estudante' } },
+          { path: 'perfil', element: <PerfilProfissional area="escola" />, handle: { titulo: 'Perfil' } },
         ],
       },
 
@@ -107,6 +109,7 @@ export const rotas: RouteObject[] = [
           { path: 'estudantes/:id', element: <ClinicoEstudante />, handle: { titulo: 'Estudante' } },
           { path: 'estudantes/:id/ficha', element: <ClinicoFicha />, handle: { titulo: 'Ficha de acompanhamento' } },
           { path: 'alertas', element: <ClinicoAlertas />, handle: { titulo: 'Alertas' } },
+          { path: 'perfil', element: <PerfilProfissional area="clinico" />, handle: { titulo: 'Perfil' } },
         ],
       },
 
@@ -122,6 +125,7 @@ export const rotas: RouteObject[] = [
           { path: 'vinculos', element: <AdminVinculos />, handle: { titulo: 'Vínculos' } },
           { path: 'fichas', element: <AdminFichas />, handle: { titulo: 'Fichas' } },
           { path: 'conteudos', element: <AdminConteudos />, handle: { titulo: 'Conteúdos' } },
+          { path: 'perfil', element: <PerfilProfissional area="admin" />, handle: { titulo: 'Perfil' } },
         ],
       },
 

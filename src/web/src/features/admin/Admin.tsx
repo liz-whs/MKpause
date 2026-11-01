@@ -25,6 +25,7 @@ export function AdminLayout() {
     <ProLayout
       perfil={t('Administrador(a)')}
       usuario={{ nome: eu.nome, iniciais: eu.iniciais }}
+      perfilTo="/admin/perfil"
       items={[
         { to: '/admin/usuarios', label: 'Usuários', icon: 'pessoas' },
         { to: '/admin/vinculos', label: 'Vínculos', icon: 'vinculo' },

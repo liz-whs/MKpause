@@ -10,6 +10,11 @@ const CHAVE = 'mkpause:profissional';
 
 const PADRAO = { escola: 'prof-1', clinico: 'pc-1' } as const;
 
+/** Sai da área dos profissionais: esquece quem estava usando. */
+export function sairProfissional() {
+  sessionStorage.removeItem(CHAVE);
+}
+
 export function entrarComoProfissional(id: string) {
   sessionStorage.setItem(CHAVE, id);
 }

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { NIVEIS } from '../../domain/niveis';
 import { emocaoPorId } from '../../domain/emocoes';
@@ -15,6 +15,7 @@ import { Switch } from '../../components/ui/Switch';
 import { Field } from '../../components/ui/Field';
 import { Button } from '../../components/ui/Button';
 import { cx } from '../../components/ui/cx';
+import { Linha } from '../../components/ui/Linha';
 import { QuemVeOQue } from '../onboarding/Onboarding';
 import { OpcoesPreferencias } from '../../preferencias/PainelPreferencias';
 import { IDIOMAS, usePreferencias } from '../../preferencias/preferencias';
@@ -216,22 +217,6 @@ export function Cuidados() {
   );
 }
 
-function Linha({ icone, titulo, valor, children }: { icone: IconName; titulo: string; valor?: string; children?: ReactNode }) {
-  return (
-    <details className="group rounded-2xl">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3.5 rounded-2xl px-1.5 py-3.5 hover:bg-surface-hover [&::-webkit-details-marker]:hidden">
-        <Icon name={icone} size={22} />
-        <span className="flex flex-1 flex-col">
-          <strong>{titulo}</strong>
-          {valor && <span className="text-caption text-muted">{valor}</span>}
-        </span>
-        <Icon name="seguir" size={20} className="transition-transform group-open:rotate-90 motion-reduce:transition-none" />
-      </summary>
-      <div className="px-1.5 pt-1 pb-3">{children}</div>
-    </details>
-  );
-}
-
 export function Perfil() {
   const navigate = useNavigate();
   const { perfil, iniciais, notificacoes, definirApelido, definirNotificacoes, sair } = useEstudante();
@@ -254,7 +239,7 @@ export function Perfil() {
       </div>
 
       {/* No computador: duas colunas que começam na mesma altura, cada uma com seu título. */}
-      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-6 lg:gap-y-5">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-6 lg:gap-y-5">
         <section aria-labelledby="titulo-conta" className="flex flex-col gap-2">
           <SectionTitle>
             <span id="titulo-conta">{t('Sua conta')}</span>

@@ -26,6 +26,7 @@ export function ClinicoLayout() {
     <ProLayout
       perfil={PAPEL_LABEL[eu.papel]}
       usuario={{ nome: eu.nome, iniciais: eu.iniciais }}
+      perfilTo="/clinico/perfil"
       items={[
         { to: '/clinico/acompanhados', label: 'Acompanhados', icon: 'pessoas' },
         { to: '/clinico/alertas', label: 'Alertas e avisos', icon: 'alerta', count: pendentes },

@@ -36,6 +36,7 @@ export function EscolaLayout() {
     <ProLayout
       perfil={PAPEL_LABEL[eu.papel]}
       usuario={{ nome: eu.nome, iniciais: eu.iniciais }}
+      perfilTo="/escola/perfil"
       items={[
         { to: '/escola/alertas', label: 'Alertas', icon: 'alerta', count: novos },
         { to: '/escola/avisos', label: 'Avisos de saída', icon: 'porta', count: fora },

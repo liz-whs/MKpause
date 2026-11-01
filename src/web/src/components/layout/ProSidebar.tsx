@@ -5,6 +5,7 @@ import { Icon, type IconName } from '../ui/Icon';
 import { cx } from '../ui/cx';
 import { t } from '../../i18n';
 import { BotaoPreferencias } from '../../preferencias/PainelPreferencias';
+import { sairProfissional } from '../../state/ProContext';
 
 export interface ProMenuItem {
   to: string;
@@ -20,6 +21,8 @@ export interface ProSidebarProps {
   perfil: string;
   items: ProMenuItem[];
   usuario: { nome: string; iniciais: string };
+  /** Página de perfil de quem está usando (o cartão do usuário leva até ela). */
+  perfilTo: string;
 }
 
 function MenuLinks({ items }: { items: ProMenuItem[] }) {
@@ -52,10 +55,19 @@ function MenuLinks({ items }: { items: ProMenuItem[] }) {
   );
 }
 
-function Usuario({ perfil, usuario }: Pick<ProSidebarProps, 'perfil' | 'usuario'>) {
+function Usuario({ perfil, usuario, perfilTo }: Pick<ProSidebarProps, 'perfil' | 'usuario' | 'perfilTo'>) {
   return (
     <>
-      <div className="flex items-center gap-2.5 rounded-2xl bg-peony p-3">
+      {/* O cartão do usuário é o caminho para o Perfil (nome visível + "Perfil" para o leitor de tela). */}
+      <NavLink
+        to={perfilTo}
+        className={({ isActive }) =>
+          cx(
+            'flex items-center gap-2.5 rounded-2xl p-3 no-underline hover:text-ink',
+            isActive ? 'bg-peony outline-2 outline-ink' : 'bg-peony hover:bg-surface-hover',
+          )
+        }
+      >
         <span
           aria-hidden="true"
           className="flex size-10.5 flex-none items-center justify-center rounded-full bg-lavender font-bold"
@@ -66,8 +78,10 @@ function Usuario({ perfil, usuario }: Pick<ProSidebarProps, 'perfil' | 'usuario'
           <strong className="truncate">{usuario.nome}</strong>
           <span className="text-muted">{perfil}</span>
         </span>
-      </div>
-      <Link to="/" className="flex min-h-12 items-center gap-2 px-2.5 font-semibold no-underline">
+        <span className="sr-only">, {t('Perfil')}</span>
+        <Icon name="seguir" size={18} className="ml-auto flex-none" />
+      </NavLink>
+      <Link to="/" onClick={sairProfissional} className="flex min-h-12 items-center gap-2 px-2.5 font-semibold no-underline">
         <Icon name="sair" size={20} />
         {t('Sair')}
       </Link>
@@ -91,7 +105,7 @@ function Marca({ perfil }: { perfil: string }) {
  * Menu lateral dos profissionais e da administração.
  * Abaixo de 1024 px vira uma barra no topo com o botão "Menu".
  */
-export function ProSidebar({ perfil, items, usuario }: ProSidebarProps) {
+export function ProSidebar({ perfil, items, usuario, perfilTo }: ProSidebarProps) {
   const [aberto, setAberto] = useState(false);
   const painelId = useId();
   const { pathname } = useLocation();
@@ -109,7 +123,7 @@ export function ProSidebar({ perfil, items, usuario }: ProSidebarProps) {
         </nav>
         <div className="mt-auto flex flex-col gap-2">
           <BotaoPreferencias rotulo className="w-full justify-start bg-transparent hover:bg-surface-hover" />
-          <Usuario perfil={perfil} usuario={usuario} />
+          <Usuario perfil={perfil} usuario={usuario} perfilTo={perfilTo} />
         </div>
       </aside>
 
@@ -135,7 +149,7 @@ export function ProSidebar({ perfil, items, usuario }: ProSidebarProps) {
           <nav aria-label={t('Menu')}>
             <MenuLinks items={items} />
           </nav>
-          <Usuario perfil={perfil} usuario={usuario} />
+          <Usuario perfil={perfil} usuario={usuario} perfilTo={perfilTo} />
         </div>
       </header>
     </>
