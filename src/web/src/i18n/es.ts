@@ -475,5 +475,6 @@ export const es: Record<string, string> = {
   'Cadastros de estudantes e profissionais': 'Registros de estudiantes y profesionales',
   'Vínculos, fichas administrativas e conteúdos': 'Vínculos, fichas administrativas y contenidos',
   'Pausas, humor, observações e registros clínicos': 'Pausas, ánimo, observaciones y registros clínicos',
+  'Entrando…': 'Entrando…',
   'Carregando…': 'Cargando…',
 };

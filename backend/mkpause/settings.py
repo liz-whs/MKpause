@@ -104,6 +104,10 @@ DATABASES = {
         "PORT": env("DB_PORT", "5432"),
         # Sem isto, no Windows a conexão fica minutos tentando quando o banco não está no ar
         "OPTIONS": {"connect_timeout": int(env("DB_CONNECT_TIMEOUT", "5"))},
+        # Reaproveita a conexão entre requisições: abrir uma nova (com SSL) a cada
+        # chamada deixava o site hospedado lento. O health check descarta conexões mortas.
+        "CONN_MAX_AGE": int(env("DB_CONN_MAX_AGE", "60")),
+        "CONN_HEALTH_CHECKS": True,
     }
 }
 

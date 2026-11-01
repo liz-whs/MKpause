@@ -12,7 +12,9 @@ services:
       npm --prefix src/web run build &&
       python backend/manage.py aplicar_esquema &&
       python backend/manage.py criar_demo
-    startCommand: cd backend && gunicorn mkpause.wsgi --bind 0.0.0.0:$PORT
+    # Um processo com várias threads: a tela faz várias chamadas ao mesmo tempo
+    # e, sem threads, uma esperava a outra (o plano grátis tem pouca memória para mais processos).
+    startCommand: cd backend && gunicorn mkpause.wsgi --bind 0.0.0.0:$PORT --worker-class gthread --workers 1 --threads 8
     envVars:
       - key: PYTHON_VERSION
         value: "3.13.1"

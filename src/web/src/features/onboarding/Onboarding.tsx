@@ -255,6 +255,8 @@ export function Entrar() {
   const erroSenha = tentou && !senha.trim() ? t('Digite sua senha.') : undefined;
 
   const [erroLogin, setErroLogin] = useState<string>();
+  // No servidor grátis o login pode levar alguns segundos (hash da senha).
+  const [entrando, setEntrando] = useState(false);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -266,10 +268,13 @@ export function Entrar() {
     }
     try {
       setErroLogin(undefined);
+      setEntrando(true);
       const conta = await api.entrar(usuario, senha);
       navigate(DESTINO_DO_PERFIL[conta.perfil]);
     } catch (erro) {
       setErroLogin((erro as Error).message);
+    } finally {
+      setEntrando(false);
     }
   }
 
@@ -328,8 +333,8 @@ export function Entrar() {
             {erroLogin}
           </p>
         )}
-        <Button type="submit" block>
-          {t('Entrar')}
+        <Button type="submit" block disabled={entrando} aria-busy={entrando}>
+          {entrando ? t('Entrando…') : t('Entrar')}
         </Button>
       </form>
     </Pagina>
