@@ -64,6 +64,8 @@ const DINAMICAS = [
   'Vê suas pausas e avisos.', 'Sua turma', 'Não vê nada.',
   // Dados de exemplo
   'Mãe', 'Pai',
+  // Perfil dos profissionais (O que você vê)
+  'Alertas de nível 3 e avisos de saída dos seus estudantes', 'Pausas e como o estudante estava antes e depois', 'Observações da escola, com nome de quem escreveu', 'Fichas e registros clínicos', 'Histórico de pausas e humor dos estudantes que você acompanha', 'Ficha de acompanhamento e registros clínicos', 'Observações da escola, só para leitura', 'Alertas e avisos de saída', 'Cadastros de estudantes e profissionais', 'Vínculos, fichas administrativas e conteúdos', 'Pausas, humor, observações e registros clínicos',
 ];
 
 describe('traduções', () => {

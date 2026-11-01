@@ -117,11 +117,47 @@ describe('login de exemplo', () => {
   });
 });
 
+describe('perfil dos profissionais', () => {
+  it('o cartão do menu leva ao perfil, que mostra os estudantes vinculados', async () => {
+    entrarComoProfissional('prof-3'); // vinculado só ao 7º C
+    const { router } = abrir('/escola/alertas');
+    await userEvent.click(screen.getAllByRole('link', { name: /Júlio Freitas.*, Perfil/ })[0]);
+    expect(router.state.location.pathname).toBe('/escola/perfil');
+    expect(screen.getByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument();
+    expect(screen.getByText(/Professor\(a\) · Português · 7º C · Escola Modelo/)).toBeInTheDocument();
+    const lista = screen.getByRole('region', { name: 'Seus estudantes' });
+    expect(within(lista).getByRole('link', { name: /Felipe Nunes/ })).toHaveAttribute('href', '/escola/estudantes/est-6');
+    expect(within(lista).queryByText('Ana Lima')).toBeNull();
+    expect(screen.getByText('Fichas e registros clínicos').nextSibling).toHaveTextContent('Você não vê');
+  });
+
+  it('o psicólogo clínico vê os registros clínicos e chega aos estudantes pela área clínica', () => {
+    entrarComoProfissional('pc-1');
+    abrir('/clinico/perfil');
+    expect(screen.getByText('Ficha de acompanhamento e registros clínicos').nextSibling).toHaveTextContent('Você vê');
+    expect(screen.getByRole('link', { name: /Ana Lima/ })).toHaveAttribute('href', '/clinico/estudantes/est-1');
+  });
+
+  it('a administração não tem lista de estudantes e não vê dados clínicos', () => {
+    abrir('/admin/perfil');
+    expect(screen.queryByRole('region', { name: 'Seus estudantes' })).toBeNull();
+    expect(screen.getByText('Pausas, humor, observações e registros clínicos').nextSibling).toHaveTextContent('Você não vê');
+  });
+
+  it('sair da conta esquece quem estava usando', async () => {
+    entrarComoProfissional('pe-1');
+    const { router } = abrir('/escola/perfil');
+    await userEvent.click(screen.getByRole('button', { name: 'Sair da conta' }));
+    expect(router.state.location.pathname).toBe('/');
+    expect(sessionStorage.getItem('mkpause:profissional')).toBeNull();
+  });
+});
+
 describe('acessibilidade das áreas profissionais (axe)', () => {
   const telas = [
-    '/escola/alertas', '/escola/avisos', '/escola/estudantes', '/escola/estudantes/est-1',
-    '/clinico/acompanhados', '/clinico/estudantes/est-1', '/clinico/estudantes/est-1/ficha', '/clinico/alertas',
-    '/admin/usuarios', '/admin/usuarios/novo', '/admin/vinculos', '/admin/fichas', '/admin/conteudos',
+    '/escola/alertas', '/escola/avisos', '/escola/estudantes', '/escola/estudantes/est-1', '/escola/perfil',
+    '/clinico/acompanhados', '/clinico/estudantes/est-1', '/clinico/estudantes/est-1/ficha', '/clinico/alertas', '/clinico/perfil',
+    '/admin/usuarios', '/admin/usuarios/novo', '/admin/vinculos', '/admin/fichas', '/admin/conteudos', '/admin/perfil',
   ];
   it.each(telas)('%s', async (caminho) => {
     const { container } = abrir(caminho);
