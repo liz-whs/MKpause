@@ -98,8 +98,10 @@ function useEstadoEstudante() {
     atualizarSessao: (parcial: Partial<SessaoEmAndamento>) =>
       setEstado((s) => ({ ...s, sessao: { ...s.sessao, ...parcial } })),
     // As chamadas à api ficam fora do setEstado: no StrictMode o atualizador roda duas vezes.
-    concluirSessao: (relato?: string) => {
-      const { antes, atividade, depois } = estado.sessao;
+    /** `depois` vem do clique: o setEstado de atualizarSessao ainda não foi aplicado aqui. */
+    concluirSessao: (relato?: string, depoisAgora?: EmocaoId) => {
+      const { antes, atividade } = estado.sessao;
+      const depois = depoisAgora ?? estado.sessao.depois;
       if (antes && atividade && depois) {
         api.estudante.registrarSessao({ estudanteId: perfil.id, antes, atividade, depois, relato: relato || undefined });
       }

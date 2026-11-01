@@ -326,7 +326,7 @@ export function ComoFicou() {
             block
             onClick={() => {
               atualizarSessao({ depois: emocao });
-              concluirSessao(relato);
+              concluirSessao(relato, emocao);
               navigate('/estudante/pausa/concluida');
             }}
           >

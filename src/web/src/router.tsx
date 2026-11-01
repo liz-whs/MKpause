@@ -8,6 +8,7 @@ import { PainelPreferencias } from './preferencias/PainelPreferencias';
 import { api } from './data/api';
 import { useDados } from './data/useDados';
 import { VLibras } from './preferencias/VLibras';
+import { t } from './i18n';
 import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, PrimeiroAcesso } from './features/onboarding/Onboarding';
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
 import { ComoFicou, EscolherAtividade, Humor, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
@@ -28,7 +29,14 @@ function Raiz() {
       {/* Ao trocar de idioma as telas são remontadas e todo texto passa de novo por t(). */}
       <Fragment key={`${idioma}-${conta}`}>
         <SkipLink />
-        <Outlet />
+        {/* Antes dos dados chegarem, as telas que conferem vínculo mandariam de volta para a lista. */}
+        {conta === 'carregando' ? (
+          <main id="conteudo" role="status" className="flex min-h-dvh items-center justify-center font-semibold text-muted">
+            {t('Carregando…')}
+          </main>
+        ) : (
+          <Outlet />
+        )}
       </Fragment>
       <ScrollRestoration />
       <PainelPreferencias />

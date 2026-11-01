@@ -475,4 +475,5 @@ export const en: Record<string, string> = {
   'Cadastros de estudantes e profissionais': 'Student and staff accounts',
   'Vínculos, fichas administrativas e conteúdos': 'Links, administrative records and content',
   'Pausas, humor, observações e registros clínicos': 'Pauses, mood, notes and clinical notes',
+  'Carregando…': 'Loading…',
 };
