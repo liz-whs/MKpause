@@ -2,7 +2,9 @@
 import asyncio
 import array
 import math
+import os
 import random
+import sys
 import pygame
 
 try:
@@ -13,10 +15,70 @@ except ImportError:
 pygame.mixer.pre_init(22050, -16, 1, 512)
 pygame.init()
 
-LARGURA = 480
+def modo_computador():
+    # No site do MKpause, a tela do jogo no computador abre o
+    # jogo com "?modo=computador": ai o layout e deitado
+    # (paisagem). No celular, e rodando "python main.py",
+    # o layout continua o original, em pe.
+    if sys.platform != "emscripten":
+        return False
+
+    try:
+        import platform as plataforma
+        return "modo=computador" in str(
+            plataforma.window.location.search
+        )
+    except Exception:
+        return False
+
+
+MODO_COMPUTADOR = modo_computador()
+
+LARGURA = 1200 if MODO_COMPUTADOR else 480
 ALTURA = 720
 
-tela = pygame.display.set_mode((LARGURA, ALTURA))
+# Resolucao de desenho. A logica do jogo (posicoes, toques,
+# velocidades) fica em LARGURA x ALTURA; so o desenho e
+# multiplicado por ESCALA. No navegador o canvas e ampliado
+# para caber na tela, entao desenhar em escala maior evita o
+# aspecto pixelado. Fora do navegador fica 1x para a janela
+# caber na tela.
+if sys.platform != "emscripten":
+    ESCALA = 1
+elif MODO_COMPUTADOR:
+    ESCALA = 1.5
+else:
+    ESCALA = 2
+
+
+def px(valor):
+    # Converte uma medida da logica para pixels da tela.
+    return round(valor * ESCALA)
+
+
+def ponto(posicao):
+    return (px(posicao[0]), px(posicao[1]))
+
+
+def retangulo(rect):
+    rect = pygame.Rect(rect)
+    return pygame.Rect(
+        px(rect.x),
+        px(rect.y),
+        px(rect.width),
+        px(rect.height)
+    )
+
+
+def para_logica(posicao):
+    # Converte um ponto da tela (mouse) para a logica do jogo.
+    return (
+        int(posicao[0] / ESCALA),
+        int(posicao[1] / ESCALA)
+    )
+
+
+tela = pygame.display.set_mode((px(LARGURA), px(ALTURA)))
 pygame.display.set_caption("PIANOPAUSE | MKPAUSE")
 relogio = pygame.time.Clock()
 
@@ -33,10 +95,30 @@ BRANCO = (255, 250, 247)
 
 CORES_NOTAS = [LAVENDER, LEAF, SKY, ROSE]
 
-fonte_titulo = pygame.font.Font(None, 58)
-fonte_grande = pygame.font.Font(None, 48)
-fonte_media = pygame.font.Font(None, 31)
-fonte_pequena = pygame.font.Font(None, 23)
+# Mesmas fontes do site do MKpause: Fraunces nos titulos e
+# Lexend nos textos e botoes (arquivos em fontes/, licenca OFL).
+PASTA_FONTES = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "fontes"
+)
+
+
+def carregar_fonte(arquivo, tamanho):
+    try:
+        return pygame.font.Font(
+            os.path.join(PASTA_FONTES, arquivo),
+            px(tamanho)
+        )
+    except (FileNotFoundError, OSError, pygame.error):
+        # Sem o arquivo, usa a fonte padrao do pygame.
+        return pygame.font.Font(None, px(tamanho * 1.45))
+
+
+fonte_titulo = carregar_fonte("Fraunces-SemiBold.ttf", 40)
+fonte_grande = carregar_fonte("Fraunces-SemiBold.ttf", 32)
+fonte_botao_grande = carregar_fonte("Lexend-SemiBold.ttf", 26)
+fonte_media = carregar_fonte("Lexend-SemiBold.ttf", 19)
+fonte_pequena = carregar_fonte("Lexend-SemiBold.ttf", 14)
 
 DURACAO = 120
 VOLUME_FIXO = 0.45
@@ -59,8 +141,77 @@ tempo_respiracao = 0.0
 tempo_animacao_fundo = 0.0
 opacidade_transicao = 0.0
 
-tabuleiro = pygame.Rect(40, 155, 400, 445)
-largura_coluna = 100
+# Posicoes de cada tela. "EM_PE" e o layout original (celular);
+# "DEITADO" e o layout do computador, em duas colunas.
+# O desenho e os cliques usam os mesmos valores.
+EM_PE = {
+    "inicio_icone": (240, 142),
+    "inicio_titulo": (240, 225),
+    "inicio_subtitulo": (240, 275),
+    "inicio_linha": ((185, 318), (295, 318)),
+    "inicio_ritmo": (240, 365),
+    "botao_lento": (45, 400, 185, 65),
+    "botao_moderado": (250, 400, 185, 65),
+    "botao_comecar": (65, 520, 350, 70),
+    "inicio_rodape": (240, 655),
+
+    "tabuleiro": (40, 155, 400, 445),
+    "jogo_titulo": (240, 27),
+    "botao_pausar": (20, 53, 145, 48),
+    "botao_encerrar_jogo": (315, 53, 145, 48),
+    "jogo_tempo": (110, 125),
+    "jogo_notas": (355, 125),
+    "jogo_dica_1": (240, 636),
+    "jogo_dica_2": (240, 668),
+
+    "pausa_titulo": (240, 115),
+    "pausa_centro": (240, 280),
+    "pausa_texto": (240, 430),
+    "botao_continuar": (85, 465, 310, 60),
+    "botao_encerrar_pausa": (85, 540, 310, 60),
+
+    "final_icone": (240, 155),
+    "final_titulo": (240, 255),
+    "final_texto_1": (240, 305),
+    "final_texto_2": (240, 345),
+    "final_caixa": (95, 390, 290, 65),
+    "final_tempo": (240, 422),
+    "botao_jogar_novamente": (65, 495, 350, 65),
+    "botao_voltar": (65, 575, 350, 65),
+}
+
+def deslocar(valor, dx):
+    # Move um ponto, um retangulo (x, y, w, h) ou uma linha
+    # (dois pontos) dx pixels para a direita.
+    if isinstance(valor[0], tuple):
+        return tuple(deslocar(p, dx) for p in valor)
+    return (valor[0] + dx, *valor[1:])
+
+
+# No computador os elementos continuam um embaixo do outro,
+# como no celular: a mesma coluna, centralizada na tela larga.
+DEITADO = {
+    nome: deslocar(valor, (1200 - 480) // 2)
+    for nome, valor in EM_PE.items()
+}
+
+# Na partida, o tabuleiro fica mais largo (600 em vez de 400)
+# e o resto acompanha as bordas dele, ainda em coluna.
+DEITADO.update({
+    "tabuleiro": (300, 155, 600, 445),
+    "jogo_titulo": (600, 27),
+    "botao_pausar": (280, 53, 145, 48),
+    "botao_encerrar_jogo": (775, 53, 145, 48),
+    "jogo_tempo": (370, 125),
+    "jogo_notas": (830, 125),
+    "jogo_dica_1": (600, 636),
+    "jogo_dica_2": (600, 668),
+})
+
+L = DEITADO if MODO_COMPUTADOR else EM_PE
+
+tabuleiro = pygame.Rect(L["tabuleiro"])
+largura_coluna = tabuleiro.width // 4
 altura_tecla = 90
 LINHA_TOQUE = tabuleiro.bottom - 105
 
@@ -115,7 +266,7 @@ def criar_sons():
         taxa, formato, canais = pygame.mixer.get_init()
 
         if formato != -16:
-            print("Formato de audio inesperado:", formato)
+            print("Formato de áudio inesperado:", formato)
             return []
 
         for frequencia in frequencias:
@@ -151,26 +302,29 @@ def criar_sons():
             resultado.append(som)
 
         print(
-            f"Audio iniciado: {len(resultado)} notas."
+            f"Áudio iniciado: {len(resultado)} notas."
         )
 
     except (pygame.error, OSError) as erro:
-        print("Erro ao iniciar audio:", erro)
+        print("Erro ao iniciar áudio:", erro)
         return []
 
     return resultado
 
 
-sons = criar_sons()
+# Os sons sao gerados logo depois do primeiro quadro (em main),
+# para a tela inicial aparecer antes: gerar as 4 notas leva
+# quase 1 segundo no navegador.
+sons = []
 
-CENTRO_RESPIRACAO = (240, 280)
+CENTRO_RESPIRACAO = L["pausa_centro"]
 RAIO_EXTERNO = 100
 RAIO_INTERNO = 70
 ESCALA_MINIMA = 0.75
 ESCALA_MAXIMA = 1.15
 
 camada_transicao = pygame.Surface(
-    (LARGURA, ALTURA)
+    (px(LARGURA), px(ALTURA))
 )
 
 camada_transicao.fill(PEONY)
@@ -245,9 +399,9 @@ def texto(
     rect = superficie.get_rect()
 
     if centralizado:
-        rect.center = (x, y)
+        rect.center = ponto((x, y))
     else:
-        rect.topleft = (x, y)
+        rect.topleft = ponto((x, y))
 
     tela.blit(superficie, rect)
 
@@ -259,18 +413,9 @@ def desenhar_check(
     tamanho=1.0
 ):
     pontos = [
-        (
-            int(x - 12 * tamanho),
-            int(y)
-        ),
-        (
-            int(x - 3 * tamanho),
-            int(y + 9 * tamanho)
-        ),
-        (
-            int(x + 15 * tamanho),
-            int(y - 12 * tamanho)
-        )
+        ponto((int(x - 12 * tamanho), int(y))),
+        ponto((int(x - 3 * tamanho), int(y + 9 * tamanho))),
+        ponto((int(x + 15 * tamanho), int(y - 12 * tamanho)))
     ]
 
     pygame.draw.lines(
@@ -278,7 +423,7 @@ def desenhar_check(
         cor,
         False,
         pontos,
-        max(2, int(4 * tamanho))
+        px(max(2, int(4 * tamanho)))
     )
 
 
@@ -290,25 +435,25 @@ def desenhar_nota_musical(
     pygame.draw.ellipse(
         tela,
         cor,
-        (x - 14, y + 9, 15, 11)
+        retangulo((x - 14, y + 9, 15, 11))
     )
 
     pygame.draw.line(
         tela,
         cor,
-        (x, y + 14),
-        (x, y - 17),
-        4
+        ponto((x, y + 14)),
+        ponto((x, y - 17)),
+        px(4)
     )
 
     pygame.draw.polygon(
         tela,
         cor,
         [
-            (x, y - 17),
-            (x + 17, y - 12),
-            (x + 17, y - 4),
-            (x, y - 9)
+            ponto((x, y - 17)),
+            ponto((x + 17, y - 12)),
+            ponto((x + 17, y - 4)),
+            ponto((x, y - 9))
         ]
     )
 
@@ -331,7 +476,7 @@ def botao(
         altura
     )
 
-    mouse_x, mouse_y = pygame.mouse.get_pos()
+    mouse_x, mouse_y = para_logica(pygame.mouse.get_pos())
     hover = rect.collidepoint(mouse_x, mouse_y)
 
     if selecionado:
@@ -353,17 +498,17 @@ def botao(
     pygame.draw.rect(
         tela,
         cor_final,
-        rect,
-        border_radius=18
+        retangulo(rect),
+        border_radius=px(18)
     )
 
     if selecionado:
         pygame.draw.rect(
             tela,
             JUNGLE,
-            rect,
-            2,
-            border_radius=18
+            retangulo(rect),
+            px(2),
+            border_radius=px(18)
         )
 
     texto(
@@ -390,15 +535,15 @@ def criar_bolha(cor, raio, transparencia):
     # Antes era criada uma superficie do tamanho
     # da tela inteira a cada quadro.
     bolha = pygame.Surface(
-        (raio * 2, raio * 2),
+        (px(raio) * 2, px(raio) * 2),
         pygame.SRCALPHA
     )
 
     pygame.draw.circle(
         bolha,
         (*cor, transparencia),
-        (raio, raio),
-        raio
+        (px(raio), px(raio)),
+        px(raio)
     )
 
     return bolha
@@ -419,6 +564,19 @@ BOLHAS_FINAL = [
     (45, 115, 110, LAVENDER, 90, 32, 28, 0.5, 0),
     (430, 590, 115, SKY, 75, 36, 30, 0.42, 2)
 ]
+
+if MODO_COMPUTADOR:
+    # Mesmas bolhas, espalhadas pela tela larga.
+    BOLHAS_INICIO = [
+        (1110, 100, 115, LAVENDER, 95, 34, 26, 0.55, 0),
+        (90, 610, 95, SKY, 75, 30, 38, 0.45, 1.8),
+        (1140, 560, 55, LEAF, 65, 24, 32, 0.65, 3.2)
+    ]
+
+    BOLHAS_FINAL = [
+        (80, 120, 110, LAVENDER, 90, 32, 28, 0.5, 0),
+        (1130, 600, 115, SKY, 75, 36, 30, 0.42, 2)
+    ]
 
 superficies_bolhas = {}
 
@@ -448,10 +606,7 @@ def desenhar_bolhas(bolhas):
 
         tela.blit(
             superficies_bolhas[(raio, cor, alpha)],
-            (
-                round(novo_x - raio),
-                round(novo_y - raio)
-            )
+            ponto((novo_x - raio, novo_y - raio))
         )
 
 
@@ -524,11 +679,8 @@ def desenhar_particulas():
         pygame.draw.circle(
             tela,
             particula["cor"],
-            (
-                int(particula["x"]),
-                int(particula["y"])
-            ),
-            raio
+            ponto((particula["x"], particula["y"])),
+            px(raio)
         )
 
 
@@ -599,54 +751,55 @@ def desenhar_inicio():
     tela.fill(PEONY)
     desenhar_decoracao_inicio()
 
+    icone_x, icone_y = L["inicio_icone"]
+
     pygame.draw.circle(
         tela,
         LAVENDER,
-        (240, 142),
-        43
+        ponto((icone_x, icone_y)),
+        px(43)
     )
 
     desenhar_nota_musical(
-        240,
-        140,
+        icone_x,
+        icone_y - 2,
         CACAO
     )
 
     texto(
         "PIANOPAUSE",
-        240,
-        225,
+        *L["inicio_titulo"],
         CACAO,
         fonte_titulo
     )
 
     texto(
         "Um momento para desacelerar.",
-        240,
-        275,
+        *L["inicio_subtitulo"],
         CACAO,
         fonte_pequena
     )
 
+    inicio_linha, fim_linha = L["inicio_linha"]
+
     pygame.draw.line(
         tela,
         LAVENDER,
-        (185, 318),
-        (295, 318),
-        2
+        ponto(inicio_linha),
+        ponto(fim_linha),
+        px(2)
     )
 
     texto(
         "Escolha seu ritmo",
-        240,
-        365,
+        *L["inicio_ritmo"],
         CACAO,
         fonte_media
     )
 
     botao(
         "Lento",
-        45, 400, 185, 65,
+        *L["botao_lento"],
         JUNGLE,
         BRANCO,
         selecionado=(ritmo == "Lento")
@@ -654,24 +807,23 @@ def desenhar_inicio():
 
     botao(
         "Moderado",
-        250, 400, 185, 65,
+        *L["botao_moderado"],
         JUNGLE,
         BRANCO,
         selecionado=(ritmo == "Moderado")
     )
 
     botao(
-        "Comecar",
-        65, 520, 350, 70,
+        "Começar",
+        *L["botao_comecar"],
         CACAO,
         BRANCO,
-        fonte_grande
+        fonte_botao_grande
     )
 
     texto(
-        "Sem pressa. Sem competicao.",
-        240,
-        655,
+        "Sem pressa. Sem competição.",
+        *L["inicio_rodape"],
         CACAO,
         fonte_pequena
     )
@@ -681,14 +833,13 @@ def desenhar_jogo():
     tela.fill(PEONY)
 
     texto(
-        "PIANOPAUSE | Nivel 1",
-        240,
-        27
+        "PIANOPAUSE | Nível 1",
+        *L["jogo_titulo"]
     )
 
     botao(
         "Pausar",
-        20, 53, 145, 48,
+        *L["botao_pausar"],
         JUNGLE,
         BRANCO,
         fonte_pequena
@@ -696,7 +847,7 @@ def desenhar_jogo():
 
     botao(
         "Encerrar",
-        315, 53, 145, 48,
+        *L["botao_encerrar_jogo"],
         CACAO,
         BRANCO,
         fonte_pequena
@@ -708,16 +859,14 @@ def desenhar_jogo():
 
     texto(
         f"Tempo: {minutos:02d}:{segundos:02d}",
-        110,
-        125,
+        *L["jogo_tempo"],
         CACAO,
         fonte_pequena
     )
 
     texto(
         f"Notas: {notas_tocadas}",
-        355,
-        125,
+        *L["jogo_notas"],
         CACAO,
         fonte_pequena
     )
@@ -725,8 +874,8 @@ def desenhar_jogo():
     pygame.draw.rect(
         tela,
         BRANCO,
-        tabuleiro,
-        border_radius=12
+        retangulo(tabuleiro),
+        border_radius=px(12)
     )
 
     for i in range(1, 4):
@@ -738,13 +887,13 @@ def desenhar_jogo():
         pygame.draw.line(
             tela,
             LAVENDER,
-            (x, tabuleiro.top),
-            (x, tabuleiro.bottom),
-            2
+            ponto((x, tabuleiro.top)),
+            ponto((x, tabuleiro.bottom)),
+            px(2)
         )
 
     clip_anterior = tela.get_clip()
-    tela.set_clip(tabuleiro)
+    tela.set_clip(retangulo(tabuleiro))
 
     for tecla in teclas:
         x = (
@@ -768,24 +917,24 @@ def desenhar_jogo():
         pygame.draw.rect(
             tela,
             CORES_NOTAS[tecla["coluna"]],
-            rect,
-            border_radius=12
+            retangulo(rect),
+            border_radius=px(12)
         )
 
         pygame.draw.rect(
             tela,
             BRANCO,
-            rect,
-            2,
-            border_radius=12
+            retangulo(rect),
+            px(2),
+            border_radius=px(12)
         )
 
     pygame.draw.line(
         tela,
         GRASS,
-        (tabuleiro.left, LINHA_TOQUE),
-        (tabuleiro.right, LINHA_TOQUE),
-        3
+        ponto((tabuleiro.left, LINHA_TOQUE)),
+        ponto((tabuleiro.right, LINHA_TOQUE)),
+        px(3)
     )
 
     desenhar_particulas()
@@ -794,23 +943,21 @@ def desenhar_jogo():
     pygame.draw.rect(
         tela,
         GRASS,
-        tabuleiro,
-        2,
-        border_radius=12
+        retangulo(tabuleiro),
+        px(2),
+        border_radius=px(12)
     )
 
     texto(
-        "Toque nas teclas no seu proprio ritmo.",
-        240,
-        636,
+        "Toque nas teclas no seu próprio ritmo.",
+        *L["jogo_dica_1"],
         CACAO,
         fonte_pequena
     )
 
     texto(
-        "Voce pode pausar quando quiser.",
-        240,
-        668,
+        "Você pode pausar quando quiser.",
+        *L["jogo_dica_2"],
         CACAO,
         fonte_pequena
     )
@@ -821,8 +968,7 @@ def desenhar_pausa():
 
     texto(
         "Hora de respirar",
-        240,
-        115,
+        *L["pausa_titulo"],
         CACAO,
         fonte_grande
     )
@@ -866,23 +1012,23 @@ def desenhar_pausa():
     desenhar_circulo_fluido(
         tela,
         LAVENDER,
-        CENTRO_RESPIRACAO,
-        RAIO_EXTERNO * escala + 6 + 10 * suavizado,
+        ponto(CENTRO_RESPIRACAO),
+        (RAIO_EXTERNO * escala + 6 + 10 * suavizado) * ESCALA,
         int(45 + 55 * suavizado)
     )
 
     desenhar_circulo_fluido(
         tela,
         LAVENDER,
-        CENTRO_RESPIRACAO,
-        RAIO_EXTERNO * escala
+        ponto(CENTRO_RESPIRACAO),
+        RAIO_EXTERNO * escala * ESCALA
     )
 
     desenhar_circulo_fluido(
         tela,
         SKY,
-        CENTRO_RESPIRACAO,
-        RAIO_INTERNO * escala
+        ponto(CENTRO_RESPIRACAO),
+        RAIO_INTERNO * escala * ESCALA
     )
 
     texto(
@@ -895,21 +1041,20 @@ def desenhar_pausa():
 
     texto(
         "Acompanhe a respiração guiada até se sentir melhor.",
-        240,
-        430,
+        *L["pausa_texto"],
         CACAO,
         fonte_pequena
     )
 
     botao(
         "Continuar",
-        85, 465, 310, 60,
+        *L["botao_continuar"],
         JUNGLE
     )
 
     botao(
         "Encerrar",
-        85, 540, 310, 60,
+        *L["botao_encerrar_pausa"],
         CACAO
     )
 
@@ -918,40 +1063,39 @@ def desenhar_final():
     tela.fill(PEONY)
     desenhar_decoracao_final()
 
+    icone_x, icone_y = L["final_icone"]
+
     pygame.draw.circle(
         tela,
         LEAF,
-        (240, 155),
-        49
+        ponto((icone_x, icone_y)),
+        px(49)
     )
 
     desenhar_check(
-        240,
-        153,
+        icone_x,
+        icone_y - 2,
         CACAO,
         1.5
     )
 
     texto(
         "Muito bem!",
-        240,
-        255,
+        *L["final_titulo"],
         CACAO,
         fonte_grande
     )
 
     texto(
-        "Voce dedicou um momento a si.",
-        240,
-        305,
+        "Você dedicou um momento a si.",
+        *L["final_texto_1"],
         CACAO,
         fonte_pequena
     )
 
     texto(
-        "Como voce esta se sentindo agora?",
-        240,
-        345,
+        "Como você está se sentindo agora?",
+        *L["final_texto_2"],
         CACAO,
         fonte_pequena
     )
@@ -963,29 +1107,26 @@ def desenhar_final():
     pygame.draw.rect(
         tela,
         BRANCO,
-        pygame.Rect(
-            95, 390, 290, 65
-        ),
-        border_radius=18
+        retangulo(L["final_caixa"]),
+        border_radius=px(18)
     )
 
     texto(
         f"Tempo: {minutos:02d}:{segundos:02d}",
-        240,
-        422,
+        *L["final_tempo"],
         CACAO,
         fonte_media
     )
 
     botao(
         "Jogar novamente",
-        65, 495, 350, 65,
+        *L["botao_jogar_novamente"],
         JUNGLE
     )
 
     botao(
-        "Voltar ao inicio",
-        65, 575, 350, 65,
+        "Voltar ao início",
+        *L["botao_voltar"],
         CACAO
     )
 
@@ -1030,58 +1171,50 @@ def tocar_tecla(x, y):
             break
 
 
+def dentro(nome, x, y):
+    # O clique usa o mesmo retangulo do desenho (bordas incluidas).
+    rect = pygame.Rect(L[nome])
+    return (
+        rect.left <= x <= rect.right
+        and rect.top <= y <= rect.bottom
+    )
+
+
 def clique(x, y):
     global ritmo
 
     if estado == "inicio":
-        if 400 <= y <= 465:
-            if 45 <= x <= 230:
-                ritmo = "Lento"
+        if dentro("botao_lento", x, y):
+            ritmo = "Lento"
 
-            elif 250 <= x <= 435:
-                ritmo = "Moderado"
+        elif dentro("botao_moderado", x, y):
+            ritmo = "Moderado"
 
-        elif (
-            520 <= y <= 590
-            and 65 <= x <= 415
-        ):
+        elif dentro("botao_comecar", x, y):
             iniciar_jogo()
 
     elif estado == "jogando":
-        if 53 <= y <= 101:
-            if 20 <= x <= 165:
-                mudar_estado("pausado")
+        if dentro("botao_pausar", x, y):
+            mudar_estado("pausado")
 
-            elif 315 <= x <= 460:
-                mudar_estado("final")
+        elif dentro("botao_encerrar_jogo", x, y):
+            mudar_estado("final")
 
         else:
             tocar_tecla(x, y)
 
     elif estado == "pausado":
-        if (
-            465 <= y <= 525
-            and 85 <= x <= 395
-        ):
+        if dentro("botao_continuar", x, y):
             mudar_estado("jogando")
 
-        elif (
-            540 <= y <= 600
-            and 85 <= x <= 395
-        ):
+        elif dentro("botao_encerrar_pausa", x, y):
             mudar_estado("final")
 
     elif estado == "final":
-        if (
-            495 <= y <= 560
-            and 65 <= x <= 415
-        ):
+        if dentro("botao_jogar_novamente", x, y):
             iniciar_jogo()
 
-        elif (
-            575 <= y <= 640
-            and 65 <= x <= 415
-        ):
+        elif dentro("botao_voltar", x, y):
             mudar_estado("inicio")
 
 
@@ -1094,6 +1227,7 @@ async def main():
     global opacidade_transicao
 
     executando = True
+    sons_pendentes = True
 
     while executando:
         dt = min(
@@ -1109,7 +1243,7 @@ async def main():
 
             elif evento.type == pygame.MOUSEBUTTONDOWN:
                 if evento.button == 1:
-                    clique(*evento.pos)
+                    clique(*para_logica(evento.pos))
 
             elif evento.type == pygame.FINGERDOWN:
                 clique(
@@ -1209,6 +1343,10 @@ async def main():
 
         pygame.display.flip()
         await asyncio.sleep(0)
+
+        if sons_pendentes:
+            sons_pendentes = False
+            sons.extend(criar_sons())
 
     pygame.quit()
 
