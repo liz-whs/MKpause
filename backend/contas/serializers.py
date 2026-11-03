@@ -46,6 +46,11 @@ class CadastroPerfilSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"senha": "Defina uma senha para o primeiro acesso."})
         if "estado_registro" in dados:
             dados["estado_registro"] = dados["estado_registro"].upper()
+            if dados["estado_registro"] not in {
+                "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG",
+                "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+            }:
+                raise serializers.ValidationError({"estado_registro": "Use uma UF válida, como PR."})
         return dados
 
     @transaction.atomic

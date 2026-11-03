@@ -11,6 +11,7 @@ from acompanhamento.views import AvisoViewSet, FichaView
 from alertas.views import AlertaViewSet
 from atividades.views import AtividadeViewSet
 from contas import views as contas
+from contas import views_codigos as codigos
 from sessoes.views import SessaoViewSet
 
 router = DefaultRouter(trailing_slash=True)
@@ -33,6 +34,17 @@ urlpatterns = [
     path("api/auth/login/", contas.LoginView.as_view()),
     path("api/auth/logout/", contas.LogoutView.as_view()),
     path("api/auth/eu/", contas.EuView.as_view()),
+    path("api/auth/codigo-cadastro/verificar/", codigos.VerificarCadastroView.as_view()),
+    path("api/auth/cadastro/", codigos.CadastrarComCodigoView.as_view()),
+    path("api/admin/codigos-cadastro/", codigos.CodigosCadastroView.as_view()),
+    path("api/admin/codigos-cadastro/<int:id_codigo>/revogar/", codigos.RevogarCadastroView.as_view()),
+    path("api/vinculos/codigos/", codigos.GerarVinculoView.as_view()),
+    path("api/vinculos/codigos/atual/", codigos.VinculoAtualView.as_view()),
+    path("api/vinculos/solicitacoes/", codigos.SolicitacoesView.as_view()),
+    path("api/vinculos/solicitacoes/<int:id_codigo>/aceitar/", codigos.ResponderVinculoView.as_view(), {"resposta": "aceitar"}),
+    path("api/vinculos/solicitacoes/<int:id_codigo>/recusar/", codigos.ResponderVinculoView.as_view(), {"resposta": "recusar"}),
+    path("api/vinculos/resgatar/", codigos.ResgatarVinculoView.as_view()),
+    path("api/vinculos/enviados/", codigos.PedidosEnviadosView.as_view()),
     path("api/estudantes/<int:id_estudante>/ficha/", FichaView.as_view()),
     path("api/admin/vinculos/professores/", contas.VinculoProfessorView.as_view()),
     path("api/admin/vinculos/psicologos-escolares/", contas.VinculoPsicologoEscolarView.as_view()),

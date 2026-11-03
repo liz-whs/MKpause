@@ -178,3 +178,57 @@ class EstudanteResponsavel(Vinculo):
 
     class Meta(Vinculo.Meta):
         db_table = "estudante_responsavel"
+
+
+class CodigoCadastro(TabelaDoFlyway):
+    id_codigo_cadastro = models.BigAutoField(primary_key=True)
+    codigo_hash = models.CharField(max_length=64, unique=True)
+    sufixo = models.CharField(max_length=3)
+    perfil = models.CharField(max_length=20)
+    administrador = models.ForeignKey(Administrador, models.RESTRICT, db_column="id_administrador")
+    turma = models.CharField(max_length=80, null=True, blank=True)
+    instituicao_ensino = models.CharField(max_length=160, null=True, blank=True)
+    usos_maximos = models.IntegerField(default=1)
+    usos = models.IntegerField(default=0)
+    expira_em = models.DateTimeField()
+    revogado_em = models.DateTimeField(null=True)
+    criado_em = models.DateTimeField(default=timezone.now)
+
+    class Meta(TabelaDoFlyway.Meta):
+        db_table = "codigo_cadastro"
+
+
+class UsoCodigoCadastro(TabelaDoFlyway):
+    pk = models.CompositePrimaryKey("codigo_cadastro", "usuario")
+    codigo_cadastro = models.ForeignKey(CodigoCadastro, models.RESTRICT, db_column="id_codigo_cadastro",
+                                        related_name="utilizacoes")
+    usuario = models.OneToOneField(Usuario, models.RESTRICT, db_column="id_usuario")
+    usado_em = models.DateTimeField(default=timezone.now)
+
+    class Meta(TabelaDoFlyway.Meta):
+        db_table = "uso_codigo_cadastro"
+
+
+class CodigoVinculo(TabelaDoFlyway):
+    class Status(models.TextChoices):
+        ABERTO = "ABERTO"
+        AGUARDANDO_ESTUDANTE = "AGUARDANDO_ESTUDANTE"
+        ACEITO = "ACEITO"
+        RECUSADO = "RECUSADO"
+        REVOGADO = "REVOGADO"
+
+    id_codigo_vinculo = models.BigAutoField(primary_key=True)
+    codigo_hash = models.CharField(max_length=64, unique=True)
+    estudante = models.ForeignKey(Estudante, models.RESTRICT, db_column="id_estudante")
+    expira_em = models.DateTimeField()
+    revogado_em = models.DateTimeField(null=True)
+    professor = models.ForeignKey(Professor, models.RESTRICT, db_column="id_professor", null=True)
+    psicologo_escolar = models.ForeignKey(PsicologoEscolar, models.RESTRICT,
+                                         db_column="id_psicologo_escolar", null=True)
+    resgatado_em = models.DateTimeField(null=True)
+    status = models.CharField(max_length=25, choices=Status.choices, default=Status.ABERTO)
+    respondido_em = models.DateTimeField(null=True)
+    criado_em = models.DateTimeField(default=timezone.now)
+
+    class Meta(TabelaDoFlyway.Meta):
+        db_table = "codigo_vinculo"

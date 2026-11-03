@@ -4,6 +4,8 @@
 **De:** Giovanna (interface web)
 **Branch base:** `main`. O deploy no Render segue a branch configurada no Render.
 
+**Implementação local:** a migração V3 da Liz (`22dd578`) foi incorporada, e os models, helpers, endpoints, limites de tentativas e testes foram implementados conforme este contrato. A interface usa a API real; a simulação fica apenas nos testes. `aplicar_esquema` agora aplica V3 em bancos com V1. A pendência do responsável/V2 na seção 10 continua separada.
+
 Este documento descreve tudo o que o backend precisa ter para a nova forma de entrada no MKpause:
 
 - o banco (migração V3);

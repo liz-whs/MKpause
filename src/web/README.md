@@ -34,7 +34,7 @@ O login com qualquer senha e os atalhos por nome de perfil existem apenas nos te
 
 ### Códigos de acesso
 
-O cadastro por código e os pedidos de vínculo estão implementados na interface conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Enquanto as rotas ainda não existem, a interface usa uma simulação no navegador e mostra um aviso. Nesse modo, o cadastro não cria uma conta real e o aceite não grava um vínculo no banco. Quando as rotas estiverem disponíveis, os fluxos passam a usar a API.
+O cadastro por código e os pedidos de vínculo usam a API Django conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Execute `python manage.py aplicar_esquema` em `backend/` para aplicar a V3 da Liz em um banco com V1. Os convites criam contas reais, e o aceite do estudante cria ou reativa o vínculo no banco. A simulação fica restrita aos testes; erros da API aparecem na tela.
 
 ## Estrutura
 

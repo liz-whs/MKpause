@@ -160,6 +160,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "UNAUTHENTICATED_USER": None,
     "EXCEPTION_HANDLER": "nucleo.erros.tratar_excecao",
+    "DEFAULT_THROTTLE_RATES": {"cadastro": "10/min", "vinculo": "10/min"},
 }
 
 SENHA_TAMANHO_MINIMO = 8

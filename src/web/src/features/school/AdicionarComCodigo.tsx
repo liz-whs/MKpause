@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '../../data/api';
-import { resgate, type PedidoEnviado, type Quem } from '../../data/codigos';
+import { emSimulacao, resgate, type PedidoEnviado, type Quem } from '../../data/codigos';
 import type { Profissional } from '../../domain/tipos';
 import { AvisoSimulacao } from '../../components/ui/AvisoSimulacao';
 import { Button } from '../../components/ui/Button';
@@ -32,6 +32,8 @@ export function AdicionarComCodigo({ eu }: { eu: Profissional }) {
   const recarregar = useCallback(async () => {
     try {
       setPedidos(await resgate.enviados(quem(eu)));
+      // O aceite acontece na conta do estudante: recarrega também a lista de acompanhados.
+      if (!emSimulacao()) await api.sincronizar();
     } catch {
       // Tenta de novo na próxima vez.
     }
@@ -41,6 +43,12 @@ export function AdicionarComCodigo({ eu }: { eu: Profissional }) {
     window.addEventListener('focus', recarregar);
     return () => window.removeEventListener('focus', recarregar);
   }, [recarregar]);
+
+  useEffect(() => {
+    if (pedidos.length === 0) return;
+    const intervalo = window.setInterval(() => void recarregar(), 20_000);
+    return () => window.clearInterval(intervalo);
+  }, [pedidos.length, recarregar]);
 
   async function usar(e: FormEvent) {
     e.preventDefault();

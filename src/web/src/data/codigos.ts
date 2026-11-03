@@ -4,11 +4,8 @@ import { chamar, ErroApi } from './servidor';
  * Códigos de cadastro (gerados pelo admin) e de vínculo (gerados pelo estudante).
  * Contrato: docs/codigos-de-acesso.md (seção 5).
  *
- * Enquanto o backend não tiver essas rotas (responde 404), a interface usa uma
- * SIMULAÇÃO local, guardada neste navegador, para os fluxos poderem ser vistos e
- * testados. Na simulação nada vai para o servidor: o cadastro não cria conta e o
- * aceite não cria vínculo no banco. As telas avisam quando estão simulando.
- * Nos testes (Vitest) a simulação é sempre usada, em memória.
+ * No site, todos os fluxos usam a API Django e persistem no banco.
+ * Nos testes (Vitest), a simulação é usada em memória.
  */
 
 export type PerfilCodigo = 'ESTUDANTE' | 'PROFESSOR' | 'PSICOLOGO_ESCOLAR' | 'PSICOLOGO_CLINICO';
@@ -119,24 +116,19 @@ const EM_TESTE = import.meta.env.MODE === 'test';
 let simulando = EM_TESTE;
 const ouvintes = new Set<() => void>();
 
-/** Verdadeiro quando o backend ainda não tem as rotas de código. */
+/** Verdadeiro apenas no modo de testes, que usa dados em memória. */
 export const emSimulacao = () => simulando;
 export function aoMudarModo(f: () => void) {
   ouvintes.add(f);
   return () => ouvintes.delete(f);
 }
 
-/** Tenta o servidor; se a rota ainda não existe (404 sem corpo do DRF), passa para a simulação. */
+/** No site, falhas da API são mostradas sem substituir a operação por uma simulação. */
 async function tentar<T>(noServidor: () => Promise<T>, naSimulacao: () => T): Promise<T> {
   if (simulando) return naSimulacao();
   try {
     return await noServidor();
   } catch (e) {
-    if (e instanceof ErroApi && e.status === 404 && /404/.test(e.message)) {
-      simulando = true;
-      ouvintes.forEach((f) => f());
-      return naSimulacao();
-    }
     throw new ErroCodigo(e instanceof Error ? e.message : String(e));
   }
 }

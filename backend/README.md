@@ -73,6 +73,23 @@ Dica: `python manage.py inspectdb nome_da_tabela` gera um rascunho do model de u
 
 ## Autenticação
 
+### Códigos de cadastro e vínculo (V3)
+
+A V3 da Liz (`22dd578`) está integrada aos models e à API. O contrato completo está em [`docs/codigos-de-acesso.md`](../docs/codigos-de-acesso.md).
+
+- Admin: `GET/POST /api/admin/codigos-cadastro/` e `POST /api/admin/codigos-cadastro/{id}/revogar/`.
+- Público: `POST /api/auth/codigo-cadastro/verificar/` e `POST /api/auth/cadastro/`. O cadastro já abre a sessão da conta nova.
+- Estudante: `POST /api/vinculos/codigos/`, `GET/DELETE /api/vinculos/codigos/atual/`, `GET /api/vinculos/solicitacoes/` e `POST /api/vinculos/solicitacoes/{id}/aceitar/` ou `/recusar/`.
+- Professor e psicólogo escolar: `POST /api/vinculos/resgatar/` e `GET /api/vinculos/enviados/`.
+
+Os códigos são gerados com `secrets`, guardados apenas como HMAC-SHA256 e revelados uma única vez. Convites permitem 1–200 usos e validade de 1–30 dias; códigos de vínculo valem 24 horas e são de uso único. O profissional só recebe primeiro nome e turma antes do aceite. As operações usam transações e bloqueios de linha para impedir consumo duplicado e geração simultânea de dois códigos abertos. Verificação/cadastro têm limite conjunto de 10 tentativas/minuto por IP; resgate tem 10/minuto por usuário.
+
+`python manage.py aplicar_esquema` aplica V1 e V3 ausentes, inclusive em bancos existentes. O comando usa uma transação e um bloqueio no PostgreSQL, não reaplica versões presentes e interrompe se encontrar apenas parte das tabelas da V3. A V2 continua separada até a atualização do model `Responsavel`; em bancos que já receberam V2, a divergência preexistente desse model ainda aparece no `verificar_esquema`.
+
+Os testes de `contas/test_codigos.py` cobrem permissões, limites, expiração, revogação, cadastro, aceite/recusa, reativação, CSRF e concorrência. Os três testes de concorrência requerem PostgreSQL e são pulados no SQLite. Para a suíte dos módulos, use `python manage.py test contas sessoes alertas atividades acompanhamento nucleo` (o script manual `testar_api.py` é executado separadamente).
+
+### Sessão
+
 - A identidade é a tabela `usuario` (`senha_hash` guarda o hash do Django, PBKDF2).
   O `django.contrib.auth` não é usado, para não haver duas fontes de usuários.
 - O perfil é descoberto pela tabela de perfil ativa que aponta para o usuário.
