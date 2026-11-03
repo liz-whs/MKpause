@@ -22,6 +22,7 @@ import { t } from '../../i18n';
 const ROTA_ATIVIDADE: Record<AtividadeId, string> = {
   respiracao: '/estudante/pausa/respiracao',
   pianopause: '/estudante/pausa/pianopause',
+  mkpotion: '/estudante/pausa/mkpotion',
   video: '/estudante/pausa/video',
 };
 
@@ -245,6 +246,41 @@ export function PianoPause() {
           <EspacoDoJogo key="celular" className="mx-auto aspect-[2/3] w-full max-w-120" />
         )}
         <div className="flex flex-col gap-5 lg:mx-auto lg:w-[min(100%,calc((100dvh-16rem)*5/3))] lg:flex-row lg:items-center lg:justify-between">
+          <p className="flex items-center justify-center gap-2 text-caption text-muted lg:text-body">
+            <Icon name="info" size={16} className="flex-none" />
+            {t('Toque na tela do jogo para começar. Na sala, use fones.')}
+          </p>
+          <Button to="/estudante/pausa/fim" block className="lg:w-auto lg:px-10">
+            {t('Terminei')}
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/**
+ * MK Potion: jogo de organizar líquidos da Ana (src/MKpotion/mk_potion, em pygame),
+ * compilado com o pygbag para public/jogos/mkpotion (`npm run build:mkpotion`).
+ * O jogo é deitado (1000 × 700) e se ajusta ao tamanho da janela; o progresso fica no navegador.
+ */
+export function MKPotion() {
+  if (!useSessaoValida()) return <Navigate to="/estudante/pausa" replace />;
+  return (
+    <>
+      <CabecalhoAtividade />
+      <h1 className="sr-only">{t('MK Potion')}</h1>
+      <div className="flex flex-col gap-5 lg:w-[min(64rem,calc(100vw-4rem))] lg:self-center">
+        {/* Do tamanho que couber sem rolar a página, na proporção do jogo. */}
+        <div className="mx-auto aspect-[10/7] w-[min(100%,calc((100dvh-16rem)*10/7))] overflow-hidden rounded-sheet bg-bg">
+          <iframe
+            src="/jogos/mkpotion/index.html"
+            title={t('Jogo MK Potion')}
+            allow="autoplay; fullscreen"
+            className="size-full border-0"
+          />
+        </div>
+        <div className="flex flex-col gap-5 lg:mx-auto lg:w-[min(100%,calc((100dvh-16rem)*10/7))] lg:flex-row lg:items-center lg:justify-between">
           <p className="flex items-center justify-center gap-2 text-caption text-muted lg:text-body">
             <Icon name="info" size={16} className="flex-none" />
             {t('Toque na tela do jogo para começar. Na sala, use fones.')}

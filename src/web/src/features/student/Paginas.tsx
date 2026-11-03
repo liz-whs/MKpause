@@ -17,6 +17,7 @@ import { Button } from '../../components/ui/Button';
 import { cx } from '../../components/ui/cx';
 import { Linha } from '../../components/ui/Linha';
 import { QuemVeOQue } from '../onboarding/Onboarding';
+import { AvisoPedidos, CompartilharCodigo, SolicitacoesPendentes, useEuEstudante } from './Vinculos';
 import { OpcoesPreferencias } from '../../preferencias/PainelPreferencias';
 import { IDIOMAS, usePreferencias } from '../../preferencias/preferencias';
 import { t } from '../../i18n';
@@ -24,6 +25,7 @@ import { t } from '../../i18n';
 export function Inicio() {
   const { perfil, avisoSaida } = useEstudante();
   // Com um aviso de saída ativo, o nível 2 volta para a tela "Fora da sala" (onde fica o "Voltei").
+  const eu = useEuEstudante();
   const niveis = NIVEIS.map((n) => (n.nivel === 2 && avisoSaida ? { ...n, destino: '/estudante/fora-da-sala' } : n));
 
   return (
@@ -32,6 +34,7 @@ export function Inicio() {
         <img src={emocaoPorId('calmo').imagem} alt="" className="size-18 flex-none object-contain" />
         <ScreenTitle>{t('Oi, {nome}!', { nome: perfil.apelido })}</ScreenTitle>
       </div>
+      <AvisoPedidos eu={eu} />
       {/* No computador: níveis à esquerda, sequência de cuidados à direita. */}
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-6">
         <section aria-labelledby="titulo-pausa" className="flex flex-col gap-2.5">
@@ -62,6 +65,7 @@ export interface AtividadeInfo {
 const VISUAL: Record<AtividadeId, Pick<AtividadeInfo, 'icone' | 'fundo' | 'rota'>> = {
   respiracao: { icone: 'respiracao', fundo: 'bg-lavender', rota: '/estudante/pausa/respiracao' },
   pianopause: { icone: 'musica', fundo: 'bg-peony', rota: '/estudante/pausa/pianopause' },
+  mkpotion: { icone: 'pocao', fundo: 'bg-leaf', rota: '/estudante/pausa/mkpotion' },
   video: { icone: 'play', fundo: 'bg-sky', rota: '/estudante/pausa/video' },
 };
 
@@ -76,9 +80,12 @@ export function atividades(): AtividadeInfo[] {
   }));
 }
 
-const FILTROS = ['todas', 'respiracao', 'pianopause', 'video'] as const;
+const FILTROS = ['todas', 'respiracao', 'jogos', 'video'] as const;
 type Filtro = (typeof FILTROS)[number];
-const FILTRO_LABEL: Record<Filtro, string> = { todas: 'Todas', respiracao: 'Respiração', pianopause: 'Jogos', video: 'Vídeos' };
+const FILTRO_LABEL: Record<Filtro, string> = { todas: 'Todas', respiracao: 'Respiração', jogos: 'Jogos', video: 'Vídeos' };
+const JOGOS: AtividadeId[] = ['pianopause', 'mkpotion'];
+const noFiltro = (filtro: Filtro, id: AtividadeId) =>
+  filtro === 'todas' || (filtro === 'jogos' ? JOGOS.includes(id) : id === filtro);
 
 export function Atividades() {
   const [filtro, setFiltro] = useState<Filtro>('todas');
@@ -86,7 +93,7 @@ export function Atividades() {
 
   const termo = busca.trim().toLowerCase();
   const lista = atividades().filter(
-    (a) => (filtro === 'todas' || a.id === filtro) && (!termo || a.titulo.toLowerCase().includes(termo)),
+    (a) => noFiltro(filtro, a.id) && (!termo || a.titulo.toLowerCase().includes(termo)),
   );
 
   return (
@@ -223,6 +230,7 @@ export function Perfil() {
   const [apelido, setApelido] = useState(perfil.apelido);
   const [salvo, setSalvo] = useState(false);
   const { idioma } = usePreferencias();
+  const eu = useEuEstudante();
 
   return (
     <>
@@ -237,6 +245,8 @@ export function Perfil() {
           </span>
         </div>
       </div>
+
+      <SolicitacoesPendentes eu={eu} />
 
       {/* No computador: duas colunas que começam na mesma altura, cada uma com seu título. */}
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:items-start lg:gap-x-6 lg:gap-y-5">
@@ -290,6 +300,7 @@ export function Perfil() {
             <span id="titulo-acompanha">{t('Quem acompanha você')}</span>
           </SectionTitle>
           <PeopleList pessoas={api.estudante.quemAcompanha()} />
+          <CompartilharCodigo eu={eu} />
         </section>
 
         {/* No celular fica por último; no computador, embaixo da coluna da esquerda. */}

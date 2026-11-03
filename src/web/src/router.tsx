@@ -9,9 +9,11 @@ import { api } from './data/api';
 import { useDados } from './data/useDados';
 import { VLibras } from './preferencias/VLibras';
 import { t } from './i18n';
+import { CadastroComCodigo } from './features/onboarding/Cadastro';
+import { AdminCodigos } from './features/admin/Codigos';
 import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, PrimeiroAcesso } from './features/onboarding/Onboarding';
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
-import { ComoFicou, EscolherAtividade, Humor, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
+import { ComoFicou, EscolherAtividade, Humor, MKPotion, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
 import { JogoPianoPauseProvider } from './features/session/JogoPianoPause';
 import { AgoraRespira, AvisoSaida, ForaDaSala, VoceSeCuidou } from './features/levels/Niveis';
 import { EscolaAlertas, EscolaAvisos, EscolaEstudante, EscolaEstudantes, EscolaLayout } from './features/school/Escola';
@@ -61,6 +63,7 @@ export const rotas: RouteObject[] = [
       { path: '/apresentacao/3', element: <Apresentacao3 />, handle: { titulo: 'Quem vê o quê' } },
       { path: '/entrar', element: <Entrar />, handle: { titulo: 'Entrar' } },
       { path: '/primeiro-acesso', element: <PrimeiroAcesso />, handle: { titulo: 'Primeiro acesso' } },
+      { path: '/cadastro', element: <CadastroComCodigo />, handle: { titulo: 'Código de cadastro' } },
 
       // Estudante: páginas com cabeçalho
       {
@@ -87,6 +90,7 @@ export const rotas: RouteObject[] = [
           { path: 'pausa/atividade', element: <EscolherAtividade />, handle: { titulo: 'Escolha uma atividade' } },
           { path: 'pausa/respiracao', element: <Respiracao />, handle: { titulo: 'Respiração' } },
           { path: 'pausa/pianopause', element: <PianoPause />, handle: { titulo: 'PianoPause' } },
+          { path: 'pausa/mkpotion', element: <MKPotion />, handle: { titulo: 'MK Potion' } },
           { path: 'pausa/video', element: <Video />, handle: { titulo: 'Vídeo' } },
           { path: 'pausa/fim', element: <ComoFicou />, handle: { titulo: 'E agora?' } },
           { path: 'pausa/concluida', element: <PausaFeita />, handle: { titulo: 'Pausa feita' } },
@@ -137,6 +141,7 @@ export const rotas: RouteObject[] = [
           { path: 'vinculos', element: <AdminVinculos />, handle: { titulo: 'Vínculos' } },
           { path: 'fichas', element: <AdminFichas />, handle: { titulo: 'Fichas' } },
           { path: 'conteudos', element: <AdminConteudos />, handle: { titulo: 'Conteúdos' } },
+          { path: 'codigos', element: <AdminCodigos />, handle: { titulo: 'Códigos de cadastro' } },
           { path: 'perfil', element: <PerfilProfissional area="admin" />, handle: { titulo: 'Perfil' } },
         ],
       },

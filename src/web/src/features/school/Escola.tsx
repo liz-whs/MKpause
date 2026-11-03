@@ -18,10 +18,12 @@ import { Field } from '../../components/ui/Field';
 import { Icon } from '../../components/ui/Icon';
 import mascote from '../../assets/chinchila/mascote.svg';
 import { t } from '../../i18n';
+import { AdicionarComCodigo } from './AdicionarComCodigo';
 
 export const NOME_ATIVIDADE: Record<AtividadeId, string> = {
   respiracao: 'Respiração',
   pianopause: 'PianoPause',
+  mkpotion: 'MK Potion',
   video: 'Vídeo',
 };
 
@@ -244,6 +246,7 @@ export function EscolaEstudantes() {
   return (
     <>
       <PageHeader titulo={t('Estudantes')} descricao={t('Só aparecem os estudantes vinculados a você.')} />
+      <AdicionarComCodigo eu={eu} />
       <div className="flex flex-wrap items-end gap-4">
         <SearchField label={t('Buscar estudante')} placeholder={t('Nome ou matrícula')} value={busca} onChange={setBusca} />
         <SelectField

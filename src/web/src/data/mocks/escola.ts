@@ -101,6 +101,7 @@ export const FICHAS: Ficha[] = [
 export const CONTEUDOS: Conteudo[] = [
   { id: 'respiracao', nome: 'Respiração', tipo: 'Exercício', duracao: '2 ou 5 min', disponivel: true },
   { id: 'pianopause', nome: 'PianoPause', tipo: 'Jogo', duracao: '2 min', disponivel: true },
+  { id: 'mkpotion', nome: 'MK Potion', tipo: 'Jogo', duracao: '5 min', disponivel: true },
   { id: 'video', nome: 'Respirar com o mar', tipo: 'Vídeo', duracao: '3 min', disponivel: true },
 ];
 

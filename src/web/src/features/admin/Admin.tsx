@@ -31,6 +31,7 @@ export function AdminLayout() {
         { to: '/admin/vinculos', label: 'Vínculos', icon: 'vinculo' },
         { to: '/admin/fichas', label: 'Fichas', icon: 'ficha' },
         { to: '/admin/conteudos', label: 'Conteúdos', icon: 'camadas' },
+        { to: '/admin/codigos', label: 'Códigos de cadastro', icon: 'chave' },
       ]}
     />
   );
@@ -601,6 +602,7 @@ function FormFicha({ estudanteId, opcoesNova, clinicos, onSalvo }: {
 const VISUAL: Record<AtividadeId, { icone: IconName; fundo: string }> = {
   respiracao: { icone: 'respiracao', fundo: 'bg-lavender' },
   pianopause: { icone: 'musica', fundo: 'bg-peony' },
+  mkpotion: { icone: 'pocao', fundo: 'bg-leaf' },
   video: { icone: 'play', fundo: 'bg-sky' },
 };
 

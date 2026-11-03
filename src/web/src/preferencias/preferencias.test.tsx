@@ -62,6 +62,8 @@ const DINAMICAS = [
   'Quero uma pausa', 'Fico na sala e escolho uma atividade.', 'Preciso sair da sala', 'Aviso a escola e saio um pouco.',
   'Não estou bem', 'Um toque. A escola é avisada sozinha.', 'Você', 'Escolhe quando pausar.', 'Quem acompanha você',
   'Vê suas pausas e avisos.', 'Sua turma', 'Não vê nada.',
+  // Códigos de cadastro (situação e perfis)
+  'Usado', 'Expirado', 'Cancelado', 'Ativo', 'Estudante', 'Professor(a)', 'Psicólogo(a) escolar', 'Psicólogo(a) clínico(a)',
   // Dados de exemplo
   'Mãe', 'Pai',
   // Perfil dos profissionais (O que você vê)

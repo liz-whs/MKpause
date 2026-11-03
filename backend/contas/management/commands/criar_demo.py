@@ -2,7 +2,7 @@
 python manage.py criar_demo
 
 Cria contas de demonstração (administrador, estudante, professor, psicólogo
-escolar e clínico), os vínculos entre elas e as três atividades da interface web.
+escolar e clínico), os vínculos entre elas e as quatro atividades da interface web.
 Só para o banco de desenvolvimento. Pode rodar de novo: o que já existe fica.
 
 A senha das contas vem de DEMO_SENHA no .env (ou --senha).
@@ -23,6 +23,7 @@ ESCOLA = "Escola Modelo"
 ATIVIDADES = [
     ("Respiração da chinchila", "RESPIRACAO", "respiracao"),
     ("PianoPause", "JOGO", "/jogos/pianopause/index.html"),
+    ("MK Potion", "JOGO", "/jogos/mkpotion/index.html"),
     ("Vídeo: um minuto de calma", "VIDEO", "video"),
 ]
 
@@ -50,7 +51,8 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             for nome, tipo, ref in ATIVIDADES:
-                Atividade.objects.get_or_create(tipo=tipo, defaults={"nome": nome, "conteudo_ou_referencia": ref})
+                Atividade.objects.get_or_create(
+                    tipo=tipo, conteudo_ou_referencia=ref, defaults={"nome": nome})
 
             est, _ = Estudante.objects.get_or_create(
                 usuario=self._usuario("ana.demo@mkpause.dev", "Ana Lima", senha),

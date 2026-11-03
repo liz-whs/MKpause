@@ -18,7 +18,7 @@ import mascote from '../../assets/chinchila/mascote.svg';
 import { t } from '../../i18n';
 
 /** Página de onboarding: coluna única, ações no fim da tela. */
-function Pagina({ children, centro }: { children: ReactNode; centro?: boolean }) {
+export function Pagina({ children, centro }: { children: ReactNode; centro?: boolean }) {
   return (
     <main id="conteudo" tabIndex={-1}
       className={cx(
@@ -31,7 +31,7 @@ function Pagina({ children, centro }: { children: ReactNode; centro?: boolean })
   );
 }
 
-function Rodape({ children }: { children: ReactNode }) {
+export function Rodape({ children }: { children: ReactNode }) {
   return <div className="mt-auto flex w-full flex-col gap-3">{children}</div>;
 }
 
@@ -202,18 +202,7 @@ export function Apresentacao3() {
   );
 }
 
-function LogoGoogle() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-      <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.8z" />
-      <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9h-4v3.1A12 12 0 0 0 12 24z" />
-      <path fill="#FBBC05" d="M5.4 14.4a7.2 7.2 0 0 1 0-4.7V6.6h-4a12 12 0 0 0 0 10.8z" />
-      <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z" />
-    </svg>
-  );
-}
-
-const DESTINO_DO_PERFIL: Record<Perfil, string> = {
+export const DESTINO_DO_PERFIL: Record<Perfil, string> = {
   estudante: '/primeiro-acesso',
   professor: '/escola',
   psicologo_escolar: '/escola',
@@ -287,20 +276,6 @@ export function Entrar() {
       </div>
       <p className="text-muted">{t('Use a conta que a sua escola cadastrou.')}</p>
 
-      <Link
-        to="/primeiro-acesso"
-        className="flex min-h-14 items-center justify-center gap-2.5 rounded-button border-2 border-line bg-surface font-semibold no-underline hover:bg-peony hover:text-ink"
-      >
-        <LogoGoogle />
-        {t('Entrar com a conta Google da escola')}
-      </Link>
-
-      <div className="flex items-center gap-3 text-caption font-semibold text-muted" aria-hidden="true">
-        <span className="h-0.5 flex-1 bg-line" />
-        {t('ou')}
-        <span className="h-0.5 flex-1 bg-line" />
-      </div>
-
       <form noValidate onSubmit={enviar} className="flex flex-col gap-4.5">
         <Field
           label={t('Matrícula ou e-mail')}
@@ -337,6 +312,16 @@ export function Entrar() {
           {entrando ? t('Entrando…') : t('Entrar')}
         </Button>
       </form>
+
+      {/* Ninguém cria conta sozinho: o cadastro é feito com um código gerado pela escola. */}
+      <div className="flex flex-col gap-2 rounded-card bg-surface p-4">
+        <p className="font-semibold">{t('Ainda não tem conta?')}</p>
+        <p className="text-caption text-muted">{t('Use o código de cadastro que a escola te entregou.')}</p>
+        <Button to="/cadastro" variant="outline" block>
+          <Icon name="chave" size={22} />
+          {t('Tenho um código de cadastro')}
+        </Button>
+      </div>
     </Pagina>
   );
 }

@@ -2,7 +2,7 @@
 
 Site do MKpause para estudantes, profissionais e administração. Feito a partir do protótipo e do `HANDOFF.md`.
 
-**Stack:** React, Vite, TypeScript, Tailwind CSS 4 e React Router. Os dados ainda são **de exemplo** (em memória), sem backend.
+**Stack:** React, Vite, TypeScript, Tailwind CSS 4 e React Router, com API Django e banco PostgreSQL. Nos testes, os dados são de exemplo, em memória.
 
 ## Como rodar
 
@@ -16,19 +16,25 @@ npm test         # testes (regras de produto e acessibilidade com axe)
 npm run build    # versão de produção em dist/
 ```
 
-## Como entrar (dados de exemplo)
+## Como entrar
 
-Em **Entrar**, qualquer senha funciona. O texto em "Matrícula ou e-mail" escolhe o perfil:
+Inicie o backend conforme o [README do backend](../../backend/README.md). O Vite encaminha `/api/` para `127.0.0.1:8000`.
 
-| Digite | Perfil |
+O comando `python manage.py criar_demo`, executado em `backend/`, cria as contas abaixo. Use a senha definida em `DEMO_SENHA` ou passada com `--senha`:
+
+| E-mail | Perfil |
 |---|---|
-| `professor` | Professor(a) |
-| `psicologo` | Psicólogo(a) escolar (mesmas telas do professor) |
-| `clinico` | Psicólogo(a) clínico(a) |
-| `admin` | Administração |
-| qualquer outra coisa | Estudante |
+| `ana.demo@mkpause.dev` | Estudante |
+| `professor.demo@mkpause.dev` | Professor(a) |
+| `psicologo.demo@mkpause.dev` | Psicólogo(a) escolar (mesmas telas do professor) |
+| `clinico.demo@mkpause.dev` | Psicólogo(a) clínico(a) |
+| `admin.demo@mkpause.dev` | Administração |
 
-"Entrar com a conta Google da escola" entra como estudante.
+O login com qualquer senha e os atalhos por nome de perfil existem apenas nos testes automatizados.
+
+### Códigos de acesso
+
+O cadastro por código e os pedidos de vínculo estão implementados na interface conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Enquanto as rotas ainda não existem, a interface usa uma simulação no navegador e mostra um aviso. Nesse modo, o cadastro não cria uma conta real e o aceite não grava um vínculo no banco. Quando as rotas estiverem disponíveis, os fluxos passam a usar a API.
 
 ## Estrutura
 
@@ -47,7 +53,7 @@ src/
 └── state/         estado do estudante e perfil do profissional logado
 ```
 
-Para ligar ao backend, troque só `src/data/api.ts`. As telas não acessam os dados de outro jeito.
+`src/data/api.ts` mantém o cache da interface e usa `src/data/servidor.ts` para acessar a API. Os fluxos de códigos usam `src/data/codigos.ts`.
 
 ## Regras do HANDOFF que o código garante
 
@@ -92,6 +98,15 @@ O jogo original (`src/jogos/pianopause/main.py`, em pygame, de Ana Beatriz Patus
 - **Carregamento:** o jogo começa a carregar escondido já na escolha da atividade (ou no "Como você está", vindo de Atividades com o PianoPause escolhido). Ao abrir a tela do jogo, ele já está pronto ou quase. Veja `src/features/session/JogoPianoPause.tsx`.
 - **Dependência externa:** o interpretador Python para WebAssembly vem do CDN do pygame-web (`pygame-web.github.io`) quando o jogo abre. Sem internet, o jogo não carrega.
 - **Servidor:** o arquivo `pianopause.tar.gz` precisa ir **sem** `Content-Encoding: gzip`. O `vite.config.ts` já faz isso no `dev` e no `preview`, e o servidor de produção precisa da mesma regra.
+
+## MK Potion
+
+Jogo de organizar líquidos da Ana (`src/MKpotion/mk_potion`), compilado com o pygbag para `public/jogos/mkpotion/` e aberto num iframe na pausa (`/estudante/pausa/mkpotion`). O código do jogo não é alterado.
+
+- Recompilar: `npm run build:mkpotion` (Python com `pygbag==0.9.3`; `PYTHON=/caminho/python` para escolher o interpretador). Precisa de internet: o pygbag baixa o modelo da página.
+- O script acrescenta `import pygame` só na cópia temporária do `main.py`: o pygbag só carrega o pygame se ele for importado no `main.py`, e o MK Potion importa em `game/screens.py`. Vale a Ana colocar essa linha no `main.py` dela.
+- No backend, a atividade é do tipo `JOGO` com `conteudo_ou_referencia = /jogos/mkpotion/index.html`: é a referência que diferencia os dois jogos (`atividadeDe` em `src/data/servidor.ts`). O `criar_demo` cria os dois jogos e pode ser executado novamente sem duplicá-los, inclusive se o MK Potion já tiver sido cadastrado pela API. O deploy do Render já executa esse comando.
+- O progresso do jogo fica no navegador (localStorage), como a Ana fez.
 
 ## Acessibilidade e idioma
 

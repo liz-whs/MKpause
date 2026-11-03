@@ -89,11 +89,20 @@ const EMOCAO_DO_HUMOR: EmocaoId[] = ['triste', 'triste', 'ansioso', 'cansado', '
 const MARCA = /^\[mkpause antes=(\w+) depois=(\w+)\]\n?/;
 
 const TIPO_PARA_ATIVIDADE: Record<string, AtividadeId> = { RESPIRACAO: 'respiracao', JOGO: 'pianopause', VIDEO: 'video' };
-const ATIVIDADE_PARA_TIPO: Record<AtividadeId, string> = { respiracao: 'RESPIRACAO', pianopause: 'JOGO', video: 'VIDEO' };
-const TIPO_LABEL: Record<AtividadeId, Conteudo['tipo']> = { respiracao: 'Exercício', pianopause: 'Jogo', video: 'Vídeo' };
-const DURACAO: Record<AtividadeId, string> = { respiracao: '2 min', pianopause: '3 min', video: '3 min' };
+const ATIVIDADE_PARA_TIPO: Record<AtividadeId, string> = { respiracao: 'RESPIRACAO', pianopause: 'JOGO', mkpotion: 'JOGO', video: 'VIDEO' };
+const TIPO_LABEL: Record<AtividadeId, Conteudo['tipo']> = { respiracao: 'Exercício', pianopause: 'Jogo', mkpotion: 'Jogo', video: 'Vídeo' };
+const DURACAO: Record<AtividadeId, string> = { respiracao: '2 min', pianopause: '3 min', mkpotion: '5 min', video: '3 min' };
 
-interface AtividadeApi { id_atividade: number; nome: string; tipo: string; disponivel: boolean }
+/**
+ * Há dois jogos com tipo JOGO no banco: o que diferencia é a referência
+ * (`conteudo_ou_referencia`, ex.: /jogos/mkpotion/index.html). Sem referência, é o PianoPause.
+ */
+function atividadeDe(a: { tipo: string; conteudo_ou_referencia?: string | null }): AtividadeId | undefined {
+  if (a.tipo === 'JOGO' && a.conteudo_ou_referencia?.includes('mkpotion')) return 'mkpotion';
+  return TIPO_PARA_ATIVIDADE[a.tipo];
+}
+
+interface AtividadeApi { id_atividade: number; nome: string; tipo: string; conteudo_ou_referencia?: string | null; disponivel: boolean }
 interface SessaoApi {
   id_sessao: number; estudante: number; atividade: AtividadeApi; iniciada_em: string; status: string;
   observacoes_sessao: string | null; registros_humor: { estado: number; momento: 'PRE' | 'POS' }[];
@@ -113,7 +122,7 @@ const idsAtividade = new Map<AtividadeId, number>();
 function converterAtividades(lista: AtividadeApi[]): Conteudo[] {
   const conteudos: Conteudo[] = [];
   for (const a of lista) {
-    const id = TIPO_PARA_ATIVIDADE[a.tipo];
+    const id = atividadeDe(a);
     if (!id || idsAtividade.has(id)) continue;
     idsAtividade.set(id, a.id_atividade);
     conteudos.push({ id, nome: a.nome, tipo: TIPO_LABEL[id], duracao: DURACAO[id], disponivel: a.disponivel });
@@ -137,7 +146,7 @@ function converterEstudante(e: EstudanteApi): Estudante {
 }
 
 function converterSessao(s: SessaoApi): SessaoRegistrada | null {
-  const atividade = TIPO_PARA_ATIVIDADE[s.atividade.tipo];
+  const atividade = atividadeDe(s.atividade);
   const pre = s.registros_humor.find((h) => h.momento === 'PRE');
   const pos = s.registros_humor.find((h) => h.momento === 'POS');
   if (s.status !== 'CONCLUIDA' || !atividade || !pre || !pos) return null;

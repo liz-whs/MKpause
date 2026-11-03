@@ -38,7 +38,7 @@ export interface Vinculo {
   profissionalId: string;
 }
 
-export type AtividadeId = 'respiracao' | 'pianopause' | 'video';
+export type AtividadeId = 'respiracao' | 'pianopause' | 'mkpotion' | 'video';
 
 /** Destinos do aviso de saída (nível 2). */
 export const DESTINOS_SAIDA = ['Pátio', 'Sala da psicologia', 'Banheiro', 'Biblioteca', 'Outro lugar'] as const;

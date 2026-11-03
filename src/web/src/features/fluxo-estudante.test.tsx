@@ -83,6 +83,20 @@ describe('Nova pausa', () => {
     // Na tela do jogo ele fica visível e acessível.
     expect(jogo.parentElement).not.toHaveAttribute('aria-hidden', 'true');
   });
+
+  it('o MK Potion aparece em Jogos e abre dentro da pausa', async () => {
+    const { router } = abrir('/estudante/atividades');
+    await userEvent.click(screen.getByRole('button', { name: 'Jogos' }));
+    const jogos = screen.getAllByRole('link').filter((l) => l.getAttribute('href') === '/estudante/pausa');
+    expect(jogos.map((l) => l.textContent)).toEqual([expect.stringContaining('PianoPause'), expect.stringContaining('MK Potion')]);
+
+    await userEvent.click(screen.getByRole('link', { name: /MK Potion/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    expect(router.state.location.pathname).toBe('/estudante/pausa/mkpotion');
+    expect(screen.getByTitle('Jogo MK Potion')).toHaveAttribute('src', '/jogos/mkpotion/index.html');
+    expect(screen.getByRole('link', { name: 'Terminei' })).toHaveAttribute('href', '/estudante/pausa/fim');
+  });
 });
 
 describe('Navegação sem labirinto', () => {

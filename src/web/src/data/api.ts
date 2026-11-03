@@ -152,6 +152,15 @@ export const api = {
 
   profissional,
 
+  /**
+   * Simulação dos códigos de vínculo (data/codigos.ts): liga estudante e profissional
+   * só no cache desta tela, sem ir ao servidor. Some na próxima sincronização.
+   */
+  vincularLocal(estudanteId: string, profissionalId: string) {
+    if (!vinculado(profissionalId, estudanteId)) banco.vinculos.push({ estudanteId, profissionalId });
+    mudou();
+  },
+
   /* ───────────── Conta ───────────── */
   sincronizar,
   conta: () => conta,
