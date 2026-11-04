@@ -8,6 +8,7 @@ from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
 
 from acompanhamento.views import AvisoViewSet, FichaView
+from acompanhamento.dashboard import DashboardClinicoView
 from acompanhamento import convites
 from alertas.views import AlertaViewSet
 from atividades.views import AtividadeViewSet
@@ -53,6 +54,7 @@ urlpatterns = [
     path("api/vinculos/resgatar/", codigos.ResgatarVinculoView.as_view()),
     path("api/vinculos/enviados/", codigos.PedidosEnviadosView.as_view()),
     path("api/estudantes/<int:id_estudante>/ficha/", FichaView.as_view()),
+    path("api/estudantes/<int:id_estudante>/dashboard/", DashboardClinicoView.as_view()),
     path("api/admin/vinculos/professores/", contas.VinculoProfessorView.as_view()),
     path("api/admin/vinculos/psicologos-escolares/", contas.VinculoPsicologoEscolarView.as_view()),
     path("api/admin/vinculos/psicologos-clinicos/", contas.VinculoPsicologoClinicoView.as_view()),
