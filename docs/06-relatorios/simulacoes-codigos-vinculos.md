@@ -45,4 +45,6 @@ O teste dos convites inválidos também foi ajustado para testar expiração, re
 
 O serviço de automação do navegador estava indisponível. As telas foram verificadas pelos testes automatizados de interface; não houve inspeção visual manual nesta rodada.
 
-O banco temporário dos testes é criado a partir dos models pelo executor do Django. A divergência preexistente entre o model `Responsavel` e a migração V2 no banco local continua separada deste trabalho. Não houve push, deploy ou alteração no Neon.
+O banco temporário dos testes é criado a partir dos models pelo executor do Django. Na rodada acima, a divergência entre o model `Responsavel` e a V2 ainda estava pendente. Ela foi resolvida posteriormente: cadastro, edição, listagem e desativação agora usam o contato sem login, e `verificar_esquema` passou com 22 tabelas no banco local.
+
+Na atualização da V2, 46 testes passaram em SQLite (6 específicos de PostgreSQL foram pulados) e 9 testes de responsáveis e migração passaram no PostgreSQL temporário, incluindo execução do SQL real da V2, repetição do comando e proteção contra dados legados ou esquema parcial. O convite ao responsável permanece pendente. Não houve push, deploy ou alteração no Neon.

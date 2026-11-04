@@ -5,6 +5,7 @@ Tabelas (V1): usuario, estudante, professor, psicologo_escolar,
 psicologo_clinico, responsavel, administrador, professor_estudante,
 psicologo_escolar_estudante, psicologo_clinico_estudante,
 estudante_responsavel.
+V2: responsavel é contato, sem relação com usuario. V3: códigos de cadastro e vínculo.
 """
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
@@ -28,7 +29,7 @@ class Usuario(ComAtivoETimestamps):
         return self.nome_completo
 
     def definir_senha(self, senha):
-        # None gera um hash inutilizável (conta sem login, ex.: responsável)
+        # None gera um hash inutilizável.
         self.senha_hash = make_password(senha)
 
     def conferir_senha(self, senha):
@@ -98,20 +99,19 @@ class PsicologoClinico(Perfil):
         db_table = "psicologo_clinico"
 
 
-class Responsavel(Perfil):
-    """
-    PENDENTE V2: a decisão do projeto é que o responsável seja só um contato,
-    sem login, mas a V1 ainda exige id_usuario. Até a migração corretiva,
-    o backend cria o usuario com senha inutilizável.
-    """
+class Responsavel(ComAtivoETimestamps):
+    """Contato do estudante, sem conta ou credenciais (V2)."""
 
     id_responsavel = models.BigAutoField(primary_key=True)
-    usuario = models.OneToOneField(Usuario, models.RESTRICT, db_column="id_usuario",
-                                   related_name="responsavel")
+    nome_completo = models.CharField(max_length=150)
+    email = models.EmailField(max_length=254, null=True, blank=True)
     telefone = models.CharField(max_length=30, null=True, blank=True)
 
-    class Meta(Perfil.Meta):
+    class Meta(ComAtivoETimestamps.Meta):
         db_table = "responsavel"
+
+    def __str__(self):
+        return self.nome_completo
 
 
 class Administrador(Perfil):

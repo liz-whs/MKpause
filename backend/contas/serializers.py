@@ -106,18 +106,16 @@ class PsicologoClinicoSerializer(CadastroPerfilSerializer):
                   "telefone", "registro_profissional", "estado_registro"]
 
 
-class ResponsavelSerializer(CadastroPerfilSerializer):
-    """Responsável é só contato (sem login): a senha é ignorada. Ver PENDENTE V2 em models.py."""
-
-    exige_senha = False
+class ResponsavelSerializer(serializers.ModelSerializer):
+    """Grava somente o contato; não cria nem altera registros em usuario."""
 
     class Meta:
         model = Responsavel
         fields = ["id_responsavel", "nome_completo", "email", "ativo", "criado_em", "telefone"]
+        read_only_fields = ["ativo", "criado_em"]
 
-    def validate(self, dados):
-        dados.pop("senha", None)
-        return super().validate(dados)
+    def validate_email(self, email):
+        return email.lower() if email else email
 
 
 class EstudanteResumoSerializer(serializers.ModelSerializer):

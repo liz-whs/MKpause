@@ -120,6 +120,17 @@ class PsicologosClinicosAdminViewSet(CadastroViewSet):
 class ResponsaveisAdminViewSet(CadastroViewSet):
     serializer_class = s.ResponsavelSerializer
 
+    def get_queryset(self):
+        qs = self.serializer_class.Meta.model.objects.order_by("nome_completo")
+        ativo = self.request.query_params.get("ativo")
+        if ativo in ("true", "false"):
+            qs = qs.filter(ativo=ativo == "true")
+        return qs
+
+    def perform_destroy(self, instancia):
+        instancia.ativo = False
+        instancia.save(update_fields=["ativo"])
+
 
 # ---------------------------------------------------------- vínculos (admin)
 

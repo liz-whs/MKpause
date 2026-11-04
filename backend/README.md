@@ -84,7 +84,7 @@ A V3 da Liz (`22dd578`) está integrada aos models e à API. O contrato completo
 
 Os códigos são gerados com `secrets`, guardados apenas como HMAC-SHA256 e revelados uma única vez. Convites permitem 1–200 usos e validade de 1–30 dias; códigos de vínculo valem 24 horas e são de uso único. O profissional só recebe primeiro nome e turma antes do aceite. As operações usam transações e bloqueios de linha para impedir consumo duplicado e geração simultânea de dois códigos abertos. Verificação/cadastro têm limite conjunto de 10 tentativas/minuto por IP; resgate tem 10/minuto por usuário.
 
-`python manage.py aplicar_esquema` aplica V1 e V3 ausentes, inclusive em bancos existentes. O comando usa uma transação e um bloqueio no PostgreSQL, não reaplica versões presentes e interrompe se encontrar apenas parte das tabelas da V3. A V2 continua separada até a atualização do model `Responsavel`; em bancos que já receberam V2, a divergência preexistente desse model ainda aparece no `verificar_esquema`.
+`python manage.py aplicar_esquema` aplica V1, V2 e V3 ausentes, inclusive em bancos existentes. O comando usa uma transação e um bloqueio no PostgreSQL, não reaplica versões presentes e interrompe se encontrar um esquema parcial. A V2 é identificada pelas colunas de `responsavel`. Se a tabela antiga tiver registros, o comando interrompe sem apagar dados: é necessário migrar os contatos legados antes de aplicar o SQL da V2.
 
 Os testes de `contas/test_codigos.py` cobrem permissões, limites, expiração, revogação, cadastro, aceite/recusa, reativação, CSRF e concorrência. Os três testes de concorrência requerem PostgreSQL e são pulados no SQLite. Para a suíte dos módulos, use `python manage.py test contas sessoes alertas atividades acompanhamento nucleo` (o script manual `testar_api.py` é executado separadamente).
 
@@ -144,8 +144,9 @@ Todas em `/api/`, com JSON. "Vinculados" quer dizer que o acesso exige vínculo 
 | POST / PATCH | `estudantes/<id>/ficha/` | RF31 |
 | POST / PATCH / DELETE | `avisos/` | |
 
-Os cadastros recebem os campos de `usuario` junto com os do perfil, por exemplo:
+Os cadastros de perfis com login recebem os campos de `usuario` junto com os do perfil, por exemplo:
 `{"nome_completo", "email", "senha", "turma", ...}`.
+Responsáveis seguem a V2: `{"nome_completo", "email"?, "telefone"?}` cria somente um contato, sem usuário ou senha. E-mail e telefone são opcionais, e o e-mail do contato não precisa ser único. Editar ou desativar um responsável não altera contas de usuário; a desativação mantém o histórico dos vínculos.
 **DELETE não apaga:** marca `ativo = false` e mantém o histórico (RN30).
 Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "estudante": 2}`.
 
@@ -162,8 +163,7 @@ Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "est
 
 ## Pendências conhecidas (vêm do banco V1)
 
-- **Responsável sem login:** a V1 ainda exige `responsavel.id_usuario`. Até a V2, o
-  cadastro cria um `usuario` com senha inutilizável. Convite ao responsável (RN24) não implementado.
+- **Convite ao responsável:** o cadastro de contato já segue a V2, sem login. O envio e o aceite do convite ao responsável (RN24) ainda não estão implementados.
 - **Perfil exclusivo:** a V1 não impede que um usuário esteja em duas tabelas de perfil.
   O login escolhe pela ordem em `contas/perfis.py`.
 - **Humor PRE/POS obrigatórios:** garantidos pelo backend (a sessão já nasce com o PRE; concluir exige o POS).
