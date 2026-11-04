@@ -364,7 +364,9 @@ export const codigoVinculo = {
       () => {
         const e = ler();
         const x = e.vinculos.find((v) => v.id_codigo_vinculo === id && v.estudante.id === eu.id);
-        if (!x || x.status !== 'AGUARDANDO_ESTUDANTE') throw new ErroCodigo('Este pedido não está mais disponível.');
+        if (!x || x.status !== 'AGUARDANDO_ESTUDANTE' || x.revogado_em || expirou(x.expira_em)) {
+          throw new ErroCodigo('Este pedido não está mais disponível.');
+        }
         x.status = aceitar ? 'ACEITO' : 'RECUSADO';
         gravar(e);
         return { simulado: true, profissionalId: aceitar ? x.profissional!.id : null };

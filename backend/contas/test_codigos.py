@@ -88,12 +88,13 @@ class CodigosTestes(CasoMKpause):
         self.assertEqual(UsoCodigoCadastro.objects.count(), 2)
 
     def test_mesma_mensagem_para_convites_invalidos(self):
-        novo = self.convite()
         publico = APIClient()
         rota = "/api/auth/codigo-cadastro/verificar/"
         inexistente = publico.post(rota, {"codigo": "NAOEXISTE"}, format="json").json()
-        for alteracao in ({"expira_em": timezone.now() - timedelta(seconds=1)},
+        for alteracao in ({"criado_em": timezone.now() - timedelta(days=2),
+                           "expira_em": timezone.now() - timedelta(seconds=1)},
                           {"revogado_em": timezone.now()}, {"usos": 1}):
+            novo = self.convite()
             CodigoCadastro.objects.filter(pk=novo["id_codigo_cadastro"]).update(**alteracao)
             r = publico.post(rota, {"codigo": novo["codigo"]}, format="json")
             self.assertEqual(r.status_code, 400)
@@ -184,7 +185,8 @@ class CodigosTestes(CasoMKpause):
         self.sofia.usuario.save()
         self.assertEqual(self.responder(token, estudante=self.bruno).status_code, 400)
         token = self.token(self.bruno)
-        CodigoVinculo.objects.filter(pk=token["id_codigo_vinculo"]).update(expira_em=timezone.now() - timedelta(seconds=1))
+        CodigoVinculo.objects.filter(pk=token["id_codigo_vinculo"]).update(
+            criado_em=timezone.now() - timedelta(days=2), expira_em=timezone.now() - timedelta(seconds=1))
         self.assertEqual(self.solicitar(token).status_code, 400)
         self.assertEqual(self.responder(token, estudante=self.bruno).status_code, 400)
 
