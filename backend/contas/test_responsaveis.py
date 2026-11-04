@@ -13,6 +13,18 @@ class ResponsaveisV2Testes(CasoMKpause):
         self.assertEqual(r.status_code, 201, r.content)
         return r.json()
 
+    def autorizar(self, contato):
+        from acompanhamento.models import ConviteResponsavel
+        from acompanhamento.convites import link_convite
+        r = self.post(f"/api/admin/estudantes/{self.ana.pk}/convites-responsavel/", {
+            "responsavel": contato["id_responsavel"], "parentesco": "Mãe"})
+        self.assertEqual(r.status_code, 201, r.content)
+        convite = ConviteResponsavel.objects.get(pk=r.json()["id_convite"])
+        token = link_convite(convite).split("#token=", 1)[1]
+        r = APIClient().post("/api/convites-responsavel/aceitar/", {
+            "token": token, "confirmo_responsabilidade": True, "aceito_termo": True}, format="json")
+        self.assertEqual(r.status_code, 200, r.content)
+
     def test_cadastro_sem_login_nao_cria_usuario(self):
         antes = Usuario.objects.count()
         contato = self.criar(email="ROSA@escola.br", telefone="41999990000", senha="nao-deve-ser-gravada")
@@ -48,8 +60,9 @@ class ResponsaveisV2Testes(CasoMKpause):
 
     def test_desativar_preserva_vinculos_e_nao_altera_usuario_com_mesmo_email(self):
         contato = self.criar(email=self.ana.usuario.email)
+        self.autorizar(contato)
         dados = {"responsavel": contato["id_responsavel"], "estudante": self.ana.pk, "grau_parentesco": "Mãe"}
-        self.assertEqual(self.post(self.vinculos, dados).status_code, 201)
+        self.assertEqual(self.post(self.vinculos, dados).status_code, 200)
         usuarios = Usuario.objects.count()
         self.assertEqual(self.client.delete(f'{self.rota}{contato["id_responsavel"]}/').status_code, 200)
         self.assertFalse(Responsavel.objects.get(pk=contato["id_responsavel"]).ativo)
@@ -60,9 +73,10 @@ class ResponsaveisV2Testes(CasoMKpause):
         self.entrar(self.ana)
 
     def test_vinculo_cria_lista_desativa_e_reativa_sem_duplicar(self):
-        contato = self.criar()
+        contato = self.criar(email="rosa@teste.br")
+        self.autorizar(contato)
         dados = {"responsavel": contato["id_responsavel"], "estudante": self.ana.pk, "grau_parentesco": "Mãe"}
-        self.assertEqual(self.post(self.vinculos, dados).status_code, 201)
+        self.assertEqual(self.post(self.vinculos, dados).status_code, 200)
         lista = self.client.get(self.vinculos + f"?estudante={self.ana.pk}&ativo=true").json()
         self.assertEqual(lista[0]["responsavel"], contato["id_responsavel"])
         self.assertEqual(lista[0]["grau_parentesco"], "Mãe")

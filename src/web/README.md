@@ -38,6 +38,8 @@ O cadastro por código e os pedidos de vínculo usam a API Django conforme o [co
 
 ## Estrutura
 
+Em **Administração → Vínculos**, envie o convite ao responsável e acompanhe a resposta. Novos acessos clínicos só são criados após o aceite. Em **E-mails**, acompanhe e processe a fila. O padrão é a caixa local, sem entrega pela internet; o convite de teste pode ser aberto pelo atalho do cartão com debug ligado. Veja o [guia de convites e e-mails](../../docs/convites-e-emails.md).
+
 ```text
 src/
 ├── styles/        tokens.css (cores, fontes, raios) e estilos base

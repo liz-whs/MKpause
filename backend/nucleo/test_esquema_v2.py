@@ -20,6 +20,8 @@ class AplicarV2PostgresTestes(TestCase):
         self.assertTrue(connection.settings_dict["NAME"].startswith("test_"))
         sql = (settings.BASE_DIR.parent / "database/migrations/V1__criacao_do_esquema_inicial.sql").read_text(encoding="utf-8")
         with connection.cursor() as cursor:
+            cursor.execute("DROP TABLE notificacao_email")
+            cursor.execute("DROP TABLE convite_responsavel")
             cursor.execute("DROP TABLE estudante_responsavel")
             cursor.execute("DROP TABLE responsavel")
             for tabela in ("responsavel", "estudante_responsavel"):

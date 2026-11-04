@@ -84,7 +84,13 @@ A V3 da Liz (`22dd578`) está integrada aos models e à API. O contrato completo
 
 Os códigos são gerados com `secrets`, guardados apenas como HMAC-SHA256 e revelados uma única vez. Convites permitem 1–200 usos e validade de 1–30 dias; códigos de vínculo valem 24 horas e são de uso único. O profissional só recebe primeiro nome e turma antes do aceite. As operações usam transações e bloqueios de linha para impedir consumo duplicado e geração simultânea de dois códigos abertos. Verificação/cadastro têm limite conjunto de 10 tentativas/minuto por IP; resgate tem 10/minuto por usuário.
 
-`python manage.py aplicar_esquema` aplica V1, V2 e V3 ausentes, inclusive em bancos existentes. O comando usa uma transação e um bloqueio no PostgreSQL, não reaplica versões presentes e interrompe se encontrar um esquema parcial. A V2 é identificada pelas colunas de `responsavel`. Se a tabela antiga tiver registros, o comando interrompe sem apagar dados: é necessário migrar os contatos legados antes de aplicar o SQL da V2.
+`python manage.py aplicar_esquema` aplica V1 a V4 ausentes, inclusive em bancos existentes. O comando usa uma transação e um bloqueio no PostgreSQL, não reaplica versões presentes e interrompe se encontrar um esquema parcial. A V2 é identificada pelas colunas de `responsavel`. Se a tabela antiga tiver registros, o comando interrompe sem apagar dados: é necessário migrar os contatos legados antes de aplicar o SQL da V2.
+
+### Convites ao responsável e e-mail (V4)
+
+O responsável recebe um link assinado, lê o texto e aceita ou recusa sem criar conta. Novos vínculos de responsável e acessos clínicos exigem aceite registrado; a administração pode revogar a autorização. A V4 também cria a fila de e-mail dos convites e dos novos alertas. O padrão salva mensagens em `backend/.emails/`, sem entrega na internet. Para SMTP real, configure as variáveis do provedor e o endereço público do site. Consulte o [guia de configuração e testes](../docs/convites-e-emails.md).
+
+A fila pode ser processada em **Administração → E-mails**, por `python manage.py processar_emails` ou automaticamente após novos eventos com `EMAIL_ENVIO_AUTOMATICO=1`. Execute também o comando periodicamente para retomar pendências após reinícios e repetir falhas sem aguardar outro evento. O registro de envio não comprova entrega final ou leitura.
 
 Os testes de `contas/test_codigos.py` cobrem permissões, limites, expiração, revogação, cadastro, aceite/recusa, reativação, CSRF e concorrência. Os três testes de concorrência requerem PostgreSQL e são pulados no SQLite. Para a suíte dos módulos, use `python manage.py test contas sessoes alertas atividades acompanhamento nucleo` (o script manual `testar_api.py` é executado separadamente).
 
@@ -158,12 +164,12 @@ Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "est
 | Psicólogo clínico e alertas (RF15) | A V1 não aceita o clínico como destinatário; ele consulta os alertas dos vinculados | `alertas/regras.py`, depois migração |
 | Psicólogo clínico e observações | Só lê. O gatilho `trg_validar_autor_observacao` bloqueia a escrita; o registro clínico (RF17) vai na ficha | migração, se mudar |
 | Alerta sem profissional vinculado | Não é criado; a resposta explica e indica 192 e 188 | `alertas/views.py` |
-| `status_notificacao` | Fica `PENDENTE` até o destinatário marcar como lido; não existe envio externo ainda | `alertas/views.py` |
+| `status_notificacao` | Reflete envio e falha do e-mail; a leitura no site prevalece sobre o estado do envio | `nucleo/emails.py`, `alertas/views.py` |
 | Atividade da sessão | Escolhida no início (a V1 tem uma FK `id_atividade` NOT NULL) | |
 
 ## Pendências conhecidas (vêm do banco V1)
 
-- **Convite ao responsável:** o cadastro de contato já segue a V2, sem login. O envio e o aceite do convite ao responsável (RN24) ainda não estão implementados.
+- **Entrega externa:** o convite e o aceite estão implementados. Falta configurar um provedor SMTP para entrega de e-mails reais; o padrão é a caixa local de testes. Push de navegador não foi implementado.
 - **Perfil exclusivo:** a V1 não impede que um usuário esteja em duas tabelas de perfil.
   O login escolhe pela ordem em `contas/perfis.py`.
 - **Humor PRE/POS obrigatórios:** garantidos pelo backend (a sessão já nasce com o PRE; concluir exige o POS).

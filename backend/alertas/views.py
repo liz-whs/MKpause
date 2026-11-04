@@ -9,9 +9,8 @@ PATCH /api/alertas/<id>/                 {"status": ...} destinatário, admin, o
 POST  /api/alertas/<id>/lido/            destinatário marca a notificação como lida
 GET/POST /api/alertas/<id>/observacoes/  {"conteudo": "..."}
 
-status_notificacao só muda com evento real (doc. do banco item 7.6): fica
-PENDENTE até o destinatário marcar como lido. ENVIADA/FALHA ficam para quando
-existir envio de verdade (e-mail, push...).
+O alerta e a fila de e-mail são gravados na mesma transação. O processador
+registra ENVIADA/FALHA no envio e preserva LIDA se a leitura já aconteceu.
 """
 from django.db import transaction
 from django.utils import timezone
@@ -118,6 +117,13 @@ class AlertaViewSet(viewsets.ReadOnlyModelViewSet):
             DestinatarioAlerta.objects.bulk_create([
                 DestinatarioAlerta(alerta=alerta, usuario=u, tipo_destinatario=tipo) for u, tipo in destinatarios
             ])
+            from acompanhamento.models import NotificacaoEmail
+            from nucleo.emails import agendar_envio
+            NotificacaoEmail.objects.bulk_create([
+                NotificacaoEmail(destinatario_alerta=d, email_destino=d.usuario.email)
+                for d in alerta.destinatarios.select_related("usuario")
+            ])
+            agendar_envio()
         return Response({"alerta": AlertaSerializer(self.get_queryset().get(pk=alerta.pk)).data,
                          "avisados": [u.nome_completo for u, _ in destinatarios],
                          "mensagem": regras.mensagem_ao_estudante(nivel)},

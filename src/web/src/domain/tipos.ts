@@ -96,6 +96,7 @@ export interface RegistroClinico {
 
 /** Ficha de acompanhamento: dados administrativos mantidos pela administração. */
 export interface Ficha {
+  clinicoIndicadoId?: string | null;
   estudanteId: string;
   responsavel: string;
   parentesco: string;

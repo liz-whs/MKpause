@@ -201,6 +201,7 @@ function lerFicha(estudanteId: string, f: { informacoes_acompanhamento: string |
     c = { encaminhamento: f.informacoes_acompanhamento ?? '' };
   }
   const ficha: Ficha = {
+    clinicoIndicadoId: c.clinicoIndicadoId,
     estudanteId,
     responsavel: c.responsavel ?? '',
     parentesco: c.parentesco ?? '',

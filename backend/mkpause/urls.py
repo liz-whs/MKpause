@@ -8,6 +8,7 @@ from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
 
 from acompanhamento.views import AvisoViewSet, FichaView
+from acompanhamento import convites
 from alertas.views import AlertaViewSet
 from atividades.views import AtividadeViewSet
 from contas import views as contas
@@ -30,6 +31,12 @@ router.register("admin/psicologos-clinicos", contas.PsicologosClinicosAdminViewS
 router.register("admin/responsaveis", contas.ResponsaveisAdminViewSet, basename="admin-responsavel")
 
 urlpatterns = [
+    path("api/admin/estudantes/<int:id_estudante>/convites-responsavel/", convites.ConvitesAdminView.as_view()),
+    path("api/admin/convites-responsavel/<int:id_convite>/revogar/", convites.RevogarConviteView.as_view()),
+    path("api/convites-responsavel/verificar/", convites.ConvitePublicoView.as_view()),
+    path("api/convites-responsavel/aceitar/", convites.ResponderConviteView.as_view(), {"resposta": "aceitar"}),
+    path("api/convites-responsavel/recusar/", convites.ResponderConviteView.as_view(), {"resposta": "recusar"}),
+    path("api/admin/emails/", convites.EmailsAdminView.as_view()),
     path("api/auth/csrf/", contas.CsrfView.as_view()),
     path("api/auth/login/", contas.LoginView.as_view()),
     path("api/auth/logout/", contas.LogoutView.as_view()),

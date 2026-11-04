@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.test import LiveServerTestCase, override_settings
 from django.utils import timezone
 
-from contas.models import (Administrador, CodigoVinculo, Estudante, Professor,
+from contas.models import (Administrador, CodigoVinculo, Estudante, Professor, PsicologoClinico,
                            ProfessorEstudante, PsicologoEscolar, PsicologoEscolarEstudante,
                            UsoCodigoCadastro)
 from nucleo.fabrica import criar_usuario, SENHA
@@ -138,3 +138,27 @@ class SimulacoesHttpTestes(LiveServerTestCase):
         self.pedir(prof, "POST", "vinculos/resgatar/", {"codigo": token["codigo"]}, esperado=400)
         self.pedir(aluno, "POST", "auth/logout/")
         self.pedir(aluno, "GET", "auth/eu/", esperado=401)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", EMAIL_ENVIO_AUTOMATICO=False)
+    def test_http_convite_responsavel_email_e_liberacao_clinica(self):
+        from acompanhamento.models import ConviteResponsavel
+        from acompanhamento.convites import link_convite
+        from django.core import mail
+        clinico = PsicologoClinico.objects.create(usuario=criar_usuario("Clínico fictício", "clinico@simulacao.br"),
+                                                  registro_profissional="98765", estado_registro="PR")
+        admin, profissional, publico = self.navegador(self.admin), self.navegador(clinico), self.navegador()
+        novo = self.pedir(admin, "POST", f"admin/estudantes/{self.aluno.pk}/convites-responsavel/", {
+            "nome_completo": "Responsável fictício", "email": "responsavel@simulacao.br",
+            "psicologo_clinico": clinico.pk}, esperado=201)
+        self.pedir(profissional, "GET", f"estudantes/{self.aluno.pk}/", esperado=404)
+        envio = self.pedir(admin, "POST", "admin/emails/")
+        self.assertEqual(envio["processados"], 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("#token=", mail.outbox[0].body)
+        token = link_convite(ConviteResponsavel.objects.get(pk=novo["id_convite"])).split("#token=", 1)[1]
+        self.pedir(publico, "POST", "convites-responsavel/verificar/", {"token": token})
+        self.pedir(publico, "POST", "convites-responsavel/aceitar/", {
+            "token": token, "confirmo_responsabilidade": True, "aceito_termo": True})
+        self.pedir(profissional, "GET", f"estudantes/{self.aluno.pk}/")
+        self.pedir(admin, "POST", f'admin/convites-responsavel/{novo["id_convite"]}/revogar/')
+        self.pedir(profissional, "GET", f"estudantes/{self.aluno.pk}/", esperado=404)

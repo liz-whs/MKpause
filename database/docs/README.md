@@ -10,6 +10,8 @@ Esta pasta reúne a documentação técnica das versões do esquema do banco de 
 
 ## Organização
 
+- [`v4-convites-e-emails.md`](v4-convites-e-emails.md): convite/aceite do responsável e fila de e-mail para convites e alertas.
+
 - `../migrations/`: arquivos SQL versionados e executáveis pelo Flyway.
 - `./`: documentação explicativa de cada versão do banco.
 

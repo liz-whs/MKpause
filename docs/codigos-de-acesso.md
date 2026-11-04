@@ -4,7 +4,7 @@
 **De:** Giovanna (interface web)
 **Branch base:** `main`. O deploy no Render segue a branch configurada no Render.
 
-**Implementação local:** a migração V3 da Liz (`22dd578`) foi incorporada, e os models, helpers, endpoints, limites de tentativas e testes foram implementados conforme este contrato. A interface usa a API real; a simulação fica apenas nos testes. `aplicar_esquema` aplica V1, V2 e V3 ausentes. A compatibilidade do responsável com a V2 também foi concluída (seção 10).
+**Implementação local:** a migração V3 da Liz (`22dd578`) foi incorporada, e os models, helpers, endpoints, limites de tentativas e testes foram implementados conforme este contrato. A interface usa a API real; a simulação fica apenas nos testes. `aplicar_esquema` aplica V1 a V4 ausentes. A V2 foi concluída (seção 10), e a V4 implementa o [convite ao responsável e a fila de e-mail](convites-e-emails.md).
 
 Este documento descreve tudo o que o backend precisa ter para a nova forma de entrada no MKpause:
 
@@ -297,7 +297,7 @@ Rodar também `python manage.py verificar_esquema` contra um banco com a V3.
 
 ## 8. Deploy (Render + Neon)
 
-- **`aplicar_esquema` (implementado):** aplica V1, V2 e V3 ausentes, inclusive em bancos existentes. Verifica tabelas da V3 e colunas da V2. A V2 só é aplicada se a tabela antiga de responsáveis estiver vazia; com registros legados, o comando interrompe sem apagá-los.
+- **`aplicar_esquema` (implementado):** aplica V1 a V4 ausentes, inclusive em bancos existentes. Verifica tabelas e colunas da V2. A V2 só é aplicada se a tabela antiga de responsáveis estiver vazia; com registros legados, o comando interrompe sem apagá-los.
 - **Throttling:** se não houver cache configurado, o DRF usa o `LocMemCache` padrão. Com `--workers 1 --threads 8`, isso funciona no Render grátis.
 - **`criar_demo`** (opcional): um código de cadastro de estudante de demonstração, impresso no log, para testes.
 
@@ -310,7 +310,7 @@ Rodar também `python manage.py verificar_esquema` contra um banco com a V3.
 
 ## 10. Compatibilidade com a V2 (concluída localmente)
 
-O model `Responsavel`, o serializer e as views administrativas agora tratam o responsável como contato sem login: nome obrigatório, e-mail e telefone opcionais. Não há criação nem alteração de `usuario`. Os vínculos continuam usando `id_responsavel` e preservam o histórico. O `verificar_esquema` passou contra o PostgreSQL local com 22 tabelas. O convite/consentimento ao responsável (RN24) continua pendente.
+O model `Responsavel`, o serializer e as views administrativas tratam o responsável como contato sem login: nome obrigatório, e-mail e telefone opcionais no cadastro. Para enviar convite é necessário um e-mail. Não há criação nem alteração de `usuario`. Os vínculos usam `id_responsavel` e preservam o histórico. O convite/aceite foi implementado na V4; `verificar_esquema` confere 24 tabelas no PostgreSQL local.
 
 ## 11. O que eu (interface web) vou fazer em paralelo
 

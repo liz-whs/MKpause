@@ -18,6 +18,7 @@ import { Field } from '../../components/ui/Field';
 import { Icon, type IconName } from '../../components/ui/Icon';
 import { cx } from '../../components/ui/cx';
 import { t } from '../../i18n';
+import { ConviteResponsavel } from './ConviteResponsavel';
 
 export function AdminLayout() {
   const eu = administradorLogado();
@@ -32,6 +33,7 @@ export function AdminLayout() {
         { to: '/admin/fichas', label: 'Fichas', icon: 'ficha' },
         { to: '/admin/conteudos', label: 'Conteúdos', icon: 'camadas' },
         { to: '/admin/codigos', label: 'Códigos de cadastro', icon: 'chave' },
+        { to: '/admin/emails', label: 'E-mails', icon: 'envelope' },
       ]}
     />
   );
@@ -295,7 +297,8 @@ function SecaoVinculo({ estudante, papel, titulo, onRemover }: { estudante: Estu
         ))}
         {vinculados.length === 0 && <li className="py-3 text-muted">{t('Ninguém vinculado.')}</li>}
       </ul>
-      {disponiveis.length > 0 && (
+      {papel === 'psicologo-clinico' && <p className="text-muted">{t('Para um novo acompanhamento clínico, envie o convite ao responsável abaixo.')}</p>}
+      {papel !== 'psicologo-clinico' && disponiveis.length > 0 && (
         <div className="flex flex-wrap items-end gap-2.5 pt-3">
           <SelectField
             label={t('Adicionar {papel}', { papel: PAPEL_LABEL[papel].toLowerCase() })}
@@ -398,47 +401,7 @@ export function AdminVinculos() {
                 }
               />
             ))}
-            <Card as="section" aria-label={t('Responsável')} className="flex flex-col gap-3">
-              <h3 className="text-button">{t('Responsável')}</h3>
-              {ficha ? (
-                <div className="flex flex-wrap items-center gap-3">
-                  <Avatar iniciais={iniciais(ficha.responsavel)} tamanho="sm" tom="sky" />
-                  <span className="flex flex-[1_1_220px] flex-col">
-                    <strong>{ficha.responsavel}</strong>
-                    <span className="text-caption text-muted">
-                      {ficha.contato} · {t(ficha.parentesco)}
-                    </span>
-                  </span>
-                  {ficha.convite?.aceito ? (
-                    <Badge tone="leaf" icon="check">
-                      {t('Convite aceito')}
-                    </Badge>
-                  ) : ficha.convite ? (
-                    <Badge tone="sky" icon="envelope">
-                      {t('Convite enviado em {data} · aguardando', { data: dia(ficha.convite.enviadoEm) })}
-                    </Badge>
-                  ) : null}
-                  {!ficha.convite?.aceito && (
-                    <Button
-                      size="md"
-                      variant="outline"
-                      onClick={() => {
-                        api.admin.reenviarConvite(selecionado.id);
-                        setAviso(t('Convite enviado ao responsável.'));
-                      }}
-                    >
-                      <Icon name="envelope" size={18} />
-                      {ficha.convite ? t('Reenviar convite') : t('Enviar convite')}
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <p className="text-muted">
-                  {t('Sem responsável na ficha.')} <Link to="/admin/fichas">{t('Preencher ficha')}</Link>
-                </p>
-              )}
-              <LockNote>{t('O vínculo só vale depois que o responsável aceitar o convite.')}</LockNote>
-            </Card>
+            <ConviteResponsavel key={selecionado.id} estudanteId={selecionado.id} ficha={ficha} />
           </div>
         )}
       </div>
@@ -552,7 +515,7 @@ function FormFicha({ estudanteId, opcoesNova, clinicos, onSalvo }: {
     encaminhamento: ficha?.encaminhamento ?? '',
   });
   const [clinico, setClinico] = useState(
-    (estudanteId && api.admin.profissionaisDe(estudanteId).find((p) => p.papel === 'psicologo-clinico')?.id) || '',
+    ficha?.clinicoIndicadoId ?? ((estudanteId && api.admin.profissionaisDe(estudanteId).find((p) => p.papel === 'psicologo-clinico')?.id) || ''),
   );
   const nome = api.admin.estudantes().find((e) => e.id === alvo)?.nome ?? '';
   const muda = (k: keyof typeof f) => ({ value: f[k], onChange: (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value }) });
@@ -586,6 +549,7 @@ function FormFicha({ estudanteId, opcoesNova, clinicos, onSalvo }: {
           />
         </div>
         <Field label={t('Encaminhamento')} multiline rows={2} {...muda('encaminhamento')} />
+        <p>{t('O profissional indicado só terá acesso após o aceite do responsável em Vínculos.')}</p>
         <LockNote>{t('Os registros clínicos não aparecem aqui.')}</LockNote>
         <div className="flex justify-end">
           <Button type="submit" size="md">

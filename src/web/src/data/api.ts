@@ -358,7 +358,8 @@ export const api = {
     /** Salva a ficha e define o psicólogo clínico (o vínculo acompanha a ficha). */
     salvarFicha(ficha: Omit<Ficha, 'atualizadaEm' | 'convite'>, psicologoClinicoId: string | null) {
       const existente = banco.fichas.find((f) => f.estudanteId === ficha.estudanteId);
-      const atualizada = { ...ficha, atualizadaEm: agora(), convite: existente?.convite ?? null };
+      const paraSalvar = { ...ficha, clinicoIndicadoId: psicologoClinicoId };
+      const atualizada = { ...paraSalvar, atualizadaEm: agora(), convite: existente?.convite ?? null };
       banco.fichas = existente
         ? banco.fichas.map((f) => (f.estudanteId === ficha.estudanteId ? atualizada : f))
         : [...banco.fichas, atualizada];
@@ -367,25 +368,18 @@ export const api = {
         v.estudanteId === ficha.estudanteId && clinicos.includes(v.profissionalId);
       const anteriores = banco.vinculos.filter(ehDoClinico).map((v) => v.profissionalId);
       banco.vinculos = banco.vinculos.filter((v) => !ehDoClinico(v));
-      if (psicologoClinicoId) banco.vinculos.push({ estudanteId: ficha.estudanteId, profissionalId: psicologoClinicoId });
+      if (psicologoClinicoId && anteriores.includes(psicologoClinicoId)) {
+        banco.vinculos.push({ estudanteId: ficha.estudanteId, profissionalId: psicologoClinicoId });
+      }
       mudou();
       enviar(async () => {
         // Os registros clínicos que já estão na ficha continuam lá (o admin não os vê nem apaga).
         const atual = await servidor.registrosDaFicha(ficha.estudanteId);
-        await servidor.salvarFicha(ficha.estudanteId, servidor.conteudoDaFicha(ficha, atual), Boolean(existente));
+        await servidor.salvarFicha(ficha.estudanteId, servidor.conteudoDaFicha(paraSalvar, atual), Boolean(existente));
         for (const id of anteriores) {
           if (id !== psicologoClinicoId) await vincularNoServidor('DELETE', ficha.estudanteId, id);
         }
-        if (psicologoClinicoId && !anteriores.includes(psicologoClinicoId)) {
-          await vincularNoServidor('POST', ficha.estudanteId, psicologoClinicoId);
-        }
       });
-    },
-    reenviarConvite(estudanteId: string) {
-      // Convite ao responsável ainda não existe no backend (RN24): fica só na tela.
-      const f = banco.fichas.find((x) => x.estudanteId === estudanteId);
-      if (f) f.convite = { enviadoEm: agora(), aceito: false };
-      mudou();
     },
     conteudos: () => banco.conteudos,
     usos: (id: AtividadeId) => banco.sessoes.filter((s) => s.atividade === id).length,

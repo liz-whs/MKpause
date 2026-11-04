@@ -11,6 +11,8 @@ import { VLibras } from './preferencias/VLibras';
 import { t } from './i18n';
 import { CadastroComCodigo } from './features/onboarding/Cadastro';
 import { AdminCodigos } from './features/admin/Codigos';
+import { AdminEmails } from './features/admin/Emails';
+import { AceitarConviteResponsavel } from './features/onboarding/Convite';
 import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, PrimeiroAcesso } from './features/onboarding/Onboarding';
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
 import { ComoFicou, EscolherAtividade, Humor, MKPotion, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
@@ -64,6 +66,7 @@ export const rotas: RouteObject[] = [
       { path: '/entrar', element: <Entrar />, handle: { titulo: 'Entrar' } },
       { path: '/primeiro-acesso', element: <PrimeiroAcesso />, handle: { titulo: 'Primeiro acesso' } },
       { path: '/cadastro', element: <CadastroComCodigo />, handle: { titulo: 'Código de cadastro' } },
+      { path: '/convite-responsavel', element: <AceitarConviteResponsavel />, handle: { titulo: 'Convite ao responsável' } },
 
       // Estudante: páginas com cabeçalho
       {
@@ -142,6 +145,7 @@ export const rotas: RouteObject[] = [
           { path: 'fichas', element: <AdminFichas />, handle: { titulo: 'Fichas' } },
           { path: 'conteudos', element: <AdminConteudos />, handle: { titulo: 'Conteúdos' } },
           { path: 'codigos', element: <AdminCodigos />, handle: { titulo: 'Códigos de cadastro' } },
+          { path: 'emails', element: <AdminEmails />, handle: { titulo: 'E-mails' } },
           { path: 'perfil', element: <PerfilProfissional area="admin" />, handle: { titulo: 'Perfil' } },
         ],
       },

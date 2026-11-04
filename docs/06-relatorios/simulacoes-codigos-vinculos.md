@@ -47,4 +47,17 @@ O serviço de automação do navegador estava indisponível. As telas foram veri
 
 O banco temporário dos testes é criado a partir dos models pelo executor do Django. Na rodada acima, a divergência entre o model `Responsavel` e a V2 ainda estava pendente. Ela foi resolvida posteriormente: cadastro, edição, listagem e desativação agora usam o contato sem login, e `verificar_esquema` passou com 22 tabelas no banco local.
 
-Na atualização da V2, 46 testes passaram em SQLite (6 específicos de PostgreSQL foram pulados) e 9 testes de responsáveis e migração passaram no PostgreSQL temporário, incluindo execução do SQL real da V2, repetição do comando e proteção contra dados legados ou esquema parcial. O convite ao responsável permanece pendente. Não houve push, deploy ou alteração no Neon.
+Na atualização da V2, 46 testes passaram em SQLite (6 específicos de PostgreSQL foram pulados) e 9 testes de responsáveis e migração passaram no PostgreSQL temporário, incluindo execução do SQL real da V2, repetição do comando e proteção contra dados legados ou esquema parcial.
+
+## Atualização: convite ao responsável e e-mail (V4)
+
+O [convite e a fila de e-mail](../convites-e-emails.md) foram implementados. O fluxo registra aceite ou recusa sem criar conta para o responsável, exige as duas confirmações antes do aceite, guarda texto/versão/data da autorização e condiciona novos acessos clínicos ao consentimento. A revogação ou desativação do contato retira os acessos correspondentes. Os vínculos ativos anteriores foram preservados, sem fabricar consentimento retroativo.
+
+A fila registra envio, falha e tentativas. Os testes cobrem falha e nova tentativa, preservação da leitura do alerta, cancelamento de mensagens inválidas, assinatura e expiração do convite e ausência de dados emocionais no e-mail. No PostgreSQL, dois processadores não enviam o mesmo item simultaneamente e duas respostas só registram um aceite. Também foi validado o fluxo completo por HTTP real: convite, mensagem, leitura da autorização, aceite, acesso e revogação.
+
+- Suíte completa do backend no PostgreSQL temporário: 66 testes passaram, sem testes pulados.
+- Interface: 114 testes, incluindo acessibilidade das novas telas, aceite/recusa, caixa local e indicação de clínico sem concessão automática de acesso.
+- Build aprovado. V4 aplicada localmente; models e banco conferem em 24 tabelas.
+- Sem provedor SMTP, as mensagens ficam na caixa local de testes. A entrega na internet ainda depende de configurar o provedor. Não há push do navegador.
+
+Não houve push, deploy ou alteração no Neon. A inspeção visual manual continua pendente; a validação das telas desta atualização é automatizada.

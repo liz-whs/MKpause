@@ -160,10 +160,24 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
     "UNAUTHENTICATED_USER": None,
     "EXCEPTION_HANDLER": "nucleo.erros.tratar_excecao",
-    "DEFAULT_THROTTLE_RATES": {"cadastro": "10/min", "vinculo": "10/min"},
+    "DEFAULT_THROTTLE_RATES": {"cadastro": "10/min", "vinculo": "10/min", "convite": "10/min"},
 }
 
 SENHA_TAMANHO_MINIMO = 8
+
+# Sem SMTP configurado, os e-mails ficam numa caixa local de desenvolvimento.
+PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", "http://localhost:5173").rstrip("/")
+EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.filebased.EmailBackend")
+EMAIL_FILE_PATH = env("EMAIL_FILE_PATH", str(BASE_DIR / ".emails"))
+EMAIL_HOST = env("EMAIL_HOST", "")
+EMAIL_PORT = int(env("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS", "1") == "1"
+EMAIL_USE_SSL = env("EMAIL_USE_SSL", "0") == "1"
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "MKpause <nao-responda@mkpause.local>")
+EMAIL_ENVIO_AUTOMATICO = env("EMAIL_ENVIO_AUTOMATICO", "0") == "1"
 
 
 # Internationalization

@@ -127,9 +127,15 @@ class ResponsaveisAdminViewSet(CadastroViewSet):
             qs = qs.filter(ativo=ativo == "true")
         return qs
 
+    @transaction.atomic
     def perform_destroy(self, instancia):
+        from acompanhamento.models import ConviteResponsavel
+        from acompanhamento.convites import revogar
         instancia.ativo = False
         instancia.save(update_fields=["ativo"])
+        for convite in ConviteResponsavel.objects.select_for_update().filter(
+                responsavel=instancia, status__in=["PENDENTE", "ACEITO"]):
+            revogar(convite)
 
 
 # ---------------------------------------------------------- vínculos (admin)
@@ -189,9 +195,34 @@ class VinculoPsicologoClinicoView(VinculoView):  # RF33
     modelo, serializer_class, campo = PsicologoClinicoEstudante, s.VinculoPsicologoClinicoSerializer, "psicologo_clinico"
     mensagem_ao_remover = "Vínculo desativado. O psicólogo clínico deixa de ver os registros deste estudante."
 
+    def post(self, request):
+        from acompanhamento.models import ConviteResponsavel
+        from rest_framework.exceptions import ValidationError
+        dados = self.serializer_class(data=request.data)
+        dados.is_valid(raise_exception=True)
+        chave = {"estudante_id": dados.validated_data["estudante"].pk,
+                 "psicologo_clinico_id": dados.validated_data["psicologo_clinico"].pk}
+        # Vínculos ativos anteriores são preservados; novos acessos precisam de aceite registrado.
+        if not self.modelo.objects.filter(**chave, ativo=True).exists() and not ConviteResponsavel.objects.filter(
+                **chave, status="ACEITO", responsavel__ativo=True).exists():
+            raise ValidationError({"detail": "Envie o convite ao responsável e aguarde o aceite antes de criar o vínculo clínico."})
+        return super().post(request)
 
-class VinculoResponsavelView(VinculoView):  # RF34 (convite: RN24, ainda não implementado)
+
+class VinculoResponsavelView(VinculoView):  # RF34 e aceite do convite (RN24)
     modelo, serializer_class, campo = EstudanteResponsavel, s.VinculoResponsavelSerializer, "responsavel"
+
+    def post(self, request):
+        from acompanhamento.models import ConviteResponsavel
+        from rest_framework.exceptions import ValidationError
+        dados = self.serializer_class(data=request.data)
+        dados.is_valid(raise_exception=True)
+        chave = {"estudante_id": dados.validated_data["estudante"].pk,
+                 "responsavel_id": dados.validated_data["responsavel"].pk}
+        if not self.modelo.objects.filter(**chave, ativo=True).exists() and not ConviteResponsavel.objects.filter(
+                **chave, status="ACEITO", responsavel__ativo=True).exists():
+            raise ValidationError({"detail": "Envie o convite e aguarde o aceite do responsável."})
+        return super().post(request)
 
 
 # -------------------------------------------- estudantes vinculados (RF11, RF20)

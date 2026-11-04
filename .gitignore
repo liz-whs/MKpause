@@ -19,6 +19,7 @@ env/
 .vscode/
 .idea/
 *.log
+.emails/
 relatorio_integridade.txt
 
 # Banco de dados: cópias e backups locais

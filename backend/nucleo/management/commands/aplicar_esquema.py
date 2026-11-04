@@ -2,7 +2,7 @@
 python manage.py aplicar_esquema
 
 Para hospedagem sem Flyway (ex.: Render + Neon): roda as migrações SQL de
-database/migrations/ num banco vazio ou aplica V2/V3 ausentes em um banco com V1.
+database/migrations/ num banco vazio ou aplica V2/V3/V4 ausentes em um banco com V1.
 A V2 exige responsavel vazia; registros legados precisam de migração de dados.
 """
 from django.conf import settings
@@ -15,11 +15,12 @@ VERSOES = [
     ("V1__criacao_do_esquema_inicial.sql", {"usuario"}),
     ("V2__ajusta_responsavel_como_contato.sql", {"responsavel"}),
     ("V3__codigos_de_cadastro_e_vinculo.sql", {"codigo_cadastro", "uso_codigo_cadastro", "codigo_vinculo"}),
+    ("V4__convites_responsaveis_e_fila_email.sql", {"convite_responsavel", "notificacao_email"}),
 ]
 
 
 class Command(BaseCommand):
-    help = "Aplica V1, V2 e V3 ausentes no banco do MKpause (sem Flyway)."
+    help = "Aplica V1 a V4 ausentes no banco do MKpause (sem Flyway)."
 
     def handle(self, *args, **options):
         exigir_banco(self.stdout)
@@ -52,4 +53,4 @@ class Command(BaseCommand):
                 self.stdout.write(f"Aplicando {nome}...")
                 cursor.execute((pasta / nome).read_text(encoding="utf-8"))
                 tabelas.update(marcas)
-        self.stdout.write(self.style.SUCCESS("Esquema pronto (V1, V2 e V3)."))
+        self.stdout.write(self.style.SUCCESS("Esquema pronto (V1 a V4)."))
