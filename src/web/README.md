@@ -103,12 +103,18 @@ O jogo original (`src/jogos/pianopause/main.py`, em pygame, de Ana Beatriz Patus
 
 ## MK Potion
 
-Jogo de organizar líquidos da Ana (`src/MKpotion/mk_potion`), compilado com o pygbag para `public/jogos/mkpotion/` e aberto num iframe na pausa (`/estudante/pausa/mkpotion`). O código do jogo não é alterado.
+Jogo de organizar líquidos da Ana (`src/MKpotion/mk_potion`), compilado com o pygbag para `public/jogos/mkpotion/` e aberto num iframe na pausa (`/estudante/pausa/mkpotion`). A adaptação web usa `?mkpause=1` para ajustar o canvas à área disponível, melhorar a resolução e remover controles redundantes. As fontes Fraunces/Lexend e cores do site foram aplicadas ao jogo; as licenças acompanham os arquivos em `assets/fonts_mkpause/`.
 
 - Recompilar: `npm run build:mkpotion` (Python com `pygbag==0.9.3`; `PYTHON=/caminho/python` para escolher o interpretador). Precisa de internet: o pygbag baixa o modelo da página.
 - O script acrescenta `import pygame` só na cópia temporária do `main.py`: o pygbag só carrega o pygame se ele for importado no `main.py`, e o MK Potion importa em `game/screens.py`. Vale a Ana colocar essa linha no `main.py` dela.
 - No backend, a atividade é do tipo `JOGO` com `conteudo_ou_referencia = /jogos/mkpotion/index.html`: é a referência que diferencia os dois jogos (`atividadeDe` em `src/data/servidor.ts`). O `criar_demo` cria os dois jogos e pode ser executado novamente sem duplicá-los, inclusive se o MK Potion já tiver sido cadastrado pela API. O deploy do Render já executa esse comando.
 - O progresso do jogo fica no navegador (localStorage), como a Ana fez.
+
+## Indicadores em PHP e vídeo de respiração
+
+Execute `npm run indicadores` em outro terminal junto do Django e do Vite. O painel fica em `/admin/indicadores`, exige administrador e usa apenas agregados com supressão de grupos pequenos. Veja [execução e testes do PHP](../indicadores/README.md) e [hospedagem Docker](../../docs/indicadores-php.md).
+
+A atividade Vídeo usa arquivos locais de 30 segundos em `public/videos/`: 1080 × 1920 no celular e 1280 × 720 no computador, capas e legendas PT/EN/ES. O gerador está em `scripts/video-respiracao.py` e requer Pillow, ffmpeg e as fontes do PianoPause.
 
 ## Acessibilidade e idioma
 

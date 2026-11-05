@@ -34,6 +34,7 @@ export function AdminLayout() {
         { to: '/admin/conteudos', label: 'Conteúdos', icon: 'camadas' },
         { to: '/admin/codigos', label: 'Códigos de cadastro', icon: 'chave' },
         { to: '/admin/emails', label: 'E-mails', icon: 'envelope' },
+        { to: '/admin/indicadores', label: 'Indicadores da escola', icon: 'camadas' },
       ]}
     />
   );

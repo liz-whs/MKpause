@@ -17,6 +17,7 @@ from .bottle import draw_bottle
 from .breathing import (DISCLAIMER, FINISHED, IDLE, MESSAGE, PAUSED as B_PAUSED, PRESETS,
                         RUNNING, BreathingExercise)
 from .game_logic import GameSession
+from . import web
 from .game_state import AppState, Screen
 from .level_manager import LevelManager
 from .level_generator import randomize_bottles
@@ -241,12 +242,16 @@ class MenuScreen(BaseScreen):
         s = self.app.scale
         bw, bh, gap = 340 * s, 62 * s, 16 * s
         x, y = w * 0.74 - bw / 2, h * 0.40
+        if web.EMBUTIDO:
+            x, y = w / 2 - bw / 2, h * 0.30
         items = [
             ("play", "Jogar", "play_game", "primary", "Continuar de onde você parou"),
             ("howto", "Como jogar", "help", "secondary", "Veja o passo a passo com um exemplo"),
             ("breathe", "Respirar", "breathe", "soft", "Um momento de pausa com respiração guiada"),
             ("settings", "Configurações", "gear", "secondary", "Sons, animações, ritmo e contraste"),
         ]
+        if web.EMBUTIDO:  # o MKpause já tem a atividade de respiração
+            items = [i for i in items if i[0] != "breathe"]
         out = []
         for key, label, icon, style, tip in items:
             out.append(self.btn(key, label, x, y, bw, bh, icon=icon, style=style, tooltip=tip))
@@ -273,7 +278,15 @@ class MenuScreen(BaseScreen):
         w, h = surface.get_size()
         draw_background(surface, a.theme)
         cx = int(w * 0.74)
-        draw_text(surface, "MK Potion", a.fonts.get(72 * s, True), a.theme["cacao"], center=(cx, int(h * 0.15)))
+        if web.EMBUTIDO:
+            # Dentro do MKpause: título e botões, direto ao ponto.
+            draw_text(surface, "MK Potion", a.fonts.titulo(72 * s), a.theme["cacao"], center=(w // 2, int(h * 0.17)))
+            if a.notice:
+                draw_paragraph(surface, a.notice, a.fonts.get(18 * s), a.theme["text_soft"], w // 2, h - int(112 * s), int(w * 0.9))
+            self.draw_buttons(surface)
+            self.draw_tooltip(surface)
+            return
+        draw_text(surface, "MK Potion", a.fonts.titulo(72 * s), a.theme["cacao"], center=(cx, int(h * 0.15)))
         draw_paragraph(surface, "Bem-vindo(a)! Aqui você joga com calma, no seu ritmo. Não há tempo nem pressa.",
                        a.fonts.get(24 * s), a.theme["text_soft"], cx, int(h * 0.23), int(400 * s))
 
@@ -355,7 +368,7 @@ class HowToScreen(BaseScreen):
         a, s = self.app, self.app.scale
         w, h = surface.get_size()
         draw_background(surface, a.theme)
-        t_rect = draw_text(surface, "Como jogar", a.fonts.get(52 * s, True), a.theme["cacao"], center=(w // 2, int(h * 0.09)))
+        t_rect = draw_text(surface, "Como jogar", a.fonts.titulo(52 * s), a.theme["cacao"], center=(w // 2, int(h * 0.09)))
         draw_icon(surface, "help", (t_rect.left - int(40 * s), t_rect.centery), int(44 * s), a.theme["rose"])
         y = int(h * 0.20)
         step_h = int(h * 0.14)
@@ -400,7 +413,6 @@ class PlayScreen(BaseScreen):
             top = max(104 * s, h * 0.15)
         self.board.layout(pygame.Rect(int(30 * s), int(top), int(w - 60 * s), int(h - 165 * s - top)))
         bw, bh, gap = 210 * s, 62 * s, 14 * s
-        x = (w - (4 * bw + 3 * gap)) / 2
         y = h - 84 * s
         items = [
             ("restart", "Reiniciar", "restart", "secondary", "Reiniciar: volta a fase ao começo"),
@@ -408,6 +420,9 @@ class PlayScreen(BaseScreen):
             ("hint", "Dica", "hint", "rose", "Dica: mostra um movimento que ajuda"),
             ("breathe", "Respirar", "breathe", "soft", "Respirar: abre o exercício de respiração"),
         ]
+        if web.EMBUTIDO:
+            items = [i for i in items if i[0] != "breathe"]
+        x = (w - (len(items) * bw + (len(items) - 1) * gap)) / 2
         out = []
         for k, (key, label, icon, style, tip) in enumerate(items):
             out.append(self.btn(key, label, x + k * (bw + gap), y, bw, bh, icon=icon, style=style, tooltip=tip))
@@ -588,7 +603,7 @@ class PlayScreen(BaseScreen):
             title, body = "Não há mais jogadas possíveis", "Tudo bem, isso acontece! Você pode voltar um passo e tentar outro caminho, ou reiniciar a fase."
         else:
             title, body = "Parece que não há mais saída por aqui", "Tudo bem, isso acontece! Você pode voltar um passo e tentar outro caminho, ou reiniciar a fase."
-        draw_text(surface, title, a.fonts.get(30 * s, True), a.theme["cacao"], center=(r.centerx, r.y + int(128 * s)))
+        draw_text(surface, title, a.fonts.titulo(30 * s), a.theme["cacao"], center=(r.centerx, r.y + int(128 * s)))
         draw_paragraph(surface, body, a.fonts.get(22 * s), a.theme["text"], r.centerx, r.y + int(154 * s), int(r.width - 70 * s))
         pos = pygame.mouse.get_pos()
         for i, b in enumerate(self.buttons):
@@ -602,7 +617,7 @@ class PlayScreen(BaseScreen):
         sess = a.session
         draw_background(surface, a.theme)
         title = "Fase %d" % sess.level_id if sess.level_id else sess.level_name
-        draw_text(surface, title, a.fonts.get(36 * s, True), a.theme["cacao"], center=(w // 2, int(38 * s)))
+        draw_text(surface, title, a.fonts.titulo(36 * s), a.theme["cacao"], center=(w // 2, int(38 * s)))
 
         total, done = sess.color_count(), sess.organized_count()
         dots_y = int(80 * s)
@@ -653,6 +668,8 @@ class PauseScreen(BaseScreen):
             ("breathe", "Respirar", "breathe", "soft", "Fazer um exercício de respiração"),
             ("menu", "Voltar ao menu", "home", "secondary", "Ir para a tela inicial (seu progresso fica salvo)"),
         ]
+        if web.EMBUTIDO:
+            items = [i for i in items if i[0] != "breathe"]
         out = []
         for key, label, icon, style, tip in items:
             out.append(self.btn(key, label, x, y, bw, bh, icon=icon, style=style, tooltip=tip))
@@ -689,7 +706,7 @@ class PauseScreen(BaseScreen):
         veil = pygame.Surface((w, h), pygame.SRCALPHA)
         veil.fill((*a.theme["bg"], 225))
         surface.blit(veil, (0, 0))
-        t_rect = draw_text(surface, "Pausa", a.fonts.get(56 * s, True), a.theme["cacao"], center=(w // 2, int(h * 0.15)))
+        t_rect = draw_text(surface, "Pausa", a.fonts.titulo(56 * s), a.theme["cacao"], center=(w // 2, int(h * 0.15)))
         draw_icon(surface, "pause", (t_rect.left - int(40 * s), t_rect.centery), int(44 * s), a.theme["rose"])
         draw_text(surface, "Seu progresso está guardado. Volte quando quiser.", a.fonts.get(24 * s),
                   a.theme["text_soft"], center=(w // 2, int(h * 0.25)))
@@ -765,7 +782,7 @@ class CompleteScreen(BaseScreen):
                 hx = w / 2 + (k - 1) * mh * 0.22 + (0 if calm else math.sin(a.time * 2 + k * 2) * 8 * s)
                 hy = base_y - mh * (0.70 + 0.40 * t)
                 draw_heart(surface, (int(hx), int(hy)), int((11 + 4 * (k % 2)) * s), a.theme["rose"])
-        draw_text(surface, "Você conseguiu!", a.fonts.get(58 * s, True), a.theme["cacao"], center=(w // 2, int(h * 0.345)))
+        draw_text(surface, "Você conseguiu!", a.fonts.titulo(58 * s), a.theme["cacao"], center=(w // 2, int(h * 0.345)))
         draw_text(surface, "Muito bem por ter encontrado sua solução.", a.fonts.get(26 * s), a.theme["text"],
                   center=(w // 2, int(h * 0.415)))
         if a.levels.next_id(a.session.level_id) is None:
@@ -858,7 +875,7 @@ class BreathingScreen(BaseScreen):
         pygame.draw.circle(surface, a.theme["peony"] if a.theme["thick"] <= 3 else a.theme["bg"], (cx, cy), int(r * 1.15))
         pygame.draw.circle(surface, a.theme["sky"] if a.theme["thick"] <= 3 else a.theme["btn_soft"][0], (cx, cy), r)
         pygame.draw.circle(surface, a.theme["outline"], (cx, cy), r, a.theme["thick"])
-        draw_text(surface, ex.label, a.fonts.get(46 * s, True), a.theme["cacao"], center=(cx, cy))
+        draw_text(surface, ex.label, a.fonts.titulo(46 * s), a.theme["cacao"], center=(cx, cy))
         if ex.state == FINISHED:
             text = "Quando quiser, você pode voltar ou ficar mais um pouco."
         else:
@@ -948,7 +965,7 @@ class SettingsScreen(BaseScreen):
         a, s = self.app, self.app.scale
         w, h = surface.get_size()
         draw_background(surface, a.theme)
-        t_rect = draw_text(surface, "Configurações", a.fonts.get(52 * s, True), a.theme["cacao"], center=(w // 2, int(h * 0.09)))
+        t_rect = draw_text(surface, "Configurações", a.fonts.titulo(52 * s), a.theme["cacao"], center=(w // 2, int(h * 0.09)))
         draw_icon(surface, "gear", (t_rect.left - int(40 * s), t_rect.centery), int(44 * s), a.theme["rose"])
         for i, key in enumerate(self.ROWS):
             y = self.row_y(i, h)
@@ -1008,7 +1025,7 @@ class LevelsScreen(BaseScreen):
         a, s = self.app, self.app.scale
         w, h = surface.get_size()
         draw_background(surface, a.theme)
-        t_rect = draw_text(surface, "Escolher fase", a.fonts.get(52 * s, True), a.theme["cacao"], center=(w // 2, int(h * 0.09)))
+        t_rect = draw_text(surface, "Escolher fase", a.fonts.titulo(52 * s), a.theme["cacao"], center=(w // 2, int(h * 0.09)))
         draw_icon(surface, "grid", (t_rect.left - int(40 * s), t_rect.centery), int(44 * s), a.theme["rose"])
         self.draw_buttons(surface)
         self.draw_tooltip(surface, h - int(110 * s))
@@ -1020,7 +1037,11 @@ class App:
     def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption("MK Potion")
-        self.window = pygame.display.set_mode((1000, 700), pygame.RESIZABLE)
+        tamanho = (1000, 700)
+        if web.EMBUTIDO:
+            web.preparar_canvas()
+            tamanho = web.tamanho_ideal(self.MIN_SIZE) or tamanho
+        self.window = pygame.display.set_mode(tamanho, pygame.RESIZABLE)
         self.clock = pygame.time.Clock()
         self.time = 0.0
         self.fonts = Fonts()
@@ -1044,6 +1065,9 @@ class App:
     @property
     def scale(self) -> float:
         w, h = self.window.get_size()
+        if web.EMBUTIDO and h > w:
+            # Celular em pé: a largura manda (os botões da fase precisam caber numa linha).
+            return max(0.6, min(w / 700, h / 1000, 2.0))
         return max(0.6, min(w / 1000, h / 700, 2.0))
 
     def apply_settings(self) -> None:
@@ -1115,6 +1139,13 @@ class App:
                     dt = min(self.clock.tick(60) / 1000.0, 0.1)
                     self.time += dt
                     self.window = pygame.display.get_surface()
+                    if web.EMBUTIDO:
+                        # No navegador não chega VIDEORESIZE: acompanha o tamanho do iframe.
+                        alvo = web.tamanho_ideal(self.MIN_SIZE)
+                        if alvo and alvo != self.window.get_size():
+                            pygame.display.set_mode(alvo, pygame.RESIZABLE)
+                            self.window = pygame.display.get_surface()
+                            self.screens[self.state.current].relayout()
                     for ev in pygame.event.get():
                         if ev.type == pygame.QUIT:
                             self.state.quit()

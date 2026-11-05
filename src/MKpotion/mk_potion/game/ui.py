@@ -13,10 +13,21 @@ ASSETS_FONTS = Path(__file__).resolve().parent.parent / "assets" / "fonts"
 ASSETS_IMAGES = Path(__file__).resolve().parent.parent / "assets" / "images"
 
 ASSETS_FONTS_WEB = Path(__file__).resolve().parent.parent / "assets" / "fonts_web"
+# Fontes do site MKpause: Lexend no texto e Fraunces (SOFT 100) nos títulos.
+ASSETS_FONTS_MKPAUSE = Path(__file__).resolve().parent.parent / "assets" / "fonts_mkpause"
 
+# Cores do MKpause (src/web/src/styles/tokens.css)
+MK_BG = (0xF6, 0xEF, 0xE4)        # --color-bg
+MK_SURFACE = (0xFF, 0xFA, 0xF7)   # --color-surface
+MK_INK = (0x59, 0x41, 0x31)       # --color-ink (Cacao)
+MK_MUTED = (0x6E, 0x54, 0x42)     # --color-muted
+MK_DARK = (0x3E, 0x2B, 0x20)      # --color-dark
+MK_LINE = (0xE6, 0xD8, 0xC6)      # --color-line
+MK_PEONY = (0xF7, 0xDD, 0xD5)     # --color-peony
+MK_DISABLED = (0xEA, 0xDB, 0xD3)  # --color-disabled
 
-PLUM = (79, 70, 71)
-TAIL = (118, 106, 108)
+PLUM = MK_INK
+TAIL = MK_MUTED
 EAR = (191, 160, 150)
 EAR_SOFT = (222, 188, 183)
 BELLY = (234, 222, 214)
@@ -28,14 +39,14 @@ def _c(name: str):
 
 def make_theme(high_contrast: bool = False) -> Dict:
     theme = {
-        "bg": (249, 245, 242),
-        "bg_calm": (241, 236, 241),
-        "panel": (255, 253, 251),
-        "panel_border": (233, 217, 211),
-        "glass": (255, 254, 252),
+        "bg": MK_BG,
+        "bg_calm": (241, 234, 236),
+        "panel": MK_SURFACE,
+        "panel_border": MK_LINE,
+        "glass": MK_SURFACE,
         "text": PLUM,
         "text_soft": TAIL,
-        "outline": (116, 104, 107),
+        "outline": MK_MUTED,
         "rose": _c("Dusty Rose"),
         "grass": _c("Grass"),
         "leaf": _c("Leaf"),
@@ -47,11 +58,11 @@ def make_theme(high_contrast: bool = False) -> Dict:
         "focus": PLUM,
         "thick": 3,
 
-        "btn_primary": (PLUM, (251, 244, 239)),
-        "btn_secondary": (BELLY, PLUM),
-        "btn_soft": (_c("Lavender"), PLUM),
-        "btn_rose": (EAR_SOFT, PLUM),
-        "btn_disabled": ((228, 222, 219), (146, 137, 134)),
+        "btn_primary": (MK_INK, MK_SURFACE),
+        "btn_secondary": (MK_PEONY, MK_INK),
+        "btn_soft": (_c("Lavender"), MK_INK),
+        "btn_rose": (_c("Dusty Rose"), MK_DARK),
+        "btn_disabled": (MK_DISABLED, MK_MUTED),
     }
     if high_contrast:
         theme.update({
@@ -73,10 +84,26 @@ class Fonts:
         files = sorted(ASSETS_FONTS.glob("*.ttf")) + sorted(ASSETS_FONTS.glob("*.otf"))
         self.file = str(files[0]) if files else None
         self.web_files = {}
-        if storage.IS_WEB and not self.file:
+        # Fontes do MKpause (no desktop e no navegador): Lexend 400/600 e Fraunces 600 nos títulos.
+        mk = {False: ASSETS_FONTS_MKPAUSE / "Lexend-Regular.ttf", True: ASSETS_FONTS_MKPAUSE / "Lexend-SemiBold.ttf"}
+        self.display_file = ASSETS_FONTS_MKPAUSE / "Fraunces-SemiBold.ttf"
+        if not self.file and all(f.exists() for f in mk.values()):
+            self.web_files = {k: str(v) for k, v in mk.items()}
+        if storage.IS_WEB and not self.file and not self.web_files:
             regular, bold = ASSETS_FONTS_WEB / "LiberationSans-Regular.ttf", ASSETS_FONTS_WEB / "LiberationSans-Bold.ttf"
             if regular.exists():
                 self.web_files = {False: str(regular), True: str(bold if bold.exists() else regular)}
+
+    def titulo(self, size: float) -> pygame.font.Font:
+        """Fonte dos títulos: Fraunces, como no site (cai para a de texto se faltar)."""
+        size = max(14, int(size))
+        key = (size, "titulo")
+        if key not in self.cache:
+            try:
+                self.cache[key] = pygame.font.Font(str(self.display_file), size)
+            except (pygame.error, OSError, FileNotFoundError):
+                self.cache[key] = self.get(size, True)
+        return self.cache[key]
 
     def get(self, size: float, bold: bool = False) -> pygame.font.Font:
         size = max(14, int(size))

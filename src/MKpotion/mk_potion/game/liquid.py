@@ -17,7 +17,7 @@ PALETTE: Dict[str, str] = {
     "Grass": "#8D8B4C",
     "Jungle": "#65613F",
     "Sky": "#AFB8CD",
-    "Cacao": "#6B403B",
+    "Cacao": "#594131",
     "Peony": "#F7DDD5",
     "Dusty Rose": "#D8A4AF",
 }

@@ -89,6 +89,8 @@ Conforme o estado identificado, o sistema pode gerar alertas para os profissiona
 | Atividade | Descrição | Documentação |
 |---|---|---|
 | PianoPause | Jogo de teclas musicais, sem pontuação, com pausa para respiração guiada | [README do PianoPause](./src/jogos/pianopause/README.md) |
+| MK Potion | Organização de líquidos, adaptado para celular e computador | [README do jogo](./src/MKpotion/mk_potion/README.md) |
+| Respiração em vídeo | Vídeo de 30 segundos, com versões vertical/horizontal e legendas | [Interface web](./src/web/README.md) |
 
 ---
 
@@ -141,7 +143,10 @@ Todos os documentos possuem versão em português (`arquivo.md`) e em inglês (`
 | Componente | Tecnologia |
 |---|---|
 | PianoPause | Python 3.10+ e pygame-ce |
-| Plataforma | Em definição |
+| Interface web | React, TypeScript, Vite e Tailwind CSS |
+| API e autenticação | Python e Django REST Framework |
+| Indicadores agregados da administração | PHP 8.2+ e PDO PostgreSQL — [módulo PHP](./src/indicadores/README.md) |
+| Banco | PostgreSQL, com migrações SQL versionadas |
 
 ---
 
@@ -149,7 +154,7 @@ Todos os documentos possuem versão em português (`arquivo.md`) e em inglês (`
 
 **Em desenvolvimento.**
 
-O projeto está nas etapas de especificação de requisitos, modelagem do sistema e definição da arquitetura. O primeiro jogo, PianoPause, já está implementado e funciona de forma independente da plataforma.
+A interface e a API estão integradas aos fluxos de pausa, jogos, vínculos e convites. O painel agregado da administração utiliza PHP; o dashboard individual do psicólogo clínico possui API própria no Django. A integração PHP tem execução local e uma [opção de hospedagem Docker](./docs/indicadores-php.md) preparada para validação antes do deploy. A entrega real de e-mails depende de configurar um provedor SMTP.
 
 ---
 

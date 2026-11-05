@@ -1,0 +1,19 @@
+# Opção Docker com Django + PHP no mesmo serviço. Ver docs/indicadores-php.md.
+# O render.yaml existente continua disponível para o serviço Python atual.
+services:
+  - type: web
+    name: mkpause-com-indicadores
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/auth/csrf/
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DEMO_SENHA
+        sync: false

@@ -18,6 +18,7 @@ import { atividades } from '../student/Paginas';
 import { EspacoDoJogo, useTelaGrande } from './JogoPianoPause';
 import mascote from '../../assets/chinchila/mascote.svg';
 import { t } from '../../i18n';
+import { usePreferencias } from '../../preferencias/preferencias';
 
 const ROTA_ATIVIDADE: Record<AtividadeId, string> = {
   respiracao: '/estudante/pausa/respiracao',
@@ -271,16 +272,17 @@ export function MKPotion() {
       <CabecalhoAtividade />
       <h1 className="sr-only">{t('MK Potion')}</h1>
       <div className="flex flex-col gap-5 lg:w-[min(64rem,calc(100vw-4rem))] lg:self-center">
-        {/* Do tamanho que couber sem rolar a página, na proporção do jogo. */}
-        <div className="mx-auto aspect-[10/7] w-[min(100%,calc((100dvh-16rem)*10/7))] overflow-hidden rounded-sheet bg-bg">
+        {/* Ocupa a altura que sobra na tela (vertical no celular, horizontal no computador):
+            com ?mkpause=1 o jogo desenha nesse tamanho exato, nítido, e se reorganiza ao redimensionar. */}
+        <div className="h-[max(26rem,calc(100dvh-15rem))] w-full overflow-hidden rounded-sheet bg-bg lg:h-[max(28rem,calc(100dvh-13rem))]">
           <iframe
-            src="/jogos/mkpotion/index.html"
+            src="/jogos/mkpotion/index.html?mkpause=1"
             title={t('Jogo MK Potion')}
             allow="autoplay; fullscreen"
             className="size-full border-0"
           />
         </div>
-        <div className="flex flex-col gap-5 lg:mx-auto lg:w-[min(100%,calc((100dvh-16rem)*10/7))] lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <p className="flex items-center justify-center gap-2 text-caption text-muted lg:text-body">
             <Icon name="info" size={16} className="flex-none" />
             {t('Toque na tela do jogo para começar. Na sala, use fones.')}
@@ -294,23 +296,55 @@ export function MKPotion() {
   );
 }
 
-/** Vídeo cadastrado pela escola, com legenda. */
+/** Legendas do vídeo de respiração: o texto da tela em cada idioma do site. */
+const LEGENDAS = [
+  { lang: 'pt-BR', rotulo: 'Português' },
+  { lang: 'en', rotulo: 'English' },
+  { lang: 'es', rotulo: 'Español' },
+] as const;
+
+/**
+ * Vídeo de respiração guiada (gerado por scripts/video-respiracao.py com as cores e fontes do MKpause).
+ * Horizontal no computador e vertical no celular, do tamanho que couber sem rolar a página.
+ * O texto do vídeo é em português; em inglês e espanhol a legenda do idioma já vem ligada.
+ */
 export function Video() {
   const video = api.estudante.video();
+  const computador = useTelaGrande();
+  const { idioma } = usePreferencias();
   if (!useSessaoValida()) return <Navigate to="/estudante/pausa" replace />;
+  const formato = computador ? 'computador' : 'celular';
   return (
     <>
       <CabecalhoAtividade />
-      <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-card-lg bg-sky">
-        {video.src ? (
-          <video controls className="size-full" src={video.src}>
-            {video.legendas && <track kind="captions" srcLang="pt-BR" label="Português" src={video.legendas} default />}
-          </video>
-        ) : (
-          <span className="flex size-18 items-center justify-center rounded-full bg-ink text-surface" aria-hidden="true">
-            <Icon name="play" size={30} />
-          </span>
-        )}
+      <div
+        className={
+          computador
+            ? 'mx-auto aspect-video w-[min(100%,calc((100dvh-22rem)*16/9))] overflow-hidden rounded-card-lg bg-bg'
+            : 'mx-auto aspect-[9/16] w-[min(100%,calc((100dvh-20rem)*9/16))] overflow-hidden rounded-card-lg bg-bg'
+        }
+      >
+        <video
+          key={formato}
+          controls
+          playsInline
+          preload="metadata"
+          poster={`/videos/respiracao-${formato}.jpg`}
+          aria-label={t('Vídeo de respiração guiada: inspire por 5 segundos e solte o ar por 5 segundos, três vezes.')}
+          className="size-full"
+        >
+          <source src={`/videos/respiracao-${formato}.mp4`} type="video/mp4" />
+          {LEGENDAS.map((l) => (
+            <track
+              key={l.lang}
+              kind="captions"
+              srcLang={l.lang}
+              label={l.rotulo}
+              src={`/videos/respiracao.${l.lang}.vtt`}
+              default={idioma !== 'pt-BR' && l.lang === idioma}
+            />
+          ))}
+        </video>
       </div>
       <div className="flex flex-col gap-1.5">
         <Badge icon="play">{t('Vídeo')} · {video.duracao}</Badge>

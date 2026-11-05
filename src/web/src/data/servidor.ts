@@ -91,7 +91,7 @@ const MARCA = /^\[mkpause antes=(\w+) depois=(\w+)\]\n?/;
 const TIPO_PARA_ATIVIDADE: Record<string, AtividadeId> = { RESPIRACAO: 'respiracao', JOGO: 'pianopause', VIDEO: 'video' };
 const ATIVIDADE_PARA_TIPO: Record<AtividadeId, string> = { respiracao: 'RESPIRACAO', pianopause: 'JOGO', mkpotion: 'JOGO', video: 'VIDEO' };
 const TIPO_LABEL: Record<AtividadeId, Conteudo['tipo']> = { respiracao: 'Exercício', pianopause: 'Jogo', mkpotion: 'Jogo', video: 'Vídeo' };
-const DURACAO: Record<AtividadeId, string> = { respiracao: '2 min', pianopause: '3 min', mkpotion: '5 min', video: '3 min' };
+const DURACAO: Record<AtividadeId, string> = { respiracao: '2 min', pianopause: '3 min', mkpotion: '5 min', video: '30 s' };
 
 /**
  * Há dois jogos com tipo JOGO no banco: o que diferencia é a referência

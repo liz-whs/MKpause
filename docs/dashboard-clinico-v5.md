@@ -4,7 +4,7 @@
 
 Esta entrega cria um **endpoint de leitura**, sem novos campos ou tabelas. Os resultados são calculados a partir de `sessao`, `registro_humor` e `atividade`. O frontend React desenhará os gráficos.
 
-**Atenção ao versionamento:** a migração Flyway V5 já existe e trata de convites e e-mails. "V5 do dashboard" é o nome desta entrega funcional, **não** uma nova migração SQL.
+**Atenção ao versionamento:** a migração SQL V4 existente trata de convites e e-mails. "V5 do dashboard" é o nome desta entrega funcional, **não** uma nova migração SQL.
 
 ## Endpoint
 

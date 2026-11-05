@@ -12,6 +12,7 @@ import { t } from './i18n';
 import { CadastroComCodigo } from './features/onboarding/Cadastro';
 import { AdminCodigos } from './features/admin/Codigos';
 import { AdminEmails } from './features/admin/Emails';
+import { AdminIndicadores } from './features/admin/Indicadores';
 import { AceitarConviteResponsavel } from './features/onboarding/Convite';
 import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, PrimeiroAcesso } from './features/onboarding/Onboarding';
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
@@ -146,6 +147,7 @@ export const rotas: RouteObject[] = [
           { path: 'conteudos', element: <AdminConteudos />, handle: { titulo: 'Conteúdos' } },
           { path: 'codigos', element: <AdminCodigos />, handle: { titulo: 'Códigos de cadastro' } },
           { path: 'emails', element: <AdminEmails />, handle: { titulo: 'E-mails' } },
+          { path: 'indicadores', element: <AdminIndicadores />, handle: { titulo: 'Indicadores da escola' } },
           { path: 'perfil', element: <PerfilProfissional area="admin" />, handle: { titulo: 'Perfil' } },
         ],
       },

@@ -84,6 +84,17 @@ describe('Nova pausa', () => {
     expect(jogo.parentElement).not.toHaveAttribute('aria-hidden', 'true');
   });
 
+  it('o vídeo de respiração toca a versão do celular, com legendas nos três idiomas', async () => {
+    const { router, container } = abrir('/estudante/pausa');
+    await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    await router.navigate('/estudante/pausa/video');
+    const video = await screen.findByLabelText(/Vídeo de respiração guiada/);
+    expect(video).toHaveAttribute('poster', '/videos/respiracao-celular.jpg');
+    expect(container.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4');
+    expect([...container.querySelectorAll('track')].map((t) => t.getAttribute('srclang'))).toEqual(['pt-BR', 'en', 'es']);
+  });
+
   it('o MK Potion aparece em Jogos e abre dentro da pausa', async () => {
     const { router } = abrir('/estudante/atividades');
     await userEvent.click(screen.getByRole('button', { name: 'Jogos' }));
@@ -94,7 +105,7 @@ describe('Nova pausa', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/mkpotion');
-    expect(screen.getByTitle('Jogo MK Potion')).toHaveAttribute('src', '/jogos/mkpotion/index.html');
+    expect(screen.getByTitle('Jogo MK Potion')).toHaveAttribute('src', '/jogos/mkpotion/index.html?mkpause=1');
     expect(screen.getByRole('link', { name: 'Terminei' })).toHaveAttribute('href', '/estudante/pausa/fim');
   });
 });
