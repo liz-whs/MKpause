@@ -17,3 +17,7 @@ services:
         sync: false
       - key: DEMO_SENHA
         sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false # endereço público do serviço, usado nos links de convite (ex.: https://mkpause.onrender.com)
+      - key: INDICADORES_DATABASE_URL
+        sync: false # opcional: URL do Neon SEM pooler (DATABASE_URL_UNPOOLED) só para o PHP; vazio usa DATABASE_URL

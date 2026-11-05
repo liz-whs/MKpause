@@ -14,7 +14,8 @@ def main():
         raise ValueError('PORT deve ser uma porta entre 1024 e 65535.')
     configuracao = Path('/tmp/mkpause-nginx.conf')
     configuracao.write_text((raiz / 'deploy/nginx.conf').read_text().replace('__PORT__', str(porta)))
-    subprocess.run(['nginx', '-t', '-c', str(configuracao)], check=True)
+    # -e stderr: sem isso o Nginx tenta abrir /var/log/nginx/error.log, proibido para o usuário app.
+    subprocess.run(['nginx', '-e', 'stderr', '-t', '-c', str(configuracao)], check=True)
     for comando in ['aplicar_esquema', 'criar_demo']:
         subprocess.run([sys.executable, str(raiz / 'backend/manage.py'), comando], check=True)
     processos = []
@@ -32,7 +33,7 @@ def main():
             ['php-fpm8.2', '--nodaemonize', '--fpm-config', str(raiz / 'deploy/php-fpm.conf')],
             ['gunicorn', 'mkpause.wsgi', '--chdir', str(raiz / 'backend'), '--bind', '127.0.0.1:8000',
              '--worker-class', 'gthread', '--workers', '1', '--threads', '8'],
-            ['nginx', '-c', str(configuracao), '-g', 'daemon off;'],
+            ['nginx', '-e', 'stderr', '-c', str(configuracao), '-g', 'daemon off;'],
         ]
         for comando in comandos:
             processos.append(subprocess.Popen(comando))
