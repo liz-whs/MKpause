@@ -1,5 +1,5 @@
-# Opção Docker com Django + PHP no mesmo serviço. Ver docs/indicadores-php.md.
-# O render.yaml existente continua disponível para o serviço Python atual.
+# MKpause no Render: Docker com Nginx + PHP-FPM (backend Laravel, indicadores) e a interface web.
+# O banco fica fora (Neon). Passo a passo em docs/hospedagem.md.
 services:
   - type: web
     name: mkpause-com-indicadores

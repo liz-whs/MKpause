@@ -1,158 +1,146 @@
 # Backend do MKpause
 
-API JSON em Django + Django REST Framework, sobre o banco PostgreSQL criado
-pelo Flyway (`database/migrations/V1__criacao_do_esquema_inicial.sql`).
-Não tem HTML nem CSS: a interface é feita à parte e consome esta API.
+API JSON em **PHP 8.2 + Laravel 12**, sobre o banco PostgreSQL criado pelo Flyway
+(`database/migrations/`). Não tem HTML nem CSS: a interface (`src/web`) consome esta API.
 
-Sugestão de lugar no repositório: `src/backend/`.
+O backend foi reescrito do Django para o Laravel mantendo **as mesmas rotas, os mesmos
+formatos de resposta e as mesmas mensagens**. A interface não mudou. As senhas, os códigos de
+cadastro/vínculo e os links de convite criados antes continuam valendo, porque o PHP usa os
+mesmos formatos (hash PBKDF2 do Django, HMAC e assinatura com a `DJANGO_SECRET_KEY`).
 
 ## Como rodar
 
-Pré-requisitos: Python 3.12+ e o banco `mkpause` já criado pelo Flyway (`flyway migrate`).
+Pré-requisitos: PHP 8.2+ com `pdo_pgsql`, [Composer](https://getcomposer.org) e o banco
+PostgreSQL (local ou Neon).
 
 ```powershell
-cd src/backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env                # e preencha a senha do banco
-python manage.py verificar_esquema    # confere se os models batem com o banco
-python manage.py criar_admin --email admin@escola.br --nome "Administração"
-python manage.py runserver
+cd backend
+composer install
+copy .env.example .env                    # e preencha a senha do banco
+php artisan mkpause:aplicar-esquema       # cria/atualiza as tabelas (V1 a V4) sem Flyway
+php artisan mkpause:verificar-esquema     # confere se o backend e o banco batem
+php artisan mkpause:criar-admin --email=admin@escola.br --nome="Administração"
 ```
 
-Testes (não precisam de PostgreSQL, rodam em SQLite em memória):
+Para subir a API em `127.0.0.1:8000` (para onde o Vite repassa `/api`):
 
 ```powershell
-python manage.py test
+cd src/web
+npm run backend      # API Laravel
+npm run dev          # interface, em outro terminal
 ```
+
+O `npm run backend` liga as extensões do PHP que faltarem (no XAMPP, por exemplo) sem mudar o
+`php.ini`. Também funciona `php artisan serve --port=8000`, se o seu PHP já tiver `pdo_pgsql`.
+
+> **Neon no PHP do XAMPP:** o XAMPP traz uma biblioteca do PostgreSQL antiga, sem SNI, e o Neon
+> recusa a conexão ("Endpoint ID is not specified"). Para desenvolver contra o Neon use um PHP
+> mais novo; com o XAMPP, use o PostgreSQL local (apague ou renomeie o `.env.local` da raiz).
+
+## Comandos
+
+| Comando | O que faz |
+|---|---|
+| `php artisan mkpause:aplicar-esquema` | Aplica V1 a V4 que faltam. Usa transação e bloqueio; não reaplica o que existe; para em esquema parcial. A V2 exige `responsavel` vazia. |
+| `php artisan mkpause:verificar-esquema` | Compara as colunas que o backend usa com o banco. `ERRO` quebra o backend; `AVISO` não. |
+| `php artisan mkpause:criar-demo` | Contas, vínculos e atividades de demonstração (senha: `DEMO_SENHA` ou `--senha`). |
+| `php artisan mkpause:criar-admin` | Cria um administrador (pede a senha no terminal). |
+| `php artisan mkpause:processar-emails` | Processa a fila de e-mail (até 5 tentativas por mensagem). |
 
 ## Como o projeto está organizado
 
-| Pasta | O que tem | Tabelas |
-|---|---|---|
-| `mkpause/` | settings e rotas (`urls.py`) | |
-| `nucleo/` | base dos models, erros, executor de testes, comando `verificar_esquema` | |
-| `contas/` | login, perfis, **regras de acesso** (`permissoes.py`), cadastros e vínculos | `usuario`, perfis, vínculos |
-| `atividades/` | catálogo de jogos, vídeos e exercícios | `atividade` |
-| `sessoes/` | sessão de autorregulação e humor; critério de avaliação em `regras.py` | `sessao`, `registro_humor` |
-| `alertas/` | alertas, destinatários e observações; regra de destinatários em `regras.py` | `alerta`, `destinatario_alerta`, `observacao` |
-| `acompanhamento/` | ficha de acompanhamento e avisos | `ficha_acompanhamento`, `aviso` |
+| Onde | O que tem |
+|---|---|
+| `routes/api.php` | Todas as rotas e quem pode usar cada uma |
+| `app/Http/Controllers/` | Uma classe por área: `Autenticacao`, `Cadastros` (admin, vínculos, meus estudantes), `Atividades`, `Sessoes`, `Alertas`, `Acompanhamento` (ficha, avisos, painel clínico), `Codigos`, `Convites` (convites e e-mails) |
+| `app/Http/Middleware/Autenticar.php` | Login pela sessão, CSRF e perfil exigido pela rota |
+| `app/Mkpause/` | Regras e peças comuns: `Conta` (perfil do usuário), `Permissoes`, `Entrada` (validação com as mensagens da API), `Cadastros`, `Convites`, `Emails`, `Codigos`, `Csrf`, `Limite`, `Formato` (datas), `SenhaDjango`, `AssinaturaDjango` |
+| `app/Console/Commands/` | Os comandos `mkpause:*` |
+| `config/mkpause.php` | Configurações do MKpause (lidas das variáveis de ambiente) |
 
-Onde mudar uma regra, sem mexer nas views:
+Onde mudar uma regra:
 
-- **Quem pode ver o quê:** tabela `ACESSO` em `contas/permissoes.py`.
-- **Humor para nível:** `sessoes/regras.py` (critério provisório: humor 1 dá nível 3, humor 2 dá nível 2, 3 a 5 dão nível 1).
-- **Quem recebe o alerta:** `alertas/regras.py` (nível 2: professores; nível 3: professores e psicólogo escolar).
+- **Quem pode ver o quê:** tabela `ACESSO` em `app/Mkpause/Permissoes.php`.
+- **Humor para nível:** `SessoesController::avaliarHumor` (critério provisório: humor 1 dá nível 3, humor 2 dá nível 2, 3 a 5 dão nível 1).
+- **Quem recebe o alerta:** `AlertasController::destinatariosPara` (nível 2: professores; nível 3: professores e psicólogo escolar).
 
-## Quando o banco mudar (trabalho com quem cuida do banco)
+## Quando o banco mudar
 
-O esquema pertence ao Flyway. O Django **nunca** cria nem altera tabelas: todos os
-models têm `managed = False` e as migrações do Django estão desligadas. Por isso
-não existe pasta `migrations/` nos apps. **Não rode `makemigrations`.**
+O esquema pertence ao Flyway. O Laravel **não** tem migrations nem models que criam tabelas:
+o backend só lê e grava (`database/migrations/` do Laravel fica vazia de propósito).
 
-Cada model diz qual tabela espelha (`db_table`) e cada campo, qual coluna (`db_column`).
-Os comentários `# CHECK ...` apontam a restrição correspondente no SQL.
-
-Fluxo para uma mudança, por exemplo `V2__ajusta_responsavel_como_contato.sql`:
-
-1. **Quem cuida do banco** cria a nova migração em `database/migrations/` (nunca edita a V1),
-   roda `flyway migrate` e atualiza `database/docs/`.
-2. **Quem cuida do backend** roda:
-   ```powershell
-   python manage.py verificar_esquema
-   ```
-   O comando compara cada model com o banco e lista:
-   - `ERRO`: tabela ou coluna que o model usa e sumiu, ou coluna nova obrigatória (NOT NULL sem padrão). O backend quebra até ajustar.
-   - `AVISO`: tabela ou coluna nova ainda não usada, ou diferença de nulo. O backend continua funcionando.
-3. Ajuste o `models.py` do app correspondente (e o serializer, se o campo deve aparecer na API).
-4. Rode `verificar_esquema` de novo até ficar sem `ERRO`, e depois `python manage.py test`.
-5. Suba a migração SQL e o ajuste no backend no **mesmo** pull request.
-
-Dica: `python manage.py inspectdb nome_da_tabela` gera um rascunho do model de uma tabela nova.
+1. **Quem cuida do banco** cria a nova migração em `database/migrations/` da raiz (nunca edita as antigas) e atualiza `database/docs/`.
+2. **Quem cuida do backend** roda `php artisan mkpause:verificar-esquema`, ajusta o código e a lista `COLUNAS` em `app/Console/Commands/VerificarEsquema.php`, e acrescenta a versão em `AplicarEsquema.php`.
+3. Migração SQL e ajuste no backend vão no **mesmo** pull request.
 
 ## Autenticação
 
+- A identidade é a tabela `usuario`; `senha_hash` usa o formato do Django (`pbkdf2_sha256$...`).
+- O perfil é descoberto pela tabela de perfil ativa que aponta para o usuário.
+- A sessão fica num cookie (`sessionid`) e dura 8 horas. Desativar a conta corta o acesso na hora.
+- **CSRF:** antes de POST, PATCH ou DELETE, a interface chama `GET /api/auth/csrf/` e envia o cookie `csrftoken` no cabeçalho `X-CSRFToken`.
+- Erros sempre vêm como `{"detail": "..."}` ou `{"campo": ["..."]}`, sem detalhes internos do banco.
+
 ### Códigos de cadastro e vínculo (V3)
 
-A V3 da Liz (`22dd578`) está integrada aos models e à API. O contrato completo está em [`docs/codigos-de-acesso.md`](../docs/codigos-de-acesso.md).
-
-- Admin: `GET/POST /api/admin/codigos-cadastro/` e `POST /api/admin/codigos-cadastro/{id}/revogar/`.
-- Público: `POST /api/auth/codigo-cadastro/verificar/` e `POST /api/auth/cadastro/`. O cadastro já abre a sessão da conta nova.
-- Estudante: `POST /api/vinculos/codigos/`, `GET/DELETE /api/vinculos/codigos/atual/`, `GET /api/vinculos/solicitacoes/` e `POST /api/vinculos/solicitacoes/{id}/aceitar/` ou `/recusar/`.
-- Professor e psicólogo escolar: `POST /api/vinculos/resgatar/` e `GET /api/vinculos/enviados/`.
-
-Os códigos são gerados com `secrets`, guardados apenas como HMAC-SHA256 e revelados uma única vez. Convites permitem 1–200 usos e validade de 1–30 dias; códigos de vínculo valem 24 horas e são de uso único. O profissional só recebe primeiro nome e turma antes do aceite. As operações usam transações e bloqueios de linha para impedir consumo duplicado e geração simultânea de dois códigos abertos. Verificação/cadastro têm limite conjunto de 10 tentativas/minuto por IP; resgate tem 10/minuto por usuário.
-
-`python manage.py aplicar_esquema` aplica V1 a V4 ausentes, inclusive em bancos existentes. O comando usa uma transação e um bloqueio no PostgreSQL, não reaplica versões presentes e interrompe se encontrar um esquema parcial. A V2 é identificada pelas colunas de `responsavel`. Se a tabela antiga tiver registros, o comando interrompe sem apagar dados: é necessário migrar os contatos legados antes de aplicar o SQL da V2.
+Contrato em [`docs/codigos-de-acesso.md`](../docs/codigos-de-acesso.md). Os códigos são gerados com `random_int`, guardados só como HMAC-SHA256 e mostrados uma única vez. Verificação/cadastro: 10 tentativas por minuto por IP; resgate: 10 por minuto por usuário.
 
 ### Convites ao responsável e e-mail (V4)
 
-O responsável recebe um link assinado, lê o texto e aceita ou recusa sem criar conta. Novos vínculos de responsável e acessos clínicos exigem aceite registrado; a administração pode revogar a autorização. A V4 também cria a fila de e-mail dos convites e dos novos alertas. O padrão salva mensagens em `backend/.emails/`, sem entrega na internet. Para SMTP real, configure as variáveis do provedor e o endereço público do site. Consulte o [guia de configuração e testes](../docs/convites-e-emails.md).
-
-A fila pode ser processada em **Administração → E-mails**, por `python manage.py processar_emails` ou automaticamente após novos eventos com `EMAIL_ENVIO_AUTOMATICO=1`. Execute também o comando periodicamente para retomar pendências após reinícios e repetir falhas sem aguardar outro evento. O registro de envio não comprova entrega final ou leitura.
-
-Os testes de `contas/test_codigos.py` cobrem permissões, limites, expiração, revogação, cadastro, aceite/recusa, reativação, CSRF e concorrência. Os três testes de concorrência requerem PostgreSQL e são pulados no SQLite. Para a suíte dos módulos, use `python manage.py test contas sessoes alertas atividades acompanhamento nucleo` (o script manual `testar_api.py` é executado separadamente).
-
-### Sessão
-
-- A identidade é a tabela `usuario` (`senha_hash` guarda o hash do Django, PBKDF2).
-  O `django.contrib.auth` não é usado, para não haver duas fontes de usuários.
-- O perfil é descoberto pela tabela de perfil ativa que aponta para o usuário.
-- A sessão fica num cookie assinado e dura 8 horas. Desativar a conta corta o acesso na hora.
-- **CSRF:** antes de POST, PATCH ou DELETE, o frontend chama `GET /api/auth/csrf/` e envia o valor no cabeçalho `X-CSRFToken`.
-- Erros sempre vêm como `{"detail": "..."}` ou `{"campo": ["..."]}`, sem detalhes internos do banco.
+O responsável recebe um link assinado e aceita ou recusa sem criar conta. Novos vínculos de responsável e acessos clínicos exigem o aceite. Em desenvolvimento os e-mails vão para `backend/.emails/`. Guia em [`docs/convites-e-emails.md`](../docs/convites-e-emails.md).
 
 ## Rotas
 
 Todas em `/api/`, com JSON. "Vinculados" quer dizer que o acesso exige vínculo ativo com o estudante.
 
 ### Conta
-| Método | Rota | Quem | Requisito |
-|---|---|---|---|
-| GET | `auth/csrf/` | qualquer um | |
-| POST | `auth/login/` `{"email", "senha"}` | qualquer um | RF01, RF10, RF19, RF26 |
-| POST | `auth/logout/` | logado | |
-| GET | `auth/eu/` | logado | |
+| Método | Rota | Quem |
+|---|---|---|
+| GET | `auth/csrf/` | qualquer um |
+| POST | `auth/login/` `{"email", "senha"}` | qualquer um |
+| POST | `auth/logout/` | logado |
+| GET | `auth/eu/` | logado |
+| POST | `auth/codigo-cadastro/verificar/`, `auth/cadastro/` | qualquer um (com código) |
 
 ### Estudante
-| Método | Rota | Requisito |
-|---|---|---|
-| GET | `atividades/` (`?tipo=JOGO`), só as disponíveis | RF02, RF03, RN31 |
-| POST | `sessoes/avaliar/` `{"humor": 1-5}`: nível sugerido, sem gravar | RN07 |
-| POST | `sessoes/` `{"id_atividade", "humor_pre"}` | RF04, RF05 |
-| POST | `sessoes/<id>/concluir/` `{"humor_pos", "observacoes_sessao"?}` | RF06, RF07 |
-| POST | `sessoes/<id>/cancelar/` | |
-| GET | `sessoes/`, `sessoes/<id>/` | RF09 |
-| POST | `alertas/` `{"nivel": 2\|3, "id_sessao"?, "descricao"?}` | RF08 |
-| GET / PATCH | `alertas/`, `alertas/<id>/` (o estudante só pode `{"status": "CANCELADO"}`) | |
-| GET | `avisos/` | |
+| Método | Rota |
+|---|---|
+| GET | `atividades/` (`?tipo=JOGO`), só as disponíveis |
+| POST | `sessoes/avaliar/` `{"humor": 1-5}`: nível sugerido, sem gravar |
+| POST | `sessoes/` `{"id_atividade", "humor_pre"}` |
+| POST | `sessoes/<id>/concluir/` `{"humor_pos", "observacoes_sessao"?}` ou `sessoes/<id>/cancelar/` |
+| GET | `sessoes/`, `sessoes/<id>/` |
+| POST | `alertas/` `{"nivel": 2\|3, "id_sessao"?, "descricao"?}` |
+| GET / PATCH | `alertas/`, `alertas/<id>/` (o estudante só pode `{"status": "CANCELADO"}`) |
+| GET | `avisos/` |
+| POST / GET / DELETE | `vinculos/codigos/`, `vinculos/codigos/atual/` |
+| GET / POST | `vinculos/solicitacoes/`, `vinculos/solicitacoes/<id>/aceitar/` ou `/recusar/` |
 
 ### Profissionais
-| Método | Rota | Quem | Requisito |
-|---|---|---|---|
-| GET | `estudantes/`, `estudantes/<id>/` | professor, psi. escolar, psi. clínico | RF11, RF20 |
-| GET | `sessoes/?estudante=ID` (inclui os humores) | psi. escolar, psi. clínico, vinculados | RF12, RF13 |
-| GET | `alertas/` (`?status=ABERTO`) | professor e psi. escolar: recebidos; clínico: dos vinculados | RF15, RF21, RF22 |
-| POST | `alertas/<id>/lido/` | destinatário | |
-| PATCH | `alertas/<id>/` `{"status"}` | destinatário | RF22 |
-| GET / POST | `alertas/<id>/observacoes/` `{"conteudo"}` | POST: professor e psi. escolar; GET: também o clínico | RF14, RF23 |
-| GET | `estudantes/<id>/ficha/` | psi. escolar, psi. clínico | RF16 |
-| PATCH | `estudantes/<id>/ficha/` | psi. clínico | RF17 |
-| GET | `avisos/` | todos | RF18, RF25 |
+| Método | Rota | Quem |
+|---|---|---|
+| GET | `estudantes/`, `estudantes/<id>/` | professor, psi. escolar, psi. clínico |
+| GET | `sessoes/?estudante=ID` (inclui os humores) | psi. escolar, psi. clínico, vinculados |
+| GET | `alertas/` (`?status=ABERTO`) | professor e psi. escolar: recebidos; clínico: dos vinculados |
+| POST | `alertas/<id>/lido/` | destinatário |
+| PATCH | `alertas/<id>/` `{"status"}` | destinatário |
+| GET / POST | `alertas/<id>/observacoes/` `{"conteudo"}` | POST: professor e psi. escolar; GET: também o clínico |
+| GET | `estudantes/<id>/ficha/` | psi. escolar, psi. clínico |
+| PATCH | `estudantes/<id>/ficha/` | psi. clínico |
+| GET | `estudantes/<id>/dashboard/?dias=7\|14\|30\|90` | psi. clínico vinculado |
+| POST / GET | `vinculos/resgatar/`, `vinculos/enviados/` | professor e psi. escolar |
 
 ### Administrador
-| Método | Rota | Requisito |
-|---|---|---|
-| GET / POST / PATCH / DELETE | `admin/estudantes/`, `admin/professores/`, `admin/psicologos-escolares/`, `admin/psicologos-clinicos/`, `admin/responsaveis/` (`?ativo=true`) | RF27–RF30 |
-| GET / POST / DELETE | `admin/vinculos/professores/`, `admin/vinculos/psicologos-escolares/`, `admin/vinculos/psicologos-clinicos/`, `admin/vinculos/responsaveis/` | RF32–RF34 |
-| POST / PATCH / DELETE | `atividades/` | RF35 |
-| POST / PATCH | `estudantes/<id>/ficha/` | RF31 |
-| POST / PATCH / DELETE | `avisos/` | |
+| Método | Rota |
+|---|---|
+| GET / POST / PATCH / DELETE | `admin/estudantes/`, `admin/professores/`, `admin/psicologos-escolares/`, `admin/psicologos-clinicos/`, `admin/responsaveis/` (`?ativo=true`) |
+| GET / POST / DELETE | `admin/vinculos/professores/`, `admin/vinculos/psicologos-escolares/`, `admin/vinculos/psicologos-clinicos/`, `admin/vinculos/responsaveis/` |
+| POST / PATCH / DELETE | `atividades/`, `avisos/` |
+| POST / PATCH | `estudantes/<id>/ficha/` |
+| GET / POST | `admin/codigos-cadastro/`, `admin/codigos-cadastro/<id>/revogar/` |
+| GET / POST | `admin/estudantes/<id>/convites-responsavel/`, `admin/convites-responsavel/<id>/revogar/` |
+| GET / POST | `admin/emails/` (ver a fila / processar agora) |
 
-Os cadastros de perfis com login recebem os campos de `usuario` junto com os do perfil, por exemplo:
-`{"nome_completo", "email", "senha", "turma", ...}`.
-Responsáveis seguem a V2: `{"nome_completo", "email"?, "telefone"?}` cria somente um contato, sem usuário ou senha. E-mail e telefone são opcionais, e o e-mail do contato não precisa ser único. Editar ou desativar um responsável não altera contas de usuário; a desativação mantém o histórico dos vínculos.
 **DELETE não apaga:** marca `ativo = false` e mantém o histórico (RN30).
 Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "estudante": 2}`.
 
@@ -160,17 +148,15 @@ Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "est
 
 | Assunto | Decisão | Onde mudar |
 |---|---|---|
-| Professor e histórico emocional | O professor **não** vê sessões, humores nem ficha; vê alertas e observações | `contas/permissoes.py` |
-| Psicólogo clínico e alertas (RF15) | A V1 não aceita o clínico como destinatário; ele consulta os alertas dos vinculados | `alertas/regras.py`, depois migração |
-| Psicólogo clínico e observações | Só lê. O gatilho `trg_validar_autor_observacao` bloqueia a escrita; o registro clínico (RF17) vai na ficha | migração, se mudar |
-| Alerta sem profissional vinculado | Não é criado; a resposta explica e indica 192 e 188 | `alertas/views.py` |
-| `status_notificacao` | Reflete envio e falha do e-mail; a leitura no site prevalece sobre o estado do envio | `nucleo/emails.py`, `alertas/views.py` |
-| Atividade da sessão | Escolhida no início (a V1 tem uma FK `id_atividade` NOT NULL) | |
+| Professor e histórico emocional | O professor **não** vê sessões, humores nem ficha; vê alertas e observações | `app/Mkpause/Permissoes.php` |
+| Psicólogo clínico e alertas (RF15) | O banco não aceita o clínico como destinatário; ele consulta os alertas dos vinculados | `AlertasController`, depois migração |
+| Psicólogo clínico e observações | Só lê (o gatilho `trg_validar_autor_observacao` bloqueia a escrita); o registro clínico vai na ficha | migração, se mudar |
+| Alerta sem profissional vinculado | Não é criado; a resposta explica e indica 192 e 188 | `AlertasController::emitir` |
+| `status_notificacao` | Reflete envio e falha do e-mail; a leitura no site prevalece | `app/Mkpause/Emails.php` |
 
-## Pendências conhecidas (vêm do banco V1)
+## Pendências conhecidas
 
-- **Entrega externa:** o convite e o aceite estão implementados. Falta configurar um provedor SMTP para entrega de e-mails reais; o padrão é a caixa local de testes. Push de navegador não foi implementado.
-- **Perfil exclusivo:** a V1 não impede que um usuário esteja em duas tabelas de perfil.
-  O login escolhe pela ordem em `contas/perfis.py`.
-- **Humor PRE/POS obrigatórios:** garantidos pelo backend (a sessão já nasce com o PRE; concluir exige o POS).
-- Antes de publicar: `DJANGO_DEBUG=0`, uma `DJANGO_SECRET_KEY` de verdade e HTTPS.
+- **Testes automatizados em PHP:** a equivalência com o backend Django foi comprovada por um roteiro de 237 pedidos HTTP (todas as áreas, inclusive erros), com respostas idênticas. Ainda falta transformar esse roteiro em testes PHPUnit dentro do repositório.
+- **Entrega externa de e-mail:** falta configurar um provedor SMTP; o padrão é a caixa local.
+- **Perfil exclusivo:** o banco não impede um usuário em duas tabelas de perfil; o login escolhe pela ordem em `app/Mkpause/Conta.php`.
+- Antes de publicar: `DJANGO_DEBUG=0`, uma `DJANGO_SECRET_KEY` de verdade e HTTPS. (Os nomes das variáveis foram mantidos para não mudar o Render.)
