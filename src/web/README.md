@@ -36,6 +36,10 @@ O login com qualquer senha e os atalhos por nome de perfil existem apenas nos te
 
 O cadastro por código e os pedidos de vínculo usam a API Django conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Execute `python manage.py aplicar_esquema` em `backend/` para aplicar a V3 da Liz em um banco com V1. Os convites criam contas reais, e o aceite do estudante cria ou reativa o vínculo no banco. A simulação fica restrita aos testes; erros da API aparecem na tela.
 
+### Dashboard clínico V5
+
+Em **Psicólogo clínico → Acompanhados → estudante → Histórico e humor**, os indicadores usam `GET /api/estudantes/{id}/dashboard/`. Há períodos de 7/14/30/90 dias, evolução por sessão com tabela acessível, distribuição antes/depois e contagem por tipo de atividade. Erros aparecem na tela sem recorrer a dados simulados. O histórico mantém os registros disponíveis, independentemente do filtro dos gráficos. Veja o [contrato V5](../../docs/dashboard-clinico-v5.md).
+
 ## Estrutura
 
 Em **Administração → Vínculos**, envie o convite ao responsável e acompanhe a resposta. Novos acessos clínicos só são criados após o aceite. Em **E-mails**, acompanhe e processe a fila. O padrão é a caixa local, sem entrega pela internet; o convite de teste pode ser aberto pelo atalho do cartão com debug ligado. Veja o [guia de convites e e-mails](../../docs/convites-e-emails.md).

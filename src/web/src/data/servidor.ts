@@ -49,7 +49,7 @@ function mensagemDeErro(corpo: unknown, status: number): string {
   return `Erro ${status} ao falar com o servidor.`;
 }
 
-export async function chamar<T = unknown>(metodo: string, rota: string, corpo?: unknown): Promise<T> {
+export async function chamar<T = unknown>(metodo: string, rota: string, corpo?: unknown, signal?: AbortSignal): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (metodo !== 'GET') {
     headers['Content-Type'] = 'application/json';
@@ -59,11 +59,35 @@ export async function chamar<T = unknown>(metodo: string, rota: string, corpo?: 
     method: metodo,
     headers,
     credentials: 'same-origin',
+    signal,
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
   });
   const dados = r.status === 204 ? null : await r.json().catch(() => null);
   if (!r.ok) throw new ErroApi(r.status, mensagemDeErro(dados, r.status));
   return dados as T;
+}
+
+/** Contrato da entrega V5: valores ordinais 1–5, sem convertê-los nas seis emoções da interface. */
+export type PeriodoDashboard = 7 | 14 | 30 | 90;
+export interface DashboardClinico {
+  estudante: { id_estudante: number; nome: string };
+  periodo: { dias: PeriodoDashboard; inicio: string; fim: string };
+  resumo: { sessoes_concluidas: number; humor_aumentou: number; humor_manteve: number;
+    humor_diminuiu: number; percentual_aumento: number | null };
+  evolucao: { id_sessao: number; data: string; iniciada_em: string; humor_antes: number; humor_depois: number }[];
+  distribuicao_humor: { estado: number; antes: number; depois: number }[];
+  atividades: { tipo: string; quantidade: number }[];
+  aviso: string;
+}
+
+export async function dashboardClinico(estudanteId: string, dias: PeriodoDashboard, signal?: AbortSignal): Promise<DashboardClinico> {
+  const id = idDe(estudanteId);
+  const dados = await chamar<DashboardClinico>('GET', `estudantes/${id}/dashboard/?dias=${dias}`, undefined, signal);
+  if (!dados || dados.estudante?.id_estudante !== id || dados.periodo?.dias !== dias || !dados.resumo
+      || !Array.isArray(dados.evolucao) || !Array.isArray(dados.distribuicao_humor) || !Array.isArray(dados.atividades)) {
+    throw new Error('Não foi possível carregar os gráficos. Tente novamente.');
+  }
+  return dados;
 }
 
 /* ───────────── Conta ───────────── */

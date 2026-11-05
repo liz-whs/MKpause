@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Link, Navigate, NavLink, useParams } from 'react-router';
 import { api } from '../../data/api';
 import { useDados } from '../../data/useDados';
-import { ehLeve, emocaoMaisComum, emocaoPorId } from '../../domain/emocoes';
+import { ehLeve } from '../../domain/emocoes';
 import { dia, hora, iniciais, nomeCurto, quando } from '../../domain/formatos';
 import { PAPEL_LABEL, type Profissional } from '../../domain/tipos';
 import { profissionalLogado } from '../../state/ProContext';
 import { ProLayout } from '../../components/layout/Layouts';
 import {
-  AlertBadge, Avatar, BackLink, EmocaoAntesDepois, LockNote, PageHeader, SearchField, StatCard, SuccessBanner,
+  AlertBadge, Avatar, BackLink, EmocaoAntesDepois, LockNote, PageHeader, SearchField, SuccessBanner,
 } from '../../components/pro/Pro';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -18,6 +18,9 @@ import { Icon } from '../../components/ui/Icon';
 import { cx } from '../../components/ui/cx';
 import { NOME_ATIVIDADE, ObservacoesLista } from '../school/Escola';
 import { t } from '../../i18n';
+import { ErroApi } from '../../data/servidor';
+import { useDashboardClinico } from './useDashboardClinico';
+import { Dashboard, FiltroDashboard } from './Dashboard';
 
 export function ClinicoLayout() {
   const eu = profissionalLogado('clinico');
@@ -34,8 +37,6 @@ export function ClinicoLayout() {
     />
   );
 }
-
-const DUAS_SEMANAS = 14 * 24 * 60 * 60_000;
 
 export function ClinicoAcompanhados() {
   const eu = profissionalLogado('clinico');
@@ -139,21 +140,26 @@ function useAcessoClinico() {
 
 export function ClinicoEstudante() {
   const { id, eu, vinculado } = useAcessoClinico();
+  const dashboard = useDashboardClinico(id, vinculado);
   const sessoes = useDados(() => (vinculado ? api.escola.sessoes(eu.id, id) : []));
   const observacoes = useDados(() => (vinculado ? api.escola.observacoes(eu.id, id) : []));
   if (!vinculado) return <Navigate to="/clinico/acompanhados" replace />;
 
-  const recentes = sessoes.filter((s) => Date.now() - new Date(s.em).getTime() <= DUAS_SEMANAS);
-  const comum = emocaoMaisComum(recentes.map((s) => s.antes));
-
   return (
     <>
-      <Cabecalho estudanteId={id} eu={eu} />
-      <div className="flex flex-wrap gap-3.5">
-        <StatCard valor={String(recentes.length)} rotulo={t('pausas nas últimas 2 semanas')} />
-        <StatCard valor={t('{n} de {total}', { n: recentes.filter((s) => ehLeve(s.depois)).length, total: recentes.length })} rotulo={t('terminaram mais leves')} />
-        <StatCard valor={comum ? emocaoPorId(comum).label : '—'} rotulo={t('emoção inicial mais comum')} />
-      </div>
+      {dashboard.dados ? <Cabecalho estudanteId={id} eu={eu} /> : <div className="flex flex-col gap-3">
+        <BackLink to="/clinico/acompanhados">{t('Acompanhados')}</BackLink>
+        <h1 className="text-screen md:text-screen-lg">{t('Histórico e humor')}</h1>
+      </div>}
+      <FiltroDashboard dias={dashboard.dias} setDias={dashboard.setDias} atualizar={dashboard.atualizar} carregando={dashboard.carregando} />
+      {dashboard.carregando && <p role="status">{t('Carregando gráficos do estudante…')}</p>}
+      {dashboard.erro && <div role="alert" className="flex flex-col gap-2">
+        <p>{dashboard.erro instanceof ErroApi ? dashboard.erro.message : t('Não foi possível carregar os gráficos. Tente novamente.')}</p>
+        <p>{t('Os registros deste estudante ficam ocultos enquanto o acesso não puder ser confirmado.')}</p>
+      </div>}
+      {dashboard.dados && <>
+      <Dashboard dados={dashboard.dados} />
+      <p className="text-caption text-muted">{t('O filtro de período vale para os gráficos. O histórico abaixo mantém os registros disponíveis.')}</p>
       <div className="flex flex-wrap items-start gap-6">
         <Card as="section" aria-labelledby="t-sessoes" className="flex min-w-0 flex-[3_1_480px] flex-col">
           <h2 id="t-sessoes" className="text-section">
@@ -187,6 +193,7 @@ export function ClinicoEstudante() {
         </Card>
       </div>
       <LockNote>{t('Os registros apoiam o acompanhamento e não são diagnóstico.')}</LockNote>
+      </>}
     </>
   );
 }

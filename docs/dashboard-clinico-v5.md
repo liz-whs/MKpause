@@ -2,7 +2,7 @@
 
 ## Escopo
 
-Esta entrega cria um **endpoint de leitura**, sem novos campos ou tabelas. Os resultados são calculados a partir de `sessao`, `registro_humor` e `atividade`. O frontend React desenhará os gráficos.
+Esta entrega cria um **endpoint de leitura**, sem novos campos ou tabelas. Os resultados são calculados a partir de `sessao`, `registro_humor` e `atividade`. O frontend React já consulta esse endpoint e desenha os gráficos na página do estudante acompanhado.
 
 **Atenção ao versionamento:** a migração SQL V4 existente trata de convites e e-mails. "V5 do dashboard" é o nome desta entrega funcional, **não** uma nova migração SQL.
 
@@ -63,10 +63,14 @@ GET /api/estudantes/{id_estudante}/dashboard/?dias=14
 
 ### Integração com o frontend existente
 
-Arquivos atuais:
-- `src/web/src/features/clinical/Clinico.tsx`: a página `ClinicoEstudante` possui cartões de resumo, histórico e observações. Inserir a seção de gráficos nessa mesma página, abaixo dos indicadores, mantendo histórico e ficha.
-- `src/web/src/data/servidor.ts`: adicionar a tipagem e a chamada HTTP usando `chamar('GET', ...)`, que já envia o cookie de sessão.
-- `src/web/src/data/api.ts`: opcionalmente expor cache/estado dos indicadores; evitar requisições duplicadas e permitir seleção de período.
+Integração concluída localmente em 05/11/2026:
+- `src/web/src/features/clinical/Clinico.tsx`: usa o resumo V5 na página do estudante, mantendo histórico, observações e navegação para a ficha.
+- `src/web/src/features/clinical/Dashboard.tsx`: evolução individual por sessão, tabela de valores, distribuição antes/depois e contagens por tipo de atividade. Oferece períodos de 7/14/30/90 dias, com padrão de 14 dias.
+- `src/web/src/features/clinical/useDashboardClinico.ts`: carregamento, atualização manual, revalidação ao voltar à janela e a cada 30 segundos enquanto visível. Cancela consultas anteriores e ignora respostas atrasadas de outro período ou estudante.
+- `src/web/src/data/servidor.ts`: tipagem e chamada HTTP com cookie de sessão e `AbortSignal`. Não há substituição por dados simulados se a API falhar.
+- Textos traduzidos em inglês e espanhol; linhas e marcadores diferentes distinguem antes/depois sem depender apenas da cor. A tabela fornece os valores individuais para leitura assistiva.
+
+Na página de histórico, nome, registros e observações só são exibidos após confirmação de acesso pela consulta V5. Falhas de consulta ocultam esses dados, inclusive após revogação do vínculo. A ficha mantém sua rota própria e as permissões existentes. O filtro afeta os gráficos; o histórico abaixo mantém todos os registros disponíveis no cache da interface.
 
 Exemplo de chamada:
 
@@ -90,10 +94,14 @@ Os testes automatizados em `acompanhamento/test_dashboard.py` cobrem resultado v
 
 ## Limites da entrega
 
-Esta V5 não cria páginas React nem altera migrations. Não fornece interpretação clínica, pontuação de risco, diagnóstico, eficácia terapêutica ou previsões. A visualização só pode ser disponibilizada depois da validação de acesso e preservando a confidencialidade dos registros.
+Esta V5 não altera migrations. Não fornece interpretação clínica, pontuação de risco, diagnóstico, eficácia terapêutica ou previsões. O frontend identifica as comparações como valores de autorrelato e mantém o aviso de ausência de diagnóstico. O percentual nulo aparece como “—”; zero real aparece como “0%”.
+
+Validação local da integração: **132 testes da interface, 79 testes do backend em PostgreSQL e build de produção passaram**. Veja o [relatório da integração](06-relatorios/integracao-dashboard-clinico-v5.md). A inspeção visual manual no navegador e o deploy não foram realizados nesta etapa.
 
 
 ## Entrega e aprovação
+
+A seção abaixo registra a entrega original do endpoint, anterior à integração React descrita acima.
 
 **Branch:** `feat/dashboard-clinico-v5`.
 
