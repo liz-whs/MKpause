@@ -7,17 +7,15 @@ Módulo PHP 8.2+ com PDO PostgreSQL. A administração acessa **Indicadores da e
 Em terminais separados:
 
 ```powershell
-# Na pasta backend, usando o Python do ambiente virtual:
-.\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
-
-# Na pasta src/web:
+# Na pasta src/web, cada um num terminal:
+npm run backend
 npm run indicadores
 npm run dev
 ```
 
-O PHP fica em `127.0.0.1:8081`; o Vite repassa `/indicadores` para ele e `/api` para o Django. Entre como administrador no site e abra `/admin/indicadores`. O script Node usa a extensão `pdo_pgsql` instalada ao lado do PHP no Windows sem editar o `php.ini` global. Em Linux, instale/ative o módulo `php-pgsql` na distribuição.
+O PHP fica em `127.0.0.1:8081`; o Vite repassa `/indicadores` para ele e `/api` para o backend Laravel. Entre como administrador no site e abra `/admin/indicadores`. O script Node usa a extensão `pdo_pgsql` instalada ao lado do PHP no Windows sem editar o `php.ini` global. Em Linux, instale/ative o módulo `php-pgsql` na distribuição.
 
-Por padrão, o PHP lê `backend/.env` e depois `.env.local` na raiz sem sobrescrever valores anteriores, como o Django. Variáveis do processo prevalecem. `INDICADORES_DATABASE_URL` permite indicar uma conta PostgreSQL separada com apenas SELECT; na ausência dela, usa `DATABASE_URL` ou `DB_*`. `DJANGO_API` é o endereço interno do Django, por padrão `http://127.0.0.1:8000`; `INDICADORES_TIMEZONE` usa `America/Sao_Paulo`.
+Por padrão, o PHP lê `backend/.env` e depois `.env.local` na raiz sem sobrescrever valores anteriores, como o backend. Variáveis do processo prevalecem. `INDICADORES_DATABASE_URL` permite indicar uma conta PostgreSQL separada com apenas SELECT; na ausência dela, usa `DATABASE_URL` ou `DB_*`. `DJANGO_API` é o endereço interno do backend (nome mantido do backend anterior), por padrão `http://127.0.0.1:8000`; `INDICADORES_TIMEZONE` usa `America/Sao_Paulo`.
 
 ## API e proteção
 
@@ -39,6 +37,6 @@ npm run test:indicadores
 npm test
 ```
 
-Os testes de integração estão em `backend/nucleo/test_indicadores_php.py`. Eles usam PostgreSQL temporário, PHP real e o servidor HTTP do Django, verificando sessão, papéis, limite de amostra, participantes repetidos, datas, cancelamento, humor e recusa de escrita. São pulados no SQLite ou quando PHP/pdo_pgsql não está disponível.
+Os testes de integração ficavam no backend Django (`backend/nucleo/test_indicadores_php.py`) e saíram junto com ele; precisam ser refeitos para o backend Laravel. Os testes do próprio módulo (`npm run test:indicadores`) continuam.
 
-Não foi criada migração de banco: o módulo só lê tabelas existentes. Para hospedagem com Python e PHP, veja [o guia Docker](../../docs/indicadores-php.md).
+Não foi criada migração de banco: o módulo só lê tabelas existentes. Para hospedagem, veja [o guia](../../docs/hospedagem.md).

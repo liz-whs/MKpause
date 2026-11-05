@@ -4,10 +4,10 @@ O fluxo está implementado localmente com a V4. Sem um provedor configurado, as 
 
 ## Testar localmente
 
-1. Inicie o Django e a interface. Em `backend/`, execute `python manage.py aplicar_esquema` para aplicar versões ausentes até V4.
+1. Inicie o backend e a interface (`npm run backend` e `npm run dev` em `src/web`). Em `backend/`, execute `php artisan mkpause:aplicar-esquema` para aplicar versões ausentes até V4.
 2. Entre como administrador e abra **Vínculos**. Escolha o estudante, informe nome e e-mail do responsável e, quando necessário, o psicólogo clínico. Clique em **Enviar convite**.
-3. Em **E-mails**, clique em **Processar fila de e-mails**. As mensagens são gravadas em `backend/.emails/`, pasta ignorada pelo Git. Também é possível executar `python manage.py processar_emails`.
-4. No cartão do convite, **Abrir convite de teste** abre a página pública. Esse atalho só aparece com `DJANGO_DEBUG=1` e backend de arquivos. A indicação de caixa local continua visível mesmo sem debug.
+3. Em **E-mails**, clique em **Processar fila de e-mails**. As mensagens são gravadas em `backend/.emails/`, pasta ignorada pelo Git. Também é possível executar `php artisan mkpause:processar-emails`.
+4. No cartão do convite, **Abrir convite de teste** abre a página pública. Esse atalho só aparece com `DJANGO_DEBUG=1` e a caixa local de arquivos. A indicação de caixa local continua visível mesmo sem debug.
 5. Abrir o convite não cria vínculo. O responsável precisa ler o texto, confirmar que é responsável e aceitar a autorização. A recusa não exige marcar as confirmações.
 6. Ao aceitar, o sistema registra data, versão e texto da autorização e cria ou reativa os vínculos autorizados. Atualize a tela de Vínculos ou volte à aba para ver o resultado.
 7. **Revogar convite ou autorização** invalida o link e retira o acesso clínico concedido por essa autorização, salvo se houver outro aceite ativo para o mesmo profissional e estudante.
@@ -28,9 +28,9 @@ O fluxo está implementado localmente com a V4. Sem um provedor configurado, as 
 
 Será necessário escolher um provedor SMTP e configurar as variáveis descritas em `backend/.env.example`. Senhas devem ficar no `.env` local ou no painel de variáveis do serviço de hospedagem, nunca no Git.
 
-Configure `PUBLIC_BASE_URL` com o endereço HTTPS público, `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`, remetente autorizado pelo provedor, host, porta, usuário, senha e TLS/SSL conforme o serviço escolhido. TLS na porta 587 e SSL na 465 são configurações diferentes: não ative os dois simultaneamente.
+Configure `PUBLIC_BASE_URL` com o endereço HTTPS público, `EMAIL_BACKEND=smtp`, remetente autorizado pelo provedor, host, porta, usuário, senha e TLS/SSL conforme o serviço escolhido. TLS na porta 587 e SSL na 465 são configurações diferentes: não ative os dois simultaneamente.
 
-`EMAIL_ENVIO_AUTOMATICO=1` agenda um processador em segundo plano depois da confirmação da transação, sem esperar o SMTP na resposta do alerta. Para recuperar pendências após reinício e repetir falhas sem depender de novos eventos, execute `python manage.py processar_emails` periodicamente no ambiente de hospedagem. A fila também pode ser processada pela administração.
+`EMAIL_ENVIO_AUTOMATICO=1` processa a fila logo depois de a resposta ser enviada, sem esperar o SMTP na resposta do alerta. Para recuperar pendências após reinício e repetir falhas sem depender de novos eventos, execute `php artisan mkpause:processar-emails` periodicamente no ambiente de hospedagem. A fila também pode ser processada pela administração.
 
 Falhas ficam registradas e podem ser tentadas novamente após cinco minutos, até cinco tentativas. Processamentos interrompidos há mais de cinco minutos voltam à fila. Dois processadores concorrentes não retiram o mesmo item simultaneamente no PostgreSQL. Uma interrupção entre a aceitação pelo SMTP e a atualização do banco ainda pode produzir duplicação no reenvio; SMTP não oferece confirmação transacional conjunta com o banco.
 

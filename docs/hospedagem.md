@@ -1,40 +1,39 @@
 # Hospedagem grátis (Render + Neon)
 
-O MKpause fica num serviço só no **Render**: o Django responde a API em `/api/`
-e entrega a interface web compilada nas outras rotas. O banco PostgreSQL fica no
-**Neon**, que no plano grátis não expira (o PostgreSQL grátis do Render é apagado
-depois de 30 dias).
+O MKpause roda num serviço Docker no **Render**: Nginx entrega a interface web compilada,
+manda `/api/` para o backend **Laravel (PHP-FPM)** e `/indicadores/` para o módulo de
+indicadores (também PHP). O banco PostgreSQL fica no **Neon**, que no plano grátis não expira.
 
-Limites do plano grátis do Render: o site "dorme" após uns 15 minutos sem uso e
-o primeiro acesso depois disso demora cerca de 1 minuto.
-
-> Netlify, Vercel e Cloudflare Pages hospedam só a interface: não rodam Django
-> nem PostgreSQL. Por isso o Render.
+Limites do plano grátis do Render: o site "dorme" após uns 15 minutos sem uso e o primeiro
+acesso depois disso demora cerca de 1 minuto.
 
 ## 1. Banco no Neon
 
-1. Crie uma conta em https://neon.tech (dá para entrar com o GitHub).
-2. Crie um projeto (região mais próxima: São Paulo, se houver).
-3. Em **Connection string**, copie a URL. Ela começa com `postgresql://` e
-   termina com `?sslmode=require`.
+1. Crie uma conta em https://neon.tech e um projeto (de preferência na mesma região do Render).
+2. Em **Connect**, com **Connection pooling** ligado, copie a URL (`postgresql://...?sslmode=require`).
 
-As tabelas são criadas sozinhas no primeiro deploy (`python manage.py aplicar_esquema`,
-que roda a V1 de `database/migrations/`).
+As tabelas são criadas sozinhas a cada início do serviço (`php artisan mkpause:aplicar-esquema`,
+que aplica só as versões V1 a V4 que faltam).
 
 ## 2. Site no Render
 
-1. Crie uma conta em https://render.com entrando com o GitHub.
-2. **New → Blueprint** e escolha o repositório `liz-whs/MKpause`, branch `backend`.
-   (Quem não for dono do repositório precisa que a dona dê acesso, ou use um fork.)
-3. O Render lê o `render.yaml` e pede duas variáveis:
-   - `DATABASE_URL`: a URL do Neon do passo 1;
-   - `DEMO_SENHA`: a senha das contas de demonstração (pelo menos 8 caracteres).
+1. Entre em https://render.com com o GitHub.
+2. **New → Blueprint**, repositório `liz-whs/MKpause`, branch desejada e **Blueprint path
+   `render.indicadores.yaml`**.
+3. Preencha as variáveis pedidas:
+   - `DATABASE_URL`: a URL do Neon;
+   - `DJANGO_SECRET_KEY`: uma chave longa e aleatória (se já existia um serviço, use a mesma, para manter sessões, códigos e convites válidos);
+   - `DEMO_SENHA`: senha das contas de demonstração (pelo menos 8 caracteres);
+   - `PUBLIC_BASE_URL`: o endereço público do serviço (ex.: `https://mkpause.onrender.com`);
+   - `INDICADORES_DATABASE_URL`: opcional (URL sem pooler, só para o módulo de indicadores).
 4. Clique em **Apply**. O primeiro build leva alguns minutos.
-5. O endereço fica algo como `https://mkpause.onrender.com`.
+
+> Os nomes `DJANGO_*` vêm do backend anterior e foram mantidos para não mudar o Render.
 
 ## Contas de demonstração
 
-Criadas no deploy pelo `python manage.py criar_demo`, todas com a `DEMO_SENHA`:
+Criadas a cada início pelo `php artisan mkpause:criar-demo` (contas existentes não mudam), todas
+com a `DEMO_SENHA`:
 
 | Perfil | E-mail |
 |---|---|
