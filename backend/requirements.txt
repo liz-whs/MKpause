@@ -1,5 +1,0 @@
-Django>=6.0,<6.1
-djangorestframework>=3.17,<3.18
-psycopg[binary]>=3.2
-whitenoise>=6.8,<7
-gunicorn>=23

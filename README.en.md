@@ -144,7 +144,7 @@ Every document is available in Portuguese (`file.md`) and English (`file.en.md`)
 |---|---|
 | PianoPause | Python 3.10+ and pygame-ce |
 | Web interface | React, TypeScript, Vite and Tailwind CSS |
-| API and authentication | Python and Django REST Framework |
+| API and authentication | PHP 8.2+ and Laravel 12 — [backend](./backend/README.md) |
 | Administrative aggregate indicators | PHP 8.2+ and PDO PostgreSQL — [PHP module](./src/indicadores/README.md) |
 | Database | PostgreSQL with versioned SQL migrations |
 

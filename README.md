@@ -144,7 +144,7 @@ Todos os documentos possuem versão em português (`arquivo.md`) e em inglês (`
 |---|---|
 | PianoPause | Python 3.10+ e pygame-ce |
 | Interface web | React, TypeScript, Vite e Tailwind CSS |
-| API e autenticação | Python e Django REST Framework |
+| API e autenticação | PHP 8.2+ e Laravel 12 — [backend](./backend/README.md) |
 | Indicadores agregados da administração | PHP 8.2+ e PDO PostgreSQL — [módulo PHP](./src/indicadores/README.md) |
 | Banco | PostgreSQL, com migrações SQL versionadas |
 
@@ -154,7 +154,7 @@ Todos os documentos possuem versão em português (`arquivo.md`) e em inglês (`
 
 **Em desenvolvimento.**
 
-A interface e a API estão integradas aos fluxos de pausa, jogos, vínculos e convites. O painel agregado da administração utiliza PHP; o dashboard individual do psicólogo clínico possui API própria no Django. A integração PHP tem execução local e uma [opção de hospedagem Docker](./docs/indicadores-php.md) preparada para validação antes do deploy. A entrega real de e-mails depende de configurar um provedor SMTP.
+A interface e a API estão integradas aos fluxos de pausa, jogos, vínculos e convites. O backend é em PHP (Laravel), assim como o painel agregado da administração; o dashboard individual do psicólogo clínico faz parte da API. A hospedagem usa Docker com Nginx e PHP-FPM ([guia](./docs/hospedagem.md)). A entrega real de e-mails depende de configurar um provedor SMTP.
 
 ---
 
