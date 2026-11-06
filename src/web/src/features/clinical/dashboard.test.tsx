@@ -13,12 +13,12 @@ function dados(dias: servidor.PeriodoDashboard = 14): servidor.DashboardClinico 
   return {
     estudante: { id_estudante: 1, nome: 'Ana Lima' },
     periodo: { dias, inicio: '2026-10-23', fim: '2026-11-05' },
-    resumo: { sessoes_concluidas: 2, humor_aumentou: 1, humor_manteve: 1, humor_diminuiu: 0, percentual_aumento: 50 },
+    resumo: { sessoes_concluidas: 2, mesma_emocao: 1, terminou_leve: 1, percentual_terminou_leve: 50 },
     evolucao: [
-      { id_sessao: 81, data: '2026-11-05', iniciada_em: '2026-11-05T10:00:00-03:00', humor_antes: 2, humor_depois: 4 },
-      { id_sessao: 82, data: '2026-11-05', iniciada_em: '2026-11-05T11:00:00-03:00', humor_antes: 3, humor_depois: 3 },
+      { id_sessao: 81, data: '2026-11-05', iniciada_em: '2026-11-05T10:00:00-03:00', humor_antes: 'ansioso', humor_depois: 'calmo' },
+      { id_sessao: 82, data: '2026-11-05', iniciada_em: '2026-11-05T11:00:00-03:00', humor_antes: 'cansado', humor_depois: 'cansado' },
     ],
-    distribuicao_humor: [1, 2, 3, 4, 5].map((estado) => ({ estado, antes: Number(estado === 2 || estado === 3), depois: Number(estado === 3 || estado === 4) })),
+    distribuicao_humor: (['feliz', 'calmo', 'ansioso', 'triste', 'irritado', 'cansado'] as const).map((emocao) => ({ emocao, antes: Number(emocao === 'ansioso' || emocao === 'cansado'), depois: Number(emocao === 'cansado' || emocao === 'calmo') })),
     atividades: [{ tipo: 'RESPIRACAO', quantidade: 1 }, { tipo: 'JOGO', quantidade: 1 }, { tipo: 'VIDEO', quantidade: 0 }],
     aviso: 'Indicadores descritivos de autorrelato; não constituem diagnóstico.',
   };
@@ -77,8 +77,7 @@ describe('painel V5 integrado à área clínica', () => {
     vi.spyOn(servidor, 'dashboardClinico').mockResolvedValue(dados());
     const { container } = abrir();
     await screen.findByRole('heading', { name: 'Evolução por sessão' });
-    expect(screen.getByRole('img', { name: /Valores antes e depois de cada sessão/ }).querySelectorAll('circle')).toHaveLength(2);
-    await userEvent.click(screen.getByText('Ver valores por sessão'));
+    expect(screen.getByText(/Não existe escala de intensidade entre emoções/)).toBeInTheDocument();
     const tabela = screen.getByRole('table', { name: 'Registros individuais do período selecionado' });
     expect(within(tabela).getAllByRole('row')).toHaveLength(3);
     expect(within(tabela).getAllByText(/2026-11-05/)).toHaveLength(2);
@@ -106,7 +105,7 @@ describe('painel V5 integrado à área clínica', () => {
     await userEvent.selectOptions(screen.getByLabelText('Período dos gráficos'), '7');
     await screen.findByText('50%');
     expect(sinal.aborted).toBe(true);
-    const antigo = dados(); antigo.resumo.percentual_aumento = 99;
+    const antigo = dados(); antigo.resumo.percentual_terminou_leve = 99;
     await act(async () => resolver(antigo));
     expect(screen.queryByText('99%')).toBeNull();
     expect(screen.getByLabelText('Período dos gráficos')).toHaveValue('7');
