@@ -176,12 +176,15 @@ function converterSessao(s: SessaoApi): SessaoRegistrada | null {
   const obs = s.observacoes_sessao ?? '';
   const marca = obs.match(MARCA);
   const relato = obs.replace(MARCA, '').trim();
+  const antes = pre.emocao ?? (marca?.[1] as EmocaoId | undefined) ?? (pre.estado === null ? undefined : EMOCAO_DO_HUMOR[pre.estado]);
+  const depois = pos.emocao ?? (marca?.[2] as EmocaoId | undefined) ?? (pos.estado === null ? undefined : EMOCAO_DO_HUMOR[pos.estado]);
+  if (!antes || !depois) return null;
   return {
     id: `sessao-${s.id_sessao}`,
     estudanteId: `est-${s.estudante}`,
     em: s.iniciada_em,
-    antes: pre.emocao ?? (marca?.[1] as EmocaoId) ?? (pre.estado === null ? undefined : EMOCAO_DO_HUMOR[pre.estado]),
-    depois: pos.emocao ?? (marca?.[2] as EmocaoId) ?? (pos.estado === null ? undefined : EMOCAO_DO_HUMOR[pos.estado]),
+    antes,
+    depois,
     atividade,
     relato: relato || undefined,
   };
