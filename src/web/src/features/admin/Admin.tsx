@@ -592,7 +592,7 @@ export function AdminConteudos() {
               <span className="flex flex-[1_1_240px] flex-col">
                 <strong className="text-button">{t(c.nome)}</strong>
                 <span className="text-caption text-muted">
-                  {t(c.tipo)} · {t(c.duracao)} · {usos > 0 ? (usos === 1 ? t('usado em {n} sessão', { n: usos }) : t('usado em {n} sessões', { n: usos })) : t('ainda não usado')}
+                  {t(c.tipo)} · {usos > 0 ? (usos === 1 ? t('usado em {n} sessão', { n: usos }) : t('usado em {n} sessões', { n: usos })) : t('ainda não usado')}
                 </span>
               </span>
               <span className="flex min-w-37.5 items-center gap-2.5 font-semibold">

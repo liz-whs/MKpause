@@ -115,7 +115,6 @@ const MARCA = /^\[mkpause antes=(\w+) depois=(\w+)\]\n?/;
 const TIPO_PARA_ATIVIDADE: Record<string, AtividadeId> = { RESPIRACAO: 'respiracao', JOGO: 'pianopause', VIDEO: 'video' };
 const ATIVIDADE_PARA_TIPO: Record<AtividadeId, string> = { respiracao: 'RESPIRACAO', pianopause: 'JOGO', mkpotion: 'JOGO', video: 'VIDEO' };
 const TIPO_LABEL: Record<AtividadeId, Conteudo['tipo']> = { respiracao: 'Exercício', pianopause: 'Jogo', mkpotion: 'Jogo', video: 'Vídeo' };
-const DURACAO: Record<AtividadeId, string> = { respiracao: '2 min', pianopause: '3 min', mkpotion: '5 min', video: '30 s' };
 
 /**
  * Há dois jogos com tipo JOGO no banco: o que diferencia é a referência
@@ -149,7 +148,9 @@ function converterAtividades(lista: AtividadeApi[]): Conteudo[] {
     const id = atividadeDe(a);
     if (!id || idsAtividade.has(id)) continue;
     idsAtividade.set(id, a.id_atividade);
-    conteudos.push({ id, nome: a.nome, tipo: TIPO_LABEL[id], duracao: DURACAO[id], disponivel: a.disponivel });
+    let nome = id === 'respiracao' && ['Respiração da chinchila', 'Chinchila respirando', 'Respiração'].includes(a.nome) ? 'Respire&Pause' : a.nome;
+    if (id === 'video' && ['Respiração guiada em vídeo', 'Vídeo: um minuto de calma'].includes(nome)) nome = 'MK Breath';
+    conteudos.push({ id, nome, tipo: TIPO_LABEL[id], disponivel: a.disponivel });
   }
   return conteudos;
 }

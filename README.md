@@ -90,7 +90,7 @@ Conforme o estado identificado, o sistema pode gerar alertas para os profissiona
 |---|---|---|
 | PianoPause | Jogo de teclas musicais, sem pontuação, com pausa para respiração guiada | [README do PianoPause](./src/jogos/pianopause/README.md) |
 | MK Potion | Organização de líquidos, adaptado para celular e computador | [README do jogo](./src/MKpotion/mk_potion/README.md) |
-| Respiração em vídeo | Vídeo de 30 segundos, com versões vertical/horizontal e legendas | [Interface web](./src/web/README.md) |
+| MK Breath | Respiração guiada em vídeo, com versões vertical/horizontal e legendas | [Interface web](./src/web/README.md) |
 
 ---
 

@@ -185,7 +185,7 @@ export const api = {
     conteudos: () => banco.conteudos.filter((c) => c.disponivel),
     video: (): seed.VideoAtividade => {
       const c = banco.conteudos.find((x) => x.id === 'video');
-      return { titulo: c?.nome ?? 'Vídeo', duracao: c?.duracao ?? '3 min' };
+      return { titulo: c?.nome ?? 'MK Breath' };
     },
 
     enviarAlertaNivel3(estudanteId: string): Alerta {

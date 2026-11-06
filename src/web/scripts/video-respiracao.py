@@ -1,134 +1,126 @@
-"""
-Gera o vídeo de respiração guiada do MKpause (atividade "Vídeo").
+"""Renderiza respiração em 4K/60 fps, com movimento periódico e loop de 30 s.
 
-Uso:  python scripts/video-respiracao.py computador   -> public/videos/respiracao-computador.mp4 (1280 x 720)
-      python scripts/video-respiracao.py celular      -> public/videos/respiracao-celular.mp4    (1080 x 1920)
-
-Precisa de Pillow e do ffmpeg no PATH. Cores de src/styles/tokens.css e fontes do site
-(Fraunces e Lexend, em src/jogos/pianopause/fontes). Ritmo: 5 s inspirando, 5 s soltando, 3 ciclos.
-A legenda (public/videos/respiracao.*.vtt) repete o texto da tela em português, inglês e espanhol.
+Uso: python scripts/video-respiracao.py computador|celular
+Saídas: 3840 x 2160 ou 2160 x 3840, H.264, capas JPEG e legendas PT/EN/ES.
+Requer Pillow, ffmpeg no PATH e as fontes do PianoPause.
 """
+import argparse
 import math
 import subprocess
-import sys
+import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-FORMATO = sys.argv[1] if len(sys.argv) > 1 else "computador"
-if FORMATO not in ("computador", "celular"):
-    sys.exit("Use: video-respiracao.py computador|celular")
-
-RAIZ = Path(__file__).resolve().parent.parent          # src/web
+RAIZ = Path(__file__).resolve().parent.parent
 FONTES = RAIZ.parent / "jogos" / "pianopause" / "fontes"
-SAIDA = RAIZ / "public" / "videos" / f"respiracao-{FORMATO}.mp4"
-
-# Cores do MKpause (tokens.css)
-BG = (0xF6, 0xEF, 0xE4)      # --color-bg
-INK = (0x59, 0x41, 0x31)     # --color-ink (Cacao)
-LAV = (0xCC, 0xC3, 0xD1)     # --color-lavender
-SKY = (0xAF, 0xB8, 0xCD)     # --color-sky
-GRASS = (0x8D, 0x8B, 0x4C)   # --color-grass
+BG = (246, 239, 228)
+INK = (89, 65, 49)
+LAV = (204, 195, 209)
+SKY = (175, 184, 205)
+GRASS = (141, 139, 76)
+FPS = 60
+CICLO = 10
+CICLOS = 3
 
 
 def mix(a, b, t):
-    return tuple(round(a[i] * t + b[i] * (1 - t)) for i in range(3))
+    return tuple(round(x * t + y * (1 - t)) for x, y in zip(a, b))
 
 
-TRACK = mix(INK, BG, 0.3)
-HALO = mix(LAV, BG, 0.6)
-CINZA = mix(INK, BG, 0.75)
-
-FPS, SS = 30, 2
-IN, OUT = 5, 5
-CYC = IN + OUT
-CYCLES = 3
-TOTAL = CYC * CYCLES
-X0, X1, TOP, BOT, N = 40, 960, 70, 330, 720
-
-if FORMATO == "computador":
-    W, H, K = 1280, 720, 1.2
-    vx = lambda x: (40 + x * K) * SS
-    vy = lambda y: (80 + y * K) * SS
-    TAM_FASE, TAM_SEG, Y_FASE, Y_SEG, PASSO, PONTO = 66, 28, 560, 625, 13, 2.6
-else:
-    W, H, K = 1080, 1920, 1.9
-    vx = lambda x: (90 + (x - 40) / 920 * (W - 180)) * SS
-    vy = lambda y: (560 + (y - TOP) / (BOT - TOP) * 600) * SS
-    TAM_FASE, TAM_SEG, Y_FASE, Y_SEG, PASSO, PONTO = 130, 54, 1450, 1565, 25, 5
+def onda(fase):
+    """Periódica em valor e velocidade, inclusive no reencontro do loop."""
+    return (1 - math.cos(2 * math.pi * fase)) / 2
 
 
-def yat(tc):
-    if tc < IN:
-        return BOT - (BOT - TOP) * (1 - math.cos(math.pi * tc / IN)) / 2
-    return TOP + (BOT - TOP) * (1 - math.cos(math.pi * (tc - IN) / OUT)) / 2
+class Cena:
+    def __init__(self, formato):
+        self.w, self.h = (3840, 2160) if formato == "computador" else (2160, 3840)
+        self.escala = self.w / (1280 if formato == "computador" else 1080)
+        self.horizontal = formato == "computador"
+        self.x0, self.x1 = self.w * .08, self.w * .92
+        self.topo = self.h * (.24 if self.horizontal else .30)
+        self.base = self.h * (.63 if self.horizontal else .60)
+        self.cx = self.w / 2
+        self.largura_onda = (self.x1 - self.x0) / 3
+        self.y_fase = self.h * (.79 if self.horizontal else .76)
+        tamanho = round(self.w * (.055 if self.horizontal else .105))
+        self.fonte = ImageFont.truetype(str(FONTES / "Fraunces-SemiBold.ttf"), tamanho)
+        self.fundo = Image.new("RGB", (self.w, self.h), BG)
+        self.trilha = mix(INK, BG, .3)
+        self.halo = mix(LAV, BG, .6)
+
+    def posicao(self, x, fase):
+        return self.base - (self.base - self.topo) * onda(fase + (x - self.cx) / self.largura_onda)
+
+    def quadro(self, tempo):
+        # O marcador fica no centro; a onda passa continuamente por ele.
+        # Nada acumula progresso nem salta da borda direita para a esquerda.
+        fase = (tempo % CICLO) / CICLO
+        im = self.fundo.copy()
+        d = ImageDraw.Draw(im)
+        passo = max(1, round(2 * self.escala))
+        pontos = [(x, self.posicao(x, fase)) for x in range(round(self.x0), round(self.cx) + 1, passo)]
+        pontos.append((self.cx, self.posicao(self.cx, fase)))
+        d.line(pontos, fill=GRASS, width=round(4 * self.escala), joint="curve")
+        raio = 2.5 * self.escala
+        for x in range(round(self.cx), round(self.x1), round(14 * self.escala)):
+            y = self.posicao(x, fase)
+            d.ellipse((x - raio, y - raio, x + raio, y + raio), fill=self.trilha)
+        s = onda(fase)
+        cy = self.posicao(self.cx, fase)
+        for raio, cor in ((34 + 16 * s, self.halo), (22 + 9 * s, LAV), (14 + 6 * s, SKY)):
+            r = raio * self.escala
+            d.ellipse((self.cx - r, cy - r, self.cx + r, cy + r), fill=cor)
+        tc = tempo % CICLO
+        inspirando = tc < 5
+        dentro_fase = tc % 5
+        # Desvanece o texto nas mudanças de fase, inclusive no encontro 30 s -> 0 s.
+        opacidade = min(1., dentro_fase / .22, (5 - dentro_fase) / .22)
+        cor = mix(INK, BG, opacidade)
+        d.text((self.cx, self.y_fase), "Inspire" if inspirando else "Solte o ar", font=self.fonte, fill=cor, anchor="mm")
+        return im
 
 
-pts = [(vx(X0 + (X1 - X0) * k / N), vy(yat((TOTAL * k / N) % CYC))) for k in range(N + 1)]
+def renderizar(formato):
+    cena = Cena(formato)
+    saida = RAIZ / "public" / "videos" / f"respiracao-{formato}.mp4"
+    saida.parent.mkdir(parents=True, exist_ok=True)
+    # Renderiza um ciclo exato de 600 quadros e repete o stream três vezes.
+    with tempfile.TemporaryDirectory(prefix="mkpause-video-") as temporario:
+        unidade = Path(temporario) / "ciclo.mp4"
+        processo = subprocess.Popen([
+            "ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
+            "-s", f"{cena.w}x{cena.h}", "-r", str(FPS), "-i", "-", "-an",
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "15", "-preset", "medium",
+            "-tune", "animation", "-g", str(FPS), "-movflags", "+faststart", str(unidade),
+        ], stdin=subprocess.PIPE)
+        try:
+            for quadro in range(CICLO * FPS):
+                processo.stdin.write(cena.quadro(quadro / FPS).tobytes())
+                if quadro % FPS == 0:
+                    print(f"{formato}: {quadro // FPS}/{CICLO} s renderizados", flush=True)
+        finally:
+            processo.stdin.close()
+            codigo = processo.wait()
+        if codigo:
+            raise subprocess.CalledProcessError(codigo, processo.args)
+        subprocess.run([
+            "ffmpeg", "-y", "-loglevel", "error", "-stream_loop", str(CICLOS - 1),
+            "-i", str(unidade), "-c", "copy", "-movflags", "+faststart", str(saida),
+        ], check=True)
+    # Capa na resolução nativa, sem extrair um quadro já comprimido do MP4.
+    cena.quadro(.5).save(saida.with_suffix('.jpg'), quality=98, subsampling=0)
+    for idioma, frases in {'pt-BR': ('Inspire', 'Solte o ar'), 'en': ('Breathe in', 'Breathe out'), 'es': ('Inhala', 'Exhala')}.items():
+        trechos = ['WEBVTT\n']
+        for i in range(CICLOS * 2):
+            inicio, fim = i * 5, (i + 1) * 5
+            trechos.append(f'{i+1}\n00:00:{inicio:02}.000 --> 00:00:{fim:02}.000\n{frases[i%2]}\n')
+        (saida.parent / f'respiracao.{idioma}.vtt').write_text('\n'.join(trechos), encoding='utf-8')
+    print(f"ok: {saida} ({cena.w} x {cena.h}, {FPS} fps)", flush=True)
 
-fonte_fase = ImageFont.truetype(str(FONTES / "Fraunces-SemiBold.ttf"), TAM_FASE * SS)
-fonte_seg = ImageFont.truetype(str(FONTES / "Lexend-SemiBold.ttf"), TAM_SEG * SS)
 
-
-def circ(d, x, y, r, c):
-    d.ellipse((x - r, y - r, x + r, y + r), fill=c)
-
-
-# Camada fixa: trilha pontilhada
-base = Image.new("RGB", (W * SS, H * SS), BG)
-d = ImageDraw.Draw(base)
-acc, passo = 0.0, PASSO * SS
-for i in range(1, len(pts)):
-    seg = math.dist(pts[i - 1], pts[i])
-    acc += seg
-    while acc >= passo:
-        acc -= passo
-        f = 1 - acc / seg
-        circ(d, pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f, PONTO * SS, TRACK)
-
-SAIDA.parent.mkdir(parents=True, exist_ok=True)
-cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-       "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-preset", "slow", "-movflags", "+faststart", str(SAIDA)]
-p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-
-for fr in range(TOTAL * FPS):
-    t = fr / FPS
-    tc = t % CYC
-    y = yat(tc)
-    x = X0 + (X1 - X0) * t / TOTAL
-    s = (BOT - y) / (BOT - TOP)
-    e = 0.75 + 0.4 * s
-    im = base.copy()
-    d = ImageDraw.Draw(im)
-    k = round(t / TOTAL * N) + 1
-    if k > 1:
-        d.line(pts[:k], fill=GRASS, width=int(4 * K * SS), joint="curve")
-        for q in (pts[0], pts[k - 1]):
-            circ(d, q[0], q[1], 2 * K * SS, GRASS)
-    cx, cy = vx(x), vy(y)
-    circ(d, cx, cy, (22 * e + 6 + 10 * s) * K * SS, HALO)
-    circ(d, cx, cy, 22 * e * K * SS, LAV)
-    circ(d, cx, cy, 14 * e * K * SS, SKY)
-    inspirando = tc < IN
-    d.text((W * SS / 2, Y_FASE * SS), "Inspire" if inspirando else "Solte o ar", font=fonte_fase, fill=INK, anchor="mm")
-    falta = math.ceil(IN - tc if inspirando else CYC - tc)
-    d.text((W * SS / 2, Y_SEG * SS), f"{falta} s", font=fonte_seg, fill=CINZA, anchor="mm")
-    p.stdin.write(im.resize((W, H), Image.LANCZOS).tobytes())
-
-p.stdin.close()
-p.wait()
-if p.returncode != 0:
-    sys.exit(p.returncode)
-
-# Mantém capas e legendas reproduzíveis junto com o MP4.
-poster = SAIDA.with_suffix('.jpg')
-subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-ss', '0.5', '-i', str(SAIDA),
-                '-frames:v', '1', '-q:v', '4', str(poster)], check=True)
-for idioma, frases in {'pt-BR': ('Inspire', 'Solte o ar'), 'en': ('Breathe in', 'Breathe out'),
-                       'es': ('Inhala', 'Exhala')}.items():
-    trechos = ['WEBVTT\n']
-    for i in range(CYCLES * 2):
-        inicio, fim = i * 5, (i + 1) * 5
-        trechos.append(f'{i+1}\n00:00:{inicio:02}.000 --> 00:00:{fim:02}.000\n{frases[i%2]}\n')
-    (SAIDA.parent / f'respiracao.{idioma}.vtt').write_text('\n'.join(trechos), encoding='utf-8')
-print('ok', SAIDA)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('formato', choices=('computador', 'celular'))
+    renderizar(parser.parse_args().formato)

@@ -10,13 +10,9 @@ import { BreathingCircle, useBreathClock, usePrefersReducedMotion } from '../../
 import { EmotionGrid } from '../../components/student/EmotionGrid';
 import { ChoiceChips } from '../../components/ui/ChoiceChips';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
 import { Icon } from '../../components/ui/Icon';
 import { emocaoPorId } from '../../domain/emocoes';
-import mascote from '../../assets/chinchila/mascote.svg';
-import { locale, t } from '../../i18n';
-
-const hora = (iso: string) => new Date(iso).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' });
+import { t } from '../../i18n';
 
 /* ───────────── Nível 2 ───────────── */
 
@@ -25,7 +21,7 @@ export function AvisoSaida() {
   const navigate = useNavigate();
   const { avisoSaida, avisarSaida } = useEstudante();
   const [destino, setDestino] = useState<string | null>(null);
-  if (avisoSaida) return <Navigate to="/estudante/fora-da-sala" replace />;
+  if (avisoSaida) return <Navigate to="/estudante/pausa" replace />;
 
   return (
     <>
@@ -50,70 +46,11 @@ export function AvisoSaida() {
         block
         onClick={() => {
           avisarSaida(destino ?? undefined);
-          navigate('/estudante/fora-da-sala');
+          navigate('/estudante/pausa', { replace: true });
         }}
       >
         <Icon name="porta" size={22} />
         {t('Avisar e sair')}
-      </Button>
-    </>
-  );
-}
-
-/** Fora da sala: Começar pausa ou Voltei. */
-export function ForaDaSala() {
-  const { avisoSaida, voltei } = useEstudante();
-  const [voltou, setVoltou] = useState(false);
-
-  if (voltou) {
-    return (
-      <>
-        <FocusTopBar />
-        <div role="status" className="flex flex-col items-center gap-4 pt-7.5 text-center">
-          <img src={mascote} alt="" className="h-42 w-42.5 object-contain" />
-          <ScreenTitle>{t('Bom retorno!')}</ScreenTitle>
-          <p className="text-muted">{t('Avisamos seu retorno.')}</p>
-          <Button to="/estudante" block>
-            {t('Início')}
-          </Button>
-        </div>
-      </>
-    );
-  }
-
-  if (!avisoSaida) return <Navigate to="/estudante" replace />;
-
-  return (
-    <>
-      <FocusTopBar back={<BackButton to="/estudante" label={t('Voltar ao início')} />} />
-      <section className="flex flex-col gap-2.5 rounded-[28px] bg-sky p-6">
-        <Badge icon="check">{t('Avisado')}</Badge>
-        <ScreenTitle>{t('Fora da sala')}</ScreenTitle>
-        <p className="font-semibold">
-          {t('Desde {hora}', { hora: hora(avisoSaida.desde) })}
-          {avisoSaida.destino && ` · ${t(avisoSaida.destino)}`}
-        </p>
-      </section>
-      <section aria-labelledby="titulo-quem-sabe" className="flex flex-col gap-2">
-        <SectionTitle>
-          <span id="titulo-quem-sabe">{t('Quem sabe')}</span>
-        </SectionTitle>
-        <PeopleList pessoas={api.estudante.quemAcompanha()} />
-      </section>
-      <Button to="/estudante/pausa" block>
-        <Icon name="pausa" size={22} />
-        {t('Começar pausa')}
-      </Button>
-      <Button
-        variant="outline"
-        block
-        onClick={() => {
-          voltei();
-          setVoltou(true);
-        }}
-      >
-        <Icon name="check" size={22} />
-        {t('Voltei')}
       </Button>
     </>
   );

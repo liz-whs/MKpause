@@ -190,13 +190,8 @@ export const en: Record<string, string> = {
   Triste: 'Sad',
   'Irritado(a)': 'Irritated',
   'Cansado(a)': 'Tired',
-  'Está pesado demais?': 'Is it too heavy?',
-  'Vá direto para a respiração.': 'Go straight to breathing.',
-  'Ir direto': 'Go now',
-  'Agora não': 'Not now',
   Continuar: 'Continue',
   'Escolha como está': 'Choose how you feel',
-  'Sua turma não vê o que você responde.': "Your class doesn't see your answers.",
   'Sair da pausa': 'Leave pause',
   Atividade: 'Activity',
   'Escolha uma atividade': 'Choose an activity',
@@ -220,7 +215,6 @@ export const en: Record<string, string> = {
   'Quer contar algo?': 'Want to share something?',
   'Escreva aqui': 'Write here',
   Finalizar: 'Finish',
-  'Ainda não está bem?': 'Still not okay?',
   'Pausa feita': 'Pause done',
   'Pausa feita!': 'Pause done!',
   Antes: 'Before',
@@ -243,7 +237,6 @@ export const en: Record<string, string> = {
   'Fora da sala': 'Out of the room',
   Avisado: 'Notified',
   'Desde {hora}': 'Since {hora}',
-  'Quem sabe': 'Who knows',
   'Começar pausa': 'Start pause',
   Voltei: "I'm back",
   'Bom retorno!': 'Welcome back!',
@@ -630,8 +623,16 @@ export const en: Record<string, string> = {
 
   // Vídeo de respiração
   'Vídeo de respiração guiada: inspire por 5 segundos e solte o ar por 5 segundos, três vezes.': 'Guided breathing video: breathe in for 5 seconds and breathe out for 5 seconds, three times.',
-  'Respiração guiada em vídeo': 'Guided breathing video',
+  'MK Breath': 'MK Breath',
+  'Respire&Pause': 'Respire&Pause',
+  'Vídeo de respiração guiada: acompanhe os movimentos para inspirar e soltar o ar no seu ritmo.': 'Guided breathing video: follow the movements to breathe in and out at your own pace.',
   '30 s': '30 s',
+
+  'O vídeo se repete até você pausar. Use o botão central para reproduzir ou pausar.': 'The video repeats until you pause it. Use the central button to play or pause.',
+  'Pausar vídeo': 'Pause video',
+  'Reproduzir vídeo': 'Play video',
+  'Legendas': 'Captions',
+  'Não foi possível reproduzir o vídeo. Toque em reproduzir para tentar novamente.': 'Could not play the video. Press play to try again.',
 
   // Dashboard clínico V5
   "Carregando gráficos do estudante…": "Loading student charts…",

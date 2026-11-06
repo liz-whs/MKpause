@@ -46,7 +46,7 @@ export function ActivityRow({
   );
 }
 
-/** Lista de profissionais (Quem vai saber, Quem sabe, Quem acompanha você). */
+/** Lista de profissionais (Quem vai saber, Quem acompanha você). */
 export function PeopleList({ pessoas, detalhe }: { pessoas: Profissional[]; detalhe?: (p: Profissional) => string }) {
   return (
     <ul className="flex flex-col gap-2">

@@ -21,10 +21,10 @@ from nucleo.conexao import exigir_banco
 ESCOLA = "Escola Modelo"
 
 ATIVIDADES = [
-    ("Respiração da chinchila", "RESPIRACAO", "respiracao"),
+    ("Respire&Pause", "RESPIRACAO", "respiracao"),
     ("PianoPause", "JOGO", "/jogos/pianopause/index.html"),
     ("MK Potion", "JOGO", "/jogos/mkpotion/index.html"),
-    ("Vídeo: um minuto de calma", "VIDEO", "video"),
+    ("MK Breath", "VIDEO", "video"),
 ]
 
 
@@ -51,8 +51,11 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             for nome, tipo, ref in ATIVIDADES:
-                Atividade.objects.get_or_create(
+                atividade, _ = Atividade.objects.get_or_create(
                     tipo=tipo, conteudo_ou_referencia=ref, defaults={"nome": nome})
+                if atividade.nome in ("Respiração da chinchila", "Chinchila respirando", "Vídeo: um minuto de calma", "Respiração guiada em vídeo"):
+                    atividade.nome = nome
+                    atividade.save(update_fields=["nome"])
 
             est, _ = Estudante.objects.get_or_create(
                 usuario=self._usuario("ana.demo@mkpause.dev", "Ana Lima", senha),

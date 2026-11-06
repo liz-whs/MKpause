@@ -61,7 +61,7 @@ export function calcularSequencia(diasComCuidado: ReadonlySet<string>, hoje: Dat
   if (!diasComCuidado.has(chaveDia(dia))) dia = diaAnterior(dia);
 
   let total = 0;
-  for (let i = 0; i < 400; i++) {
+  while (true) {
     if (ehDiaUtil(dia)) {
       if (!diasComCuidado.has(chaveDia(dia))) break;
       total++;

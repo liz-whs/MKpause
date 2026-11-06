@@ -9,6 +9,17 @@ from atividades.models import Atividade
 
 class CriarDemoTestes(TestCase):
     @patch("contas.management.commands.criar_demo.exigir_banco")
+    def test_atualiza_nome_antigo_sem_duplicar_atividade_ou_sobrescrever_personalizada(self, _exigir_banco):
+        respiracao = Atividade.objects.create(nome="Respiração da chinchila", tipo="RESPIRACAO", conteudo_ou_referencia="respiracao")
+        video = Atividade.objects.create(nome="Vídeo da escola", tipo="VIDEO", conteudo_ou_referencia="video")
+        call_command("criar_demo", senha="senha-demo-teste", stdout=StringIO())
+        respiracao.refresh_from_db()
+        video.refresh_from_db()
+        self.assertEqual(respiracao.nome, "Respire&Pause")
+        self.assertEqual(video.nome, "Vídeo da escola")
+        self.assertEqual(Atividade.objects.count(), 4)
+
+    @patch("contas.management.commands.criar_demo.exigir_banco")
     def test_cria_catalogo_completo_em_banco_vazio(self, _exigir_banco):
         call_command("criar_demo", senha="senha-demo-teste", stdout=StringIO())
 

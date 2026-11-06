@@ -94,7 +94,7 @@ describe('administração', () => {
 
   it('conteúdo já usado não pode ser excluído', () => {
     abrir('/admin/conteudos');
-    const excluir = screen.getByRole('button', { name: 'Excluir Respiração' });
+    const excluir = screen.getByRole('button', { name: 'Excluir Respire&Pause' });
     expect(excluir).toBeDisabled();
     expect(excluir).toHaveAccessibleDescription('Já usado em sessões: só pode ser ocultado.');
   });

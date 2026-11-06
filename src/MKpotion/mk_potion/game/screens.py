@@ -807,8 +807,7 @@ class BreathingScreen(BaseScreen):
         else:
             self.origin = Screen.MENU
         inhale, exhale = self.app.settings.breathing_rhythm
-        cycles = max(1, round(45 / (inhale + exhale)))
-        self.exercise = BreathingExercise(inhale, exhale, cycles)
+        self.exercise = BreathingExercise(inhale, exhale)
         super().on_enter()
 
     def build_buttons(self, w, h):

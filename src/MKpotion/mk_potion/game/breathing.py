@@ -12,9 +12,9 @@ EXHALE = "exhale"
 
 
 PRESETS = [
-    ("Padrão (3s / 4s)", 3.0, 4.0),
-    ("Mais lento (4s / 6s)", 4.0, 6.0),
-    ("Curto (3s / 3s)", 3.0, 3.0),
+    ("Padrão", 3.0, 4.0),
+    ("Mais lento", 4.0, 6.0),
+    ("Suave", 3.0, 3.0),
 ]
 
 MESSAGE = "Respire no seu ritmo. Se preferir, pode apenas observar o círculo."
@@ -27,8 +27,8 @@ def _smooth(x: float) -> float:
 
 
 class BreathingExercise:
-    def __init__(self, inhale: float = 3.0, exhale: float = 4.0, cycles: int = 6) -> None:
-        self.cycles = max(1, cycles)
+    def __init__(self, inhale: float = 3.0, exhale: float = 4.0, cycles: Optional[int] = None) -> None:
+        self.cycles = max(1, cycles) if cycles is not None else None
         self.state = IDLE
         self.elapsed = 0.0
         self.set_rhythm(inhale, exhale)
@@ -43,7 +43,7 @@ class BreathingExercise:
 
     @property
     def total_duration(self) -> float:
-        return self.cycle_length * self.cycles
+        return self.cycle_length * self.cycles if self.cycles is not None else float('inf')
 
 
     def start(self) -> None:

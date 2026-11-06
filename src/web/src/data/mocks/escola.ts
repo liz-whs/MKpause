@@ -99,15 +99,14 @@ export const FICHAS: Ficha[] = [
 ];
 
 export const CONTEUDOS: Conteudo[] = [
-  { id: 'respiracao', nome: 'Respiração', tipo: 'Exercício', duracao: '2 ou 5 min', disponivel: true },
-  { id: 'pianopause', nome: 'PianoPause', tipo: 'Jogo', duracao: '2 min', disponivel: true },
-  { id: 'mkpotion', nome: 'MK Potion', tipo: 'Jogo', duracao: '5 min', disponivel: true },
-  { id: 'video', nome: 'Respiração guiada em vídeo', tipo: 'Vídeo', duracao: '30 s', disponivel: true },
+  { id: 'respiracao', nome: 'Respire&Pause', tipo: 'Exercício', disponivel: true },
+  { id: 'pianopause', nome: 'PianoPause', tipo: 'Jogo', disponivel: true },
+  { id: 'mkpotion', nome: 'MK Potion', tipo: 'Jogo', disponivel: true },
+  { id: 'video', nome: 'MK Breath', tipo: 'Vídeo', disponivel: true },
 ];
 
 export interface VideoAtividade {
   titulo: string;
-  duracao: string;
   /** Endereço do vídeo cadastrado pela escola. Vazio enquanto não há cadastro. */
   src?: string;
   legendas?: string;

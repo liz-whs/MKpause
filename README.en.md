@@ -90,7 +90,7 @@ Depending on the state identified, the system may alert the professionals respon
 |---|---|---|
 | PianoPause | A musical-keys game with no score and a guided-breathing pause | [PianoPause README](./src/jogos/pianopause/README.en.md) |
 | MK Potion | Liquid sorting game adapted for phones and desktops | [Game README](./src/MKpotion/mk_potion/README.md) |
-| Breathing video | A 30-second video with portrait/landscape versions and captions | [Web interface](./src/web/README.md) |
+| MK Breath | Guided breathing video with portrait/landscape versions and captions | [Web interface](./src/web/README.md) |
 
 ---
 

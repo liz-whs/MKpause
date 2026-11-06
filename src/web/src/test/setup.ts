@@ -7,6 +7,9 @@ import { reiniciarSimulacao } from '../data/codigos';
 
 afterEach(() => {
   cleanup();
+  for (const chave of Object.keys(localStorage)) {
+    if (chave.startsWith('mkpause:cuidados:')) localStorage.removeItem(chave);
+  }
   // Cada teste começa em português, sem opções de acessibilidade.
   reiniciarPreferencias();
   fecharPreferencias();

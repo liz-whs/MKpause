@@ -29,7 +29,7 @@ export const EMOCOES: readonly Emocao[] = [
   { id: 'cansado', get label() { return t('Cansado(a)'); }, imagem: cansado },
 ];
 
-/** Emoções que, no nível 1, mostram a sugestão "Está pesado demais? Ir direto". */
+/** Emoções usadas para recomendar a atividade de respiração. */
 const EMOCOES_PESADAS: readonly EmocaoId[] = ['ansioso', 'triste', 'irritado'];
 
 export function sugereEscalada(emocao: EmocaoId | null): boolean {
