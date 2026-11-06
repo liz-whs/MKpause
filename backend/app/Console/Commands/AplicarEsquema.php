@@ -7,16 +7,25 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
+/**
+ * php artisan mkpause:aplicar-esquema
+ *
+ * Para hospedagem sem Flyway (ex.: Render + Neon): roda as migrações SQL de
+ * database/migrations/ num banco vazio ou aplica V2/V3/V4 que faltam num banco com V1.
+ * A V2 exige `responsavel` vazia; registros antigos precisam de migração de dados.
+ * A V5 preserva valores antigos em estado e grava novas emoções em emocao.
+ */
 class AplicarEsquema extends Command
 {
     protected $signature = 'mkpause:aplicar-esquema';
-    protected $description = 'Aplica V1 a V4 ausentes no banco do MKpause (sem Flyway).';
+    protected $description = 'Aplica V1 a V5 ausentes no banco do MKpause (sem Flyway).';
 
     private const VERSOES = [
         ['V1__criacao_do_esquema_inicial.sql', ['usuario']],
         ['V2__ajusta_responsavel_como_contato.sql', ['responsavel']],
         ['V3__codigos_de_cadastro_e_vinculo.sql', ['codigo_cadastro', 'uso_codigo_cadastro', 'codigo_vinculo']],
         ['V4__convites_responsaveis_e_fila_email.sql', ['convite_responsavel', 'notificacao_email']],
+        ['V5__emocoes_categoricas.sql', ['registro_humor']],
     ];
 
     public function handle(): int
@@ -24,9 +33,20 @@ class AplicarEsquema extends Command
         Banco::exigir($this);
         $pasta = dirname(base_path()).'/database/migrations';
         DB::transaction(function () use ($pasta) {
+            // Evita dois deploys aplicarem o mesmo SQL ao mesmo tempo.
             DB::select('SELECT pg_advisory_xact_lock(72843003)');
             $tabelas = array_flip(array_column(Schema::getTables(), 'name'));
             foreach (self::VERSOES as [$nome, $marcas]) {
+                if (str_starts_with($nome, 'V5__')) {
+                    $colunas = array_flip(Schema::getColumnListing('registro_humor'));
+                    if (isset($colunas['emocao'])) {
+                        $this->line("{$nome}: já aplicado.");
+                        continue;
+                    }
+                    $this->line("Aplicando {$nome}...");
+                    DB::unprepared(file_get_contents("{$pasta}/{$nome}"));
+                    continue;
+                }
                 if (str_starts_with($nome, 'V2__')) {
                     $colunas = array_flip(Schema::getColumnListing('responsavel'));
                     if (isset($colunas['nome_completo'], $colunas['email']) && !isset($colunas['id_usuario'])) {
@@ -59,7 +79,7 @@ class AplicarEsquema extends Command
                 }
             }
         });
-        $this->info('Esquema pronto (V1 a V4).');
+        $this->info('Esquema pronto (V1 a V5).');
         return self::SUCCESS;
     }
 }

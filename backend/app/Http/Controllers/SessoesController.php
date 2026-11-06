@@ -9,17 +9,35 @@ use App\Mkpause\Permissoes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Sessão de autorregulação (RF04–RF07, RF09, RF12, RF13).
+ *
+ * Fluxo:
+ *   1. POST /api/sessoes/avaliar/            {"humor": "ansioso"}  -> nível sugerido e atividades (não grava)
+ *   2. POST /api/sessoes/                    {"id_atividade", "humor_pre"} -> EM_ANDAMENTO + humor PRE
+ *   3. POST /api/sessoes/<id>/concluir/      {"humor_pos", "observacoes_sessao"?} -> CONCLUIDA + humor POS
+ *      ou POST /api/sessoes/<id>/cancelar/   -> CANCELADA ("tudo bem parar")
+ *   GET /api/sessoes/[?estudante=ID]         histórico (estudante: o próprio; profissionais: vinculados)
+ */
 class SessoesController extends Controller
 {
+    // Critério provisório (RN07): a avaliação apoia o fluxo, não é diagnóstico (RN35).
     public const MENSAGEM_POR_NIVEL = [
         1 => 'Que tal fazer uma atividade no seu ritmo?',
         2 => 'Se quiser, você pode avisar seu professor que vai sair para fazer uma pausa.',
         3 => 'Se quiser, você pode pedir ajuda. Avisamos seu professor e a psicóloga da escola.',
     ];
 
-    public static function avaliarHumor(int $estado): int
+    /** Identificadores exatos usados no frontend (categorias, não pontuação). */
+    public const EMOCOES = ['feliz', 'calmo', 'ansioso', 'triste', 'irritado', 'cansado'];
+
+    /**
+     * Critério provisório de sugestão: emoções difíceis podem oferecer apoio nível 2.
+     * Nenhuma emoção isolada deve gerar automaticamente nível 3 (alerta).
+     */
+    public static function avaliarHumor(string $emocao): int
     {
-        return $estado <= 1 ? 3 : ($estado === 2 ? 2 : 1);
+        return in_array($emocao, ['ansioso', 'triste', 'irritado'], true) ? 2 : 1;
     }
 
     public function listar(Request $request)
@@ -60,7 +78,7 @@ class SessoesController extends Controller
     public function avaliar(Request $request)
     {
         $e = $this->entrada($request);
-        $humor = $e->inteiro('humor', min: 1, max: 5);
+        $humor = $e->escolha('humor', self::EMOCOES);
         $e->falharSeHouverErros();
         $nivel = self::avaliarHumor($humor);
         $atividades = DB::table('atividade')->where('disponivel', true)->orderBy('nome')->orderBy('id_atividade')->get();
@@ -76,7 +94,7 @@ class SessoesController extends Controller
     {
         $e = $this->entrada($request);
         $idAtividade = $e->inteiro('id_atividade');
-        $humor = $e->inteiro('humor_pre', min: 1, max: 5);
+        $humor = $e->escolha('humor_pre', self::EMOCOES);
         $e->falharSeHouverErros();
         $atividade = DB::table('atividade')->where('id_atividade', $idAtividade)->where('disponivel', true)->first();
         if ($atividade === null) {
@@ -89,7 +107,7 @@ class SessoesController extends Controller
                 'id_estudante' => $this->conta($request)->idPerfil(), 'id_atividade' => $atividade->id_atividade,
                 'iniciada_em' => $agora, 'nivel_avaliado' => $nivel, 'status' => 'EM_ANDAMENTO',
             ], 'id_sessao');
-            DB::table('registro_humor')->insert(['id_sessao' => $id, 'estado' => $humor, 'momento' => 'PRE',
+            DB::table('registro_humor')->insert(['id_sessao' => $id, 'emocao' => $humor, 'momento' => 'PRE',
                 'registrado_em' => $agora]);
             return $id;
         });
@@ -99,14 +117,14 @@ class SessoesController extends Controller
     public function concluir(Request $request, $id)
     {
         $e = $this->entrada($request);
-        $humor = $e->inteiro('humor_pos', min: 1, max: 5);
+        $humor = $e->escolha('humor_pos', self::EMOCOES);
         $observacoes = $e->texto('observacoes_sessao', obrigatorio: false, vazio: true);
         $e->falharSeHouverErros();
         DB::transaction(function () use ($request, $id, $humor, $observacoes) {
             $sessao = $this->emAndamento($request, $id);
             $extras = is_string($observacoes) ? ['observacoes_sessao' => $observacoes] : [];
             $agora = $this->encerrar($sessao, 'CONCLUIDA', $extras);
-            DB::table('registro_humor')->insert(['id_sessao' => $sessao->id_sessao, 'estado' => $humor,
+            DB::table('registro_humor')->insert(['id_sessao' => $sessao->id_sessao, 'emocao' => $humor,
                 'momento' => 'POS', 'registrado_em' => $agora]);
         });
         return $this->json(['sessao' => $this->dadosDe(self::id($id)), 'mensagem' => 'Pausa feita. Volte quando quiser.']);
@@ -129,6 +147,7 @@ class SessoesController extends Controller
         return $sessao;
     }
 
+    /** Grava o fim da sessão; devolve o instante usado (para o registro de humor). */
     private function encerrar(object $sessao, string $status, array $extras = []): string
     {
         $fim = Formato::agora();
@@ -145,6 +164,7 @@ class SessoesController extends Controller
         return self::varias(DB::table('sessao')->where('id_sessao', $id)->get())[0];
     }
 
+    /** Serializa sessões com a atividade e os registros de humor (2 consultas, sem N+1). */
     public static function varias($sessoes): array
     {
         $atividades = DB::table('atividade')->whereIn('id_atividade', $sessoes->pluck('id_atividade')->unique())
@@ -162,7 +182,8 @@ class SessoesController extends Controller
             'observacoes_sessao' => $s->observacoes_sessao,
             'status' => $s->status,
             'registros_humor' => ($humores[$s->id_sessao] ?? collect())->map(fn ($h) => [
-                'estado' => (int) $h->estado, 'momento' => $h->momento, 'registrado_em' => Formato::local($h->registrado_em),
+                'estado' => $h->estado === null ? null : (int) $h->estado,
+                'emocao' => $h->emocao, 'momento' => $h->momento, 'registrado_em' => Formato::local($h->registrado_em),
             ])->values()->all(),
         ])->values()->all();
     }
