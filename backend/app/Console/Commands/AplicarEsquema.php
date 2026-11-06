@@ -7,13 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
-/**
- * php artisan mkpause:aplicar-esquema
- *
- * Para hospedagem sem Flyway (ex.: Render + Neon): roda as migrações SQL de
- * database/migrations/ num banco vazio ou aplica V2/V3/V4 que faltam num banco com V1.
- * A V2 exige `responsavel` vazia; registros antigos precisam de migração de dados.
- */
 class AplicarEsquema extends Command
 {
     protected $signature = 'mkpause:aplicar-esquema';
@@ -31,7 +24,6 @@ class AplicarEsquema extends Command
         Banco::exigir($this);
         $pasta = dirname(base_path()).'/database/migrations';
         DB::transaction(function () use ($pasta) {
-            // Evita dois deploys aplicarem o mesmo SQL ao mesmo tempo.
             DB::select('SELECT pg_advisory_xact_lock(72843003)');
             $tabelas = array_flip(array_column(Schema::getTables(), 'name'));
             foreach (self::VERSOES as [$nome, $marcas]) {

@@ -9,13 +9,6 @@ use App\Mkpause\Formato;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Conteúdos de autorregulação (RF02, RF03, RF35, RN31).
- * GET    /api/atividades/        lista (estudante vê só as disponíveis; ?tipo=JOGO)
- * POST   /api/atividades/        admin cadastra
- * PATCH  /api/atividades/<id>/   admin altera
- * DELETE /api/atividades/<id>/   admin marca como indisponível (não apaga: há sessões ligadas)
- */
 class AtividadesController extends Controller
 {
     public const TIPOS = ['JOGO', 'VIDEO', 'EXERCICIO', 'RESPIRACAO', 'OUTRO'];

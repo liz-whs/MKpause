@@ -6,7 +6,7 @@ import type {
 import { iniciais } from '../domain/formatos';
 
 /**
- * Conversa com o backend Django (/api/, ver backend/README.md).
+ * Conversa com a API Laravel (/api/, ver backend/README.md).
  * Em desenvolvimento o Vite repassa /api para 127.0.0.1:8000 (vite.config.ts),
  * então o cookie de sessão e o CSRF funcionam sem CORS.
  *
@@ -96,7 +96,7 @@ export const contaAtual = () => chamar<Conta>('GET', 'auth/eu/').catch(() => nul
 
 export async function entrar(email: string, senha: string) {
   const conta = await chamar<Conta>('POST', 'auth/login/', { email: email.trim(), senha });
-  // O Django troca o token de CSRF no login.
+  // A API troca o token de CSRF no login.
   await fetch('/api/auth/csrf/', { credentials: 'same-origin' });
   return conta;
 }

@@ -5,7 +5,7 @@ set -e
 
 PORT="${PORT:-10000}"
 # O módulo de indicadores confere a sessão chamando /api/auth/eu/ pelo próprio Nginx.
-export DJANGO_API="${DJANGO_API:-http://127.0.0.1:${PORT}}"
+export MKPAUSE_API_URL="${MKPAUSE_API_URL:-http://127.0.0.1:${PORT}}"
 
 sed "s/__PORT__/${PORT}/" /app/deploy/nginx.conf > /tmp/mkpause-nginx.conf
 nginx -e stderr -t -c /tmp/mkpause-nginx.conf

@@ -4,10 +4,6 @@ namespace App\Mkpause;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Convite ao responsável (RN23–RN25). O banco não guarda o token do link nem cria login
- * para o responsável: o link é assinado com a DJANGO_SECRET_KEY (formato do Django).
- */
 class Convites
 {
     public const SAL = 'mkpause.convite-responsavel.v1';
@@ -17,11 +13,10 @@ class Convites
 
     public static function link(object $c): string
     {
-        $token = AssinaturaDjango::assinar(['id' => (int) $c->id_convite, 'nonce' => (string) $c->nonce], self::SAL);
+        $token = AssinaturaTemporizada::assinar(['id' => (int) $c->id_convite, 'nonce' => (string) $c->nonce], self::SAL);
         return config('mkpause.public_base_url').'/convite-responsavel#token='.$token;
     }
 
-    /** O link aparece na resposta só em desenvolvimento com a caixa local (para testar sem e-mail). */
     private static function testeLocal(): bool
     {
         return config('mkpause.debug') && Emails::caixaLocal();
@@ -50,7 +45,6 @@ class Convites
         return DB::table('convite_responsavel')->where('id_convite', $id)->first();
     }
 
-    /** Revoga e, se estava aceito, desfaz os vínculos que só ele sustentava. */
     public static function revogar(object $c): void
     {
         $eraAceito = $c->status === 'ACEITO';
@@ -74,12 +68,11 @@ class Convites
         }
     }
 
-    /** Abre o convite do token; lança 400 com a mensagem única se não puder ser usado. */
     public static function obter(Entrada $e, bool $bloquear = false): object
     {
         $token = $e->texto('token', max: 1000);
         $e->falharSeHouverErros();
-        $dados = AssinaturaDjango::abrir($token, self::SAL, self::VALIDADE_SEGUNDOS);
+        $dados = AssinaturaTemporizada::abrir($token, self::SAL, self::VALIDADE_SEGUNDOS);
         $c = null;
         if ($dados && isset($dados['id'], $dados['nonce']) && is_int($dados['id'])
             && preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', (string) $dados['nonce'])) {

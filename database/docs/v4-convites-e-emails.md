@@ -10,6 +10,6 @@ Depende de V1 e V2, sem modificar SQL de versões anteriores. A V3 permanece ind
 
 O aceite cria ou reativa as relações existentes em `estudante_responsavel` e, se autorizado, `psicologo_clinico_estudante`. A migração não cria consentimentos retroativos nem desativa vínculos ativos anteriores. A revogação é aplicada pelo backend, com manutenção do histórico.
 
-Aplicação local por `python manage.py aplicar_esquema`, seguida de `python manage.py verificar_esquema`: 24 tabelas mapeadas. O comando pula V4 já presente e rejeita instalação parcial. Em ambientes geridos pelo Flyway, mantenha o gerenciamento por versões da equipe.
+Aplicação local por `php artisan mkpause:aplicar-esquema`, seguida de `php artisan mkpause:verificar-esquema`. O comando pula V4 já presente e rejeita instalação parcial. Em ambientes geridos pelo Flyway, mantenha o gerenciamento por versões da equipe.
 
 Configuração de SMTP, caixa local, limites do aceite e procedimentos de teste: [guia de convites e e-mails](../../docs/convites-e-emails.md).

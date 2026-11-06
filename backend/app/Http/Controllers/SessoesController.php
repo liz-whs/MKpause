@@ -9,26 +9,14 @@ use App\Mkpause\Permissoes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Sessão de autorregulação (RF04–RF07, RF09, RF12, RF13).
- *
- * Fluxo:
- *   1. POST /api/sessoes/avaliar/            {"humor": 1-5}  -> nível sugerido e atividades (não grava)
- *   2. POST /api/sessoes/                    {"id_atividade", "humor_pre"} -> EM_ANDAMENTO + humor PRE
- *   3. POST /api/sessoes/<id>/concluir/      {"humor_pos", "observacoes_sessao"?} -> CONCLUIDA + humor POS
- *      ou POST /api/sessoes/<id>/cancelar/   -> CANCELADA ("tudo bem parar")
- *   GET /api/sessoes/[?estudante=ID]         histórico (estudante: o próprio; profissionais: vinculados)
- */
 class SessoesController extends Controller
 {
-    // Critério provisório (RN07): a avaliação apoia o fluxo, não é diagnóstico (RN35).
     public const MENSAGEM_POR_NIVEL = [
         1 => 'Que tal fazer uma atividade no seu ritmo?',
         2 => 'Se quiser, você pode avisar seu professor que vai sair para fazer uma pausa.',
         3 => 'Se quiser, você pode pedir ajuda. Avisamos seu professor e a psicóloga da escola.',
     ];
 
-    /** Humor (1 = muito mal ... 5 = muito bem) -> nível de suporte sugerido (1 a 3). */
     public static function avaliarHumor(int $estado): int
     {
         return $estado <= 1 ? 3 : ($estado === 2 ? 2 : 1);
@@ -141,7 +129,6 @@ class SessoesController extends Controller
         return $sessao;
     }
 
-    /** Grava o fim da sessão; devolve o instante usado (para o registro de humor). */
     private function encerrar(object $sessao, string $status, array $extras = []): string
     {
         $fim = Formato::agora();
@@ -158,7 +145,6 @@ class SessoesController extends Controller
         return self::varias(DB::table('sessao')->where('id_sessao', $id)->get())[0];
     }
 
-    /** Serializa sessões com a atividade e os registros de humor (2 consultas, sem N+1). */
     public static function varias($sessoes): array
     {
         $atividades = DB::table('atividade')->whereIn('id_atividade', $sessoes->pluck('id_atividade')->unique())

@@ -41,7 +41,7 @@ Tabela de auditoria de utilização de convites:
 - `id_usuario`: FK para a conta, parte da chave primária composta e com `UNIQUE`; cada conta registra no máximo um código usado.
 - `usado_em`: instante do consumo.
 
-Um convite pode ter vários usos. Criar `usuario` e perfil, incrementar `usos` e registrar `uso_codigo_cadastro` deve ocorrer na mesma transação no Django.
+Um convite pode ter vários usos. Criar `usuario` e perfil, incrementar `usos` e registrar `uso_codigo_cadastro` deve ocorrer na mesma transação na API.
 
 ### `codigo_vinculo`
 
@@ -124,11 +124,11 @@ WHERE conrelid IN (
 ORDER BY tabela, restricao;
 ```
 
-Validar também uso concorrente, expiração, revogação, limites de uso, aceite/recusa, reativação de vínculo, autorização e ausência de acesso antes do aceite. Executar `python manage.py verificar_esquema` após atualização dos models.
+Validar também uso concorrente, expiração, revogação, limites de uso, aceite/recusa, reativação de vínculo, autorização e ausência de acesso antes do aceite. Executar `php artisan mkpause:verificar-esquema` após atualizar o esquema.
 
 ## 7. Pendências
 
-- Models Django (`CodigoCadastro`, `UsoCodigoCadastro`, `CodigoVinculo`), helpers HMAC, serializers, endpoints, throttling e testes ainda precisam ser implementados.
+- A implementação inclui regras de HMAC, endpoints, limites de uso e testes.
 - O fluxo de deploy `aplicar_esquema` precisa conseguir aplicar V3 em bancos que já contenham V1 (incluindo Neon), sem recriar o banco.
 - A divergência preexistente entre o model `Responsavel` e a V2 precisa ser resolvida para o `verificar_esquema` passar.
 - Requisitos, regras de negócio e modelos de dados gerais devem ser revisados à luz dos novos fluxos.

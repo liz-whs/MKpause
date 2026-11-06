@@ -2,25 +2,17 @@
 
 namespace App\Mkpause;
 
-/**
- * Tokens assinados no formato de django.core.signing (dumps/loads com TimestampSigner).
- * Usado no link do convite ao responsável. Manter o formato faz os links enviados pelo
- * backend anterior continuarem abrindo.
- *
- * Formato: base64url(json) ":" timestamp_base62 ":" base64url(hmac_sha256)
- */
-class AssinaturaDjango
+class AssinaturaTemporizada
 {
     private const B62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
     public static function assinar(array $dados, string $sal): string
     {
-        $json = json_encode($dados, JSON_UNESCAPED_SLASHES); // separadores compactos, como o Django
+        $json = json_encode($dados, JSON_UNESCAPED_SLASHES);
         $valor = self::b64(self::latin1($json)).':'.self::base62(time());
         return $valor.':'.self::assinatura($valor, $sal);
     }
 
-    /** Devolve os dados, ou null se a assinatura não confere ou passou de $idadeMaxima segundos. */
     public static function abrir(string $token, string $sal, int $idadeMaxima): ?array
     {
         $partes = explode(':', $token);
@@ -36,7 +28,7 @@ class AssinaturaDjango
             return null;
         }
         if (str_starts_with($dados, '.')) {
-            return null; // comprimido: o MKpause não gera
+            return null;
         }
         $json = base64_decode(strtr($dados, '-_', '+/'), true);
         $valor = $json === false ? null : json_decode($json, true);
@@ -56,7 +48,7 @@ class AssinaturaDjango
 
     private static function latin1(string $json): string
     {
-        return $json; // json_encode já escapa caracteres fora do ASCII (\uXXXX), como o Python
+        return $json;
     }
 
     private static function base62(int $n): string

@@ -5,18 +5,12 @@ namespace App\Mkpause;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Cookie;
 
-/**
- * Proteção CSRF no formato do Django, que a interface já usa:
- * GET /api/auth/csrf/ entrega o cookie `csrftoken`; pedidos que alteram dados mandam o
- * mesmo valor no cabeçalho X-CSRFToken. Também confere a origem do pedido.
- */
 class Csrf
 {
     public const COOKIE = 'csrftoken';
     private const CARACTERES = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     private const TAMANHO = 32;
 
-    /** Segredo atual (cookie) ou um novo. */
     public static function segredo(Request $request): string
     {
         $atual = (string) $request->cookies->get(self::COOKIE, '');
@@ -24,7 +18,6 @@ class Csrf
         return self::formatoValido($atual) && strlen($atual) === self::TAMANHO ? $atual : self::aleatorio();
     }
 
-    /** Valor devolvido no JSON de /api/auth/csrf/ (mascarado, 64 caracteres, como o Django). */
     public static function mascarar(string $segredo): string
     {
         $mascara = self::aleatorio();
@@ -41,7 +34,6 @@ class Csrf
             config('mkpause.cookies_seguros'), false, false, Cookie::SAMESITE_LAX);
     }
 
-    /** Lança 403 se o pedido não passa na verificação. Só para pedidos que alteram dados. */
     public static function exigir(Request $request): void
     {
         $origem = $request->headers->get('Origin');

@@ -4,18 +4,6 @@ namespace App\Mkpause;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Valida o corpo JSON com as mesmas regras e mensagens dos serializers do Django REST
- * Framework, para a interface continuar mostrando os mesmos textos.
- *
- * Uso:
- *   $e = new Entrada($dados);
- *   $nome = $e->texto('nome_completo', max: 150);
- *   $e->falharSeHouverErros();
- *
- * Cada campo para no primeiro erro (como no DRF). Com $parcial (PATCH), campos ausentes
- * não são obrigatórios. Um campo ausente e opcional devolve Entrada::AUSENTE.
- */
 class Entrada
 {
     public const AUSENTE = Ausente::Campo;
@@ -26,7 +14,6 @@ class Entrada
     {
     }
 
-    /** Garante que o corpo é um objeto JSON (DRF: "Esperava um dicionário"). */
     public static function do(mixed $corpo, bool $parcial = false): self
     {
         if (!is_array($corpo) || ($corpo !== [] && array_is_list($corpo))) {
@@ -63,10 +50,6 @@ class Entrada
         }
     }
 
-    /**
-     * Começo comum a todos os campos: ausente, nulo.
-     * Devolve [continuar?, valor].
-     */
     private function inicio(string $campo, bool $obrigatorio, mixed $padrao, bool $nulo): array
     {
         if (!array_key_exists($campo, $this->dados)) {
@@ -158,7 +141,6 @@ class Entrada
         return $numero;
     }
 
-    /** $opcoes: valores aceitos (texto ou inteiro); compara como o DRF, pela forma em texto. */
     public function escolha(string $campo, array $opcoes, bool $obrigatorio = true, bool $nulo = false,
                             mixed $padrao = self::AUSENTE): mixed
     {
@@ -195,7 +177,6 @@ class Entrada
         return null;
     }
 
-    /** Data AAAA-MM-DD (devolve o texto normalizado). */
     public function data(string $campo, bool $obrigatorio = true, bool $nulo = false): mixed
     {
         [$seguir, $valor] = $this->inicio($campo, $obrigatorio, self::AUSENTE, $nulo);
@@ -210,7 +191,6 @@ class Entrada
         return null;
     }
 
-    /** ID de outra tabela (PrimaryKeyRelatedField). */
     public function referencia(string $campo, string $tabela, string $chave, bool $obrigatorio = true,
                                bool $nulo = false): mixed
     {
@@ -247,7 +227,6 @@ class Entrada
             return floor($valor) == $valor ? (int) $valor : null;
         }
         if (is_string($valor) && strlen($valor) <= 1000) {
-            // DRF aceita "5" e "5.0", mas não "5.5".
             $sem = preg_replace('/\.0*$/', '', trim($valor));
             return preg_match('/^[+-]?\d+$/', $sem) ? (int) $sem : null;
         }
