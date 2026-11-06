@@ -199,21 +199,24 @@ class AcompanhamentoController extends Controller
             ->where('s.id_estudante', $estudante->id_estudante)->where('s.status', 'CONCLUIDA')
             ->where('s.iniciada_em', '>=', Formato::banco($inicio))->where('s.iniciada_em', '<', Formato::banco($fim))
             ->orderBy('s.iniciada_em')->orderBy('s.id_sessao')->select('s.id_sessao', 's.iniciada_em', 'a.tipo')->get();
+        // Somente registros novos categóricos: não inferir emoção a partir da escala histórica 1–5.
+        $emocoes = SessoesController::EMOCOES;
         $humores = DB::table('registro_humor')->whereIn('id_sessao', $sessoes->pluck('id_sessao'))
-            ->whereIn('momento', ['PRE', 'POS'])->whereBetween('estado', [1, 5])->orderBy('id_registro_humor')
-            ->get()->groupBy('id_sessao');
+            ->whereIn('momento', ['PRE', 'POS'])->whereIn('emocao', $emocoes)
+            ->orderBy('id_registro_humor')->get()->groupBy('id_sessao');
 
-        $antes = $depois = array_fill(1, 5, 0);
+        $antes = array_fill_keys($emocoes, 0);
+        $depois = array_fill_keys($emocoes, 0);
         $atividades = ['RESPIRACAO' => 0, 'JOGO' => 0, 'VIDEO' => 0];
         $evolucao = [];
-        $aumentou = $manteve = $diminuiu = 0;
+        $mesmaEmocao = $terminouLeve = 0;
         foreach ($sessoes as $s) {
             $porMomento = [];
             foreach ($humores[$s->id_sessao] ?? [] as $h) {
-                $porMomento[$h->momento] = (int) $h->estado;
+                $porMomento[$h->momento] = $h->emocao;
             }
-            if (count($porMomento) !== 2) {
-                continue; // Não usar sessão com registro incompleto.
+            if (!isset($porMomento['PRE'], $porMomento['POS'])) {
+                continue;
             }
             [$pre, $pos] = [$porMomento['PRE'], $porMomento['POS']];
             $antes[$pre]++;
@@ -221,9 +224,8 @@ class AcompanhamentoController extends Controller
             if (array_key_exists($s->tipo, $atividades)) {
                 $atividades[$s->tipo]++;
             }
-            $aumentou += $pos > $pre;
-            $manteve += $pos === $pre;
-            $diminuiu += $pos < $pre;
+            $mesmaEmocao += $pre === $pos;
+            $terminouLeve += in_array($pos, ['feliz', 'calmo'], true);
             $evolucao[] = [
                 'id_sessao' => (int) $s->id_sessao,
                 'data' => Formato::instante($s->iniciada_em)->setTimezone(Formato::FUSO)->format('Y-m-d'),
@@ -239,16 +241,15 @@ class AcompanhamentoController extends Controller
             'periodo' => ['dias' => $dias, 'inicio' => $inicio->format('Y-m-d'), 'fim' => $hoje->format('Y-m-d')],
             'resumo' => [
                 'sessoes_concluidas' => $total,
-                'humor_aumentou' => $aumentou,
-                'humor_manteve' => $manteve,
-                'humor_diminuiu' => $diminuiu,
-                'percentual_aumento' => $total ? round($aumentou * 100 / $total, 1) : null,
+                'mesma_emocao' => $mesmaEmocao,
+                'terminou_leve' => $terminouLeve,
+                'percentual_terminou_leve' => $total ? round($terminouLeve * 100 / $total, 1) : null,
             ],
             'evolucao' => $evolucao,
-            'distribuicao_humor' => array_map(fn ($estado) => ['estado' => $estado, 'antes' => $antes[$estado],
-                'depois' => $depois[$estado]], range(1, 5)),
+            'distribuicao_humor' => array_map(fn ($emocao) => ['emocao' => $emocao, 'antes' => $antes[$emocao],
+                'depois' => $depois[$emocao]], $emocoes),
             'atividades' => array_map(fn ($tipo) => ['tipo' => $tipo, 'quantidade' => $atividades[$tipo]], array_keys($atividades)),
-            'aviso' => 'Indicadores descritivos de autorrelato; não constituem diagnóstico.',
+            'aviso' => 'Emoções autorrelatadas; não constituem diagnóstico nem medem melhora clínica.',
         ]);
     }
 }
