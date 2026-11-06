@@ -3,10 +3,9 @@
 API JSON em **PHP 8.2 + Laravel 12**, sobre o banco PostgreSQL criado pelo Flyway
 (`database/migrations/`). Não tem HTML nem CSS: a interface (`src/web`) consome esta API.
 
-O backend foi reescrito do Django para o Laravel mantendo **as mesmas rotas, os mesmos
-formatos de resposta e as mesmas mensagens**. A interface não mudou. As senhas, os códigos de
-cadastro/vínculo e os links de convite criados antes continuam valendo, porque o PHP usa os
-mesmos formatos (hash PBKDF2 do Django, HMAC e assinatura com a `DJANGO_SECRET_KEY`).
+O backend usa Laravel mantendo as rotas, os formatos de resposta e as mensagens públicas. As
+senhas, os códigos de cadastro/vínculo e os links de convite usam PBKDF2, HMAC e assinatura com
+a `MKPAUSE_SECRET_KEY`.
 
 ## Como rodar
 
@@ -54,7 +53,7 @@ O `npm run backend` liga as extensões do PHP que faltarem (no XAMPP, por exempl
 | `routes/api.php` | Todas as rotas e quem pode usar cada uma |
 | `app/Http/Controllers/` | Uma classe por área: `Autenticacao`, `Cadastros` (admin, vínculos, meus estudantes), `Atividades`, `Sessoes`, `Alertas`, `Acompanhamento` (ficha, avisos, painel clínico), `Codigos`, `Convites` (convites e e-mails) |
 | `app/Http/Middleware/Autenticar.php` | Login pela sessão, CSRF e perfil exigido pela rota |
-| `app/Mkpause/` | Regras e peças comuns: `Conta` (perfil do usuário), `Permissoes`, `Entrada` (validação com as mensagens da API), `Cadastros`, `Convites`, `Emails`, `Codigos`, `Csrf`, `Limite`, `Formato` (datas), `SenhaDjango`, `AssinaturaDjango` |
+| `app/Mkpause/` | Regras e peças comuns: `Conta` (perfil do usuário), `Permissoes`, `Entrada` (validação com as mensagens da API), `Cadastros`, `Convites`, `Emails`, `Codigos`, `Csrf`, `Limite`, `Formato` (datas), `SenhaPbkdf2`, `AssinaturaTemporizada` |
 | `app/Console/Commands/` | Os comandos `mkpause:*` |
 | `config/mkpause.php` | Configurações do MKpause (lidas das variáveis de ambiente) |
 
@@ -75,7 +74,7 @@ o backend só lê e grava (`database/migrations/` do Laravel fica vazia de prop�
 
 ## Autenticação
 
-- A identidade é a tabela `usuario`; `senha_hash` usa o formato do Django (`pbkdf2_sha256$...`).
+- A identidade é a tabela `usuario`; `senha_hash` usa o formato `pbkdf2_sha256$...`.
 - O perfil é descoberto pela tabela de perfil ativa que aponta para o usuário.
 - A sessão fica num cookie (`sessionid`) e dura 8 horas. Desativar a conta corta o acesso na hora.
 - **CSRF:** antes de POST, PATCH ou DELETE, a interface chama `GET /api/auth/csrf/` e envia o cookie `csrftoken` no cabeçalho `X-CSRFToken`.
@@ -156,7 +155,7 @@ Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "est
 
 ## Pendências conhecidas
 
-- **Testes automatizados em PHP:** a equivalência com o backend Django foi comprovada por um roteiro de 237 pedidos HTTP (todas as áreas, inclusive erros), com respostas idênticas. Ainda falta transformar esse roteiro em testes PHPUnit dentro do repositório.
+- **Testes automatizados em PHP:** ainda falta transformar o roteiro de pedidos HTTP em testes PHPUnit dentro do repositório.
 - **Entrega externa de e-mail:** falta configurar um provedor SMTP; o padrão é a caixa local.
 - **Perfil exclusivo:** o banco não impede um usuário em duas tabelas de perfil; o login escolhe pela ordem em `app/Mkpause/Conta.php`.
-- Antes de publicar: `DJANGO_DEBUG=0`, uma `DJANGO_SECRET_KEY` de verdade e HTTPS. (Os nomes das variáveis foram mantidos para não mudar o Render.)
+- Antes de publicar: `APP_DEBUG=false`, uma `MKPAUSE_SECRET_KEY` de verdade e HTTPS.

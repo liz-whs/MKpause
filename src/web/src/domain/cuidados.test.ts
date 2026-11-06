@@ -6,6 +6,15 @@ const d = (dia: number, mes = 10) => new Date(2026, mes - 1, dia);
 const dias = (...lista: Date[]) => new Set(lista.map(chaveDia));
 
 describe('calcularSequencia', () => {
+  it('não limita sequências reais a cinco dias nem a 400 dias de calendário', () => {
+    const feitos = new Set<string>();
+    const data = new Date(2026, 10, 5);
+    while (feitos.size < 500) {
+      if (data.getDay() !== 0 && data.getDay() !== 6) feitos.add(chaveDia(data));
+      data.setDate(data.getDate() - 1);
+    }
+    expect(calcularSequencia(feitos, new Date(2026, 10, 5))).toBe(500);
+  });
   it('conta dias úteis seguidos com cuidado', () => {
     expect(calcularSequencia(dias(d(28), d(29), d(30)), d(30))).toBe(3);
   });

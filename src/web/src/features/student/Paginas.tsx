@@ -21,12 +21,12 @@ import { AvisoPedidos, CompartilharCodigo, SolicitacoesPendentes, useEuEstudante
 import { OpcoesPreferencias } from '../../preferencias/PainelPreferencias';
 import { IDIOMAS, usePreferencias } from '../../preferencias/preferencias';
 import { t } from '../../i18n';
+import { RetornoSala } from '../../components/student/RetornoSala';
 
 export function Inicio() {
   const { perfil, avisoSaida } = useEstudante();
-  // Com um aviso de saída ativo, o nível 2 volta para a tela "Fora da sala" (onde fica o "Voltei").
   const eu = useEuEstudante();
-  const niveis = NIVEIS.map((n) => (n.nivel === 2 && avisoSaida ? { ...n, destino: '/estudante/fora-da-sala' } : n));
+  const niveis = NIVEIS.map((n) => (n.nivel === 2 && avisoSaida ? { ...n, destino: '/estudante/pausa' } : n));
 
   return (
     <>
@@ -35,6 +35,7 @@ export function Inicio() {
         <ScreenTitle>{t('Oi, {nome}!', { nome: perfil.apelido })}</ScreenTitle>
       </div>
       <AvisoPedidos eu={eu} />
+      <RetornoSala />
       {/* No computador: níveis à esquerda, sequência de cuidados à direita. */}
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-6">
         <section aria-labelledby="titulo-pausa" className="flex flex-col gap-2.5">
@@ -75,7 +76,7 @@ export function atividades(): AtividadeInfo[] {
     id: c.id,
     // Conteúdo da escola: os nomes conhecidos têm tradução; os novos aparecem como cadastrados.
     titulo: t(c.nome),
-    detalhe: c.tipo === 'Exercício' ? t(c.duracao) : `${t(c.tipo)} · ${t(c.duracao)}`,
+    detalhe: t(c.tipo),
     ...VISUAL[c.id],
   }));
 }

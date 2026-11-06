@@ -39,7 +39,7 @@ Início ──(Começar)──► Jogando ──(Pausar / Esc)──► Respira�
   ▲                     │  ▲                          │
   │                     │  └─────(Continuar / Esc)────┘
   │                     │                             │
-  │              (Encerrar ou 2 min)            (Encerrar)
+  │              (Encerrar)            (Encerrar)
   │                     ▼                             │
   └──(Voltar ao início)─ Final ◄──────────────────────┘
                           │
@@ -50,8 +50,8 @@ Início ──(Começar)──► Jogando ──(Pausar / Esc)──► Respira�
 |-------------|-------------------|--------------------------------------------------------------------------------|
 | `inicio`    | Início            | Escolha do ritmo (**Lento** ou **Moderado**) e botão **Começar**. Bolinhas decorativas flutuam ao fundo. |
 | `jogando`   | Jogo              | Teclas descem em 4 colunas. Tocar uma tecla toca a nota e solta partículas.     |
-| `pausado`   | Respiração guiada | Círculo que expande ("Inspire") e contrai ("Expire"). O tempo de jogo fica parado. |
-| `final`     | Encerramento      | Mensagem de acolhimento, tempo dedicado e opções de jogar novamente ou voltar.  |
+| `pausado`   | Respiração guiada | Círculo que expande ("Inspire") e contrai ("Expire"). Sem cronômetro de jogo. |
+| `final`     | Encerramento      | Mensagem de acolhimento e opções de jogar novamente ou voltar.  |
 
 As trocas de tela usam um esmaecimento curto (`opacidade_transicao`).
 
@@ -98,7 +98,7 @@ Os sons são **gerados pelo próprio código** (`criar_sons()`): uma onda senoid
 
 - Uma tecla que chega à linha verde sem ser tocada apenas se desfaz em partículas.
 - O contador mostra só **quantas notas foram tocadas**, nunca erros.
-- A sessão termina sozinha após **2 minutos** (`DURACAO = 120`) ou quando o estudante escolhe **Encerrar**.
+- A sessão não tem limite de tempo nem cronômetro. Termina quando o estudante escolhe **Encerrar**.
 
 ---
 
@@ -153,7 +153,7 @@ Todo o jogo está em [`main.py`](./main.py).
 
 | Parte                     | Funções / constantes                                                       |
 |---------------------------|----------------------------------------------------------------------------|
-| Configuração              | `LARGURA`, `ALTURA`, cores, fontes, `DURACAO`, `VOLUME_FIXO`               |
+| Configuração              | `LARGURA`, `ALTURA`, cores, fontes, `VOLUME_FIXO`               |
 | Áudio                     | `frequencias`, `criar_sons()`                                              |
 | Melodia e teclas          | `MELODIAS`, `obter_proxima_nota()`, `criar_tecla()`, `tocar_tecla()`       |
 | Partículas                | `criar_particulas()`, `atualizar_particulas()`, `desenhar_particulas()`    |
@@ -168,7 +168,6 @@ Todo o jogo está em [`main.py`](./main.py).
 
 | Quero mudar…                         | Onde                                                     |
 |--------------------------------------|----------------------------------------------------------|
-| Duração da sessão                    | `DURACAO`                                                |
 | Volume                               | `VOLUME_FIXO`                                            |
 | Velocidade de cada ritmo             | `velocidade` e `tempo_base` em `main()` e `iniciar_jogo()` |
 | Melodias                             | `MELODIAS` (pares `(coluna, duração)`)                   |

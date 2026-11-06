@@ -56,11 +56,15 @@ class BreathingTests(unittest.TestCase):
         ex.extend()
         self.assertEqual(ex.state, RUNNING)
 
-    def test_duration_between_30_and_60_seconds_by_default(self):
+    def test_default_runs_continuously_until_user_stops(self):
         for inhale, exhale in ((3, 4), (4, 6), (3, 3)):
-            cycles = max(1, round(45 / (inhale + exhale)))
-            total = BreathingExercise(inhale, exhale, cycles).total_duration
-            self.assertTrue(30 <= total <= 60, total)
+            exercise = BreathingExercise(inhale, exhale)
+            exercise.start()
+            exercise.update(3600)
+            self.assertEqual(exercise.state, RUNNING)
+            self.assertIn(exercise.phase, (INHALE, EXHALE))
+            exercise.stop()
+            self.assertEqual(exercise.state, IDLE)
 
     def test_update_is_non_blocking(self):
         ex = BreathingExercise(3, 4, cycles=6)

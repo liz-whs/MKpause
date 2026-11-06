@@ -2,7 +2,7 @@
 
 Site do MKpause para estudantes, profissionais e administração. Feito a partir do protótipo e do `HANDOFF.md`.
 
-**Stack:** React, Vite, TypeScript, Tailwind CSS 4 e React Router, com API Django e banco PostgreSQL. Nos testes, os dados são de exemplo, em memória.
+**Stack:** React, Vite, TypeScript, Tailwind CSS 4 e React Router, com API PHP/Laravel e banco PostgreSQL. Nos testes, os dados são de exemplo, em memória.
 
 ## Como rodar
 
@@ -20,7 +20,7 @@ npm run build    # versão de produção em dist/
 
 Inicie o backend conforme o [README do backend](../../backend/README.md). O Vite encaminha `/api/` para `127.0.0.1:8000`.
 
-O comando `python manage.py criar_demo`, executado em `backend/`, cria as contas abaixo. Use a senha definida em `DEMO_SENHA` ou passada com `--senha`:
+O comando `php artisan mkpause:criar-demo`, executado em `backend/`, cria as contas abaixo. Use a senha definida em `DEMO_SENHA` ou passada com `--senha`:
 
 | E-mail | Perfil |
 |---|---|
@@ -34,7 +34,7 @@ O login com qualquer senha e os atalhos por nome de perfil existem apenas nos te
 
 ### Códigos de acesso
 
-O cadastro por código e os pedidos de vínculo usam a API Django conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Execute `python manage.py aplicar_esquema` em `backend/` para aplicar a V3 da Liz em um banco com V1. Os convites criam contas reais, e o aceite do estudante cria ou reativa o vínculo no banco. A simulação fica restrita aos testes; erros da API aparecem na tela.
+O cadastro por código e os pedidos de vínculo usam a API Laravel conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Execute `php artisan mkpause:aplicar-esquema` em `backend/` para aplicar os esquemas SQL ausentes. Os convites criam contas reais, e o aceite do estudante cria ou reativa o vínculo no banco. A simulação fica restrita aos testes; erros da API aparecem na tela.
 
 ### Dashboard clínico V5
 
@@ -66,7 +66,7 @@ src/
 - **Níveis:**
   - nível 3 manda o alerta sozinho, com "Cancelar aviso";
   - nível 2 avisa quem acompanha;
-  - nível 1 sugere "Ir direto" com ansioso, triste ou irritado.
+  - nível 1 permite escolher a emoção e continuar diretamente para a atividade.
 - **Sem "Pedir ajuda":** a escola é avisada automaticamente quando o estudante toca no nível 3 ("Não estou bem"). Se ainda não estiver bem no fim de uma pausa, o "E agora?" leva ao nível 3. A linha 188/192 aparece no fim do nível 3 e no Perfil.
 - **Humor:** 6 emoções, sem intensidade.
 - **Cuidados:**
@@ -116,9 +116,9 @@ Jogo de organizar líquidos da Ana (`src/MKpotion/mk_potion`), compilado com o p
 
 ## Indicadores em PHP e vídeo de respiração
 
-Execute `npm run indicadores` em outro terminal junto do Django e do Vite. O painel fica em `/admin/indicadores`, exige administrador e usa apenas agregados com supressão de grupos pequenos. Veja [execução e testes do PHP](../indicadores/README.md) e [hospedagem Docker](../../docs/indicadores-php.md).
+Execute `npm run indicadores` em outro terminal junto do Laravel (`npm run backend`) e do Vite. O painel fica em `/admin/indicadores`, exige administrador e usa apenas agregados com supressão de grupos pequenos. Veja [execução e testes do PHP](../indicadores/README.md) e [hospedagem Docker](../../docs/indicadores-php.md).
 
-A atividade Vídeo usa arquivos locais de 30 segundos em `public/videos/`: 1080 × 1920 no celular e 1280 × 720 no computador, capas e legendas PT/EN/ES. O gerador está em `scripts/video-respiracao.py` e requer Pillow, ffmpeg e as fontes do PianoPause.
+A atividade Vídeo usa arquivos locais de 30 segundos em `public/videos/`, renderizados em 4K a 60 fps: 2160 × 3840 no celular e 3840 × 2160 no computador, com capas na resolução nativa e legendas PT/EN/ES. A onda é periódica, sem reinício brusco do marcador no loop. O botão central de play desaparece durante a reprodução; clicar no centro pausa e mostra o play novamente. O controle continua acessível por teclado e leitor de tela. O gerador está em `scripts/video-respiracao.py` e requer Pillow, ffmpeg e as fontes do PianoPause.
 
 ## Acessibilidade e idioma
 
@@ -145,3 +145,13 @@ Botão **Acessibilidade e idioma** no topo de todas as telas (e as mesmas opçõ
   - cadastro de professores e psicólogos;
   - editar e adicionar conteúdo.
 - **Cor do hover:** a cor do HANDOFF (`#9D7D63`) não chega a 4,5:1. Os botões usam `#6E5442` sob o cursor, e os links ganham um sublinhado mais grosso.
+
+### Atividades no ritmo do estudante
+
+Respire&Pause, jogos e vídeos não exibem duração ou cronômetro. Respire&Pause e a respiração interna do MK Potion continuam até o estudante pausar ou sair. O PianoPause não encerra automaticamente por tempo. Os vídeos em loop mostram apenas as instruções de respirar, sem contagem de segundos.
+
+### Sequência de cuidados
+
+A sequência usa apenas marcações reais: ao menos um cuidado em cada dia útil, sem somar ou interromper a contagem no fim de semana. Um dia ainda em aberto não interrompe a sequência. Os registros são preservados por estudante no `localStorage` deste navegador (`mkpause:cuidados:v1:<id>`), atualizados entre abas e na virada do dia. Não há sincronização desses cuidados com o backend ou entre dispositivos.
+
+Foram removidos os cinco dias de exemplo gerados na inicialização. Na atualização de uma sessão antiga, somente as marcações existentes em `cuidadosHoje` são migradas: a lista antiga `diasComCuidado` misturava exemplos com dias reais e não permite recuperar com segurança um histórico completo.

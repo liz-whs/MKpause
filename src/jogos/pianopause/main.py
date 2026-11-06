@@ -120,13 +120,11 @@ fonte_botao_grande = carregar_fonte("Lexend-SemiBold.ttf", 26)
 fonte_media = carregar_fonte("Lexend-SemiBold.ttf", 19)
 fonte_pequena = carregar_fonte("Lexend-SemiBold.ttf", 14)
 
-DURACAO = 120
 VOLUME_FIXO = 0.45
 
 ritmo = "Lento"
 estado = "inicio"
 
-tempo = 0.0
 tempo_spawn = 0.0
 intervalo_spawn = 1.15
 notas_tocadas = 0
@@ -718,14 +716,12 @@ def criar_tecla():
 
 
 def iniciar_jogo():
-    global tempo
     global tempo_spawn
     global intervalo_spawn
     global notas_tocadas
     global indice_melodia
     global indice_frase
 
-    tempo = 0.0
     tempo_spawn = 0.0
     notas_tocadas = 0
 
@@ -850,17 +846,6 @@ def desenhar_jogo():
         *L["botao_encerrar_jogo"],
         CACAO,
         BRANCO,
-        fonte_pequena
-    )
-
-    tempo_decorrido = int(tempo)
-    minutos = tempo_decorrido // 60
-    segundos = tempo_decorrido % 60
-
-    texto(
-        f"Tempo: {minutos:02d}:{segundos:02d}",
-        *L["jogo_tempo"],
-        CACAO,
         fonte_pequena
     )
 
@@ -1100,24 +1085,6 @@ def desenhar_final():
         fonte_pequena
     )
 
-    tempo_final = int(tempo)
-    minutos = tempo_final // 60
-    segundos = tempo_final % 60
-
-    pygame.draw.rect(
-        tela,
-        BRANCO,
-        retangulo(L["final_caixa"]),
-        border_radius=px(18)
-    )
-
-    texto(
-        f"Tempo: {minutos:02d}:{segundos:02d}",
-        *L["final_tempo"],
-        CACAO,
-        fonte_media
-    )
-
     botao(
         "Jogar novamente",
         *L["botao_jogar_novamente"],
@@ -1219,7 +1186,6 @@ def clique(x, y):
 
 
 async def main():
-    global tempo
     global tempo_spawn
     global intervalo_spawn
     global tempo_respiracao
@@ -1260,7 +1226,6 @@ async def main():
                         mudar_estado("jogando")
 
         if estado == "jogando":
-            tempo += dt
             tempo_spawn += dt
 
             velocidade = (
@@ -1309,10 +1274,6 @@ async def main():
                     teclas.remove(tecla)
 
             atualizar_particulas(dt)
-
-            if tempo >= DURACAO:
-                tempo = DURACAO
-                mudar_estado("final")
 
         elif estado == "pausado":
             tempo_respiracao += dt

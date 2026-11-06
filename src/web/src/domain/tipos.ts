@@ -111,6 +111,5 @@ export interface Conteudo {
   id: AtividadeId;
   nome: string;
   tipo: 'Exercício' | 'Jogo' | 'Vídeo';
-  duracao: string;
   disponivel: boolean;
 }

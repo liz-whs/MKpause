@@ -4,13 +4,6 @@ namespace App\Mkpause;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Usuário logado e o perfil dele.
- *
- * A identidade é a tabela `usuario`; o perfil é descoberto pela tabela de perfil ativa que
- * aponta para ele. Se o mesmo usuário estiver em mais de uma (a V1 não impede), vale a ordem
- * abaixo, igual à do backend anterior.
- */
 class Conta
 {
     public const ESTUDANTE = 'estudante';
@@ -21,7 +14,6 @@ class Conta
 
     public const PROFISSIONAIS = [self::PROFESSOR, self::PSICOLOGO_ESCOLAR, self::PSICOLOGO_CLINICO];
 
-    /** perfil => [tabela, chave primária] */
     public const TABELAS = [
         self::ADMINISTRADOR => ['administrador', 'id_administrador'],
         self::PSICOLOGO_CLINICO => ['psicologo_clinico', 'id_psicologo_clinico'],
@@ -35,7 +27,6 @@ class Conta
     {
     }
 
-    /** Carrega o usuário ativo com um perfil ativo; null se a conta não pode entrar. */
     public static function carregar(int|string|null $idUsuario): ?self
     {
         if ($idUsuario === null) {
@@ -72,7 +63,6 @@ class Conta
         return in_array($this->perfil, $perfis, true);
     }
 
-    /** Resposta de /api/auth/login/ e /api/auth/eu/. */
     public function dados(): array
     {
         return [

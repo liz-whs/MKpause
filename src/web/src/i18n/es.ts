@@ -190,13 +190,8 @@ export const es: Record<string, string> = {
   Triste: 'Triste',
   'Irritado(a)': 'Irritado(a)',
   'Cansado(a)': 'Cansado(a)',
-  'Está pesado demais?': '¿Es demasiado pesado?',
-  'Vá direto para a respiração.': 'Ve directo a la respiración.',
-  'Ir direto': 'Ir directo',
-  'Agora não': 'Ahora no',
   Continuar: 'Continuar',
   'Escolha como está': 'Elige cómo estás',
-  'Sua turma não vê o que você responde.': 'Tu grupo no ve lo que respondes.',
   'Sair da pausa': 'Salir de la pausa',
   Atividade: 'Actividad',
   'Escolha uma atividade': 'Elige una actividad',
@@ -220,7 +215,6 @@ export const es: Record<string, string> = {
   'Quer contar algo?': '¿Quieres contar algo?',
   'Escreva aqui': 'Escribe aquí',
   Finalizar: 'Finalizar',
-  'Ainda não está bem?': '¿Todavía no estás bien?',
   'Pausa feita': 'Pausa hecha',
   'Pausa feita!': '¡Pausa hecha!',
   Antes: 'Antes',
@@ -243,7 +237,6 @@ export const es: Record<string, string> = {
   'Fora da sala': 'Fuera del aula',
   Avisado: 'Avisado',
   'Desde {hora}': 'Desde las {hora}',
-  'Quem sabe': 'Quién sabe',
   'Começar pausa': 'Empezar pausa',
   Voltei: 'Volví',
   'Bom retorno!': '¡Bienvenido(a) de vuelta!',
@@ -630,8 +623,16 @@ export const es: Record<string, string> = {
 
   // Vídeo de respiração
   'Vídeo de respiração guiada: inspire por 5 segundos e solte o ar por 5 segundos, três vezes.': 'Video de respiración guiada: inhala durante 5 segundos y exhala durante 5 segundos, tres veces.',
-  'Respiração guiada em vídeo': 'Respiración guiada en video',
+  'MK Breath': 'MK Breath',
+  'Respire&Pause': 'Respire&Pause',
+  'Vídeo de respiração guiada: acompanhe os movimentos para inspirar e soltar o ar no seu ritmo.': 'Vídeo de respiración guiada: sigue los movimientos para inhalar y exhalar a tu ritmo.',
   '30 s': '30 s',
+
+  'O vídeo se repete até você pausar. Use o botão central para reproduzir ou pausar.': 'El vídeo se repite hasta que lo pauses. Usa el botón central para reproducir o pausar.',
+  'Pausar vídeo': 'Pausar vídeo',
+  'Reproduzir vídeo': 'Reproducir vídeo',
+  'Legendas': 'Subtítulos',
+  'Não foi possível reproduzir o vídeo. Toque em reproduzir para tentar novamente.': 'No se pudo reproducir el vídeo. Pulsa reproducir para intentarlo de nuevo.',
 
   // Dashboard clínico V5
   "Carregando gráficos do estudante…": "Cargando gráficos del estudiante…",

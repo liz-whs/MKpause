@@ -5,10 +5,10 @@ namespace MKpause\Indicadores;
 
 /**
  * Configuração do serviço, lida das variáveis de ambiente.
- * Em desenvolvimento, se as variáveis não existirem, lê o mesmo backend/.env do Django.
+ * Em desenvolvimento, se as variáveis não existirem, lê backend/.env.
  *
  *   DATABASE_URL            postgres://usuario:senha@host:porta/banco   (ou DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT)
- *   DJANGO_API              endereço do Django para conferir a sessão (padrão http://127.0.0.1:8000)
+ *   MKPAUSE_API_URL         endereço da API para conferir a sessão (padrão http://127.0.0.1:8000)
  *   INDICADORES_TIMEZONE    fuso para agrupar por dia e hora (padrão America/Sao_Paulo)
  */
 final class Configuracao
@@ -69,9 +69,9 @@ final class Configuracao
         return [$dsn, $this->get('DB_USER', 'postgres'), $this->get('DB_PASSWORD')];
     }
 
-    public function djangoApi(): string
+    public function apiInterna(): string
     {
-        return rtrim($this->get('DJANGO_API', 'http://127.0.0.1:8000'), '/');
+        return rtrim($this->get('MKPAUSE_API_URL', 'http://127.0.0.1:8000'), '/');
     }
 
     public function fuso(): string

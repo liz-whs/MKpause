@@ -6,7 +6,7 @@ namespace MKpause\Indicadores;
 /**
  * Quem pode ver os indicadores: só o administrador.
  *
- * O PHP não tem login próprio. Ele repassa o cookie de sessão do navegador ao Django
+ * O módulo não tem login próprio. Ele repassa o cookie de sessão do navegador à API
  * (GET /api/auth/eu/) e confia na resposta: assim vale a mesma conta, a mesma
  * expiração e o mesmo "Sair" do resto do MKpause.
  */
@@ -23,7 +23,7 @@ final class Autorizacao
     }
 
     /**
-     * Devolve a conta logada (como o Django descreve) ou lança ErroHttp 401/403.
+     * Devolve a conta logada ou lança ErroHttp 401/403.
      * @return array<string, mixed>
      */
     public function exigirAdministrador(string $cookie): array
@@ -31,7 +31,7 @@ final class Autorizacao
         if (trim($cookie) === '' || strlen($cookie) > 8192 || preg_match('/[\r\n]/', $cookie)) {
             throw new ErroHttp(401, 'Entre com sua conta para continuar.');
         }
-        [$status, $corpo] = ($this->buscar)($this->config->djangoApi() . '/api/auth/eu/', $cookie);
+        [$status, $corpo] = ($this->buscar)($this->config->apiInterna() . '/api/auth/eu/', $cookie);
         if ($status === 401 || $status === 403) {
             throw new ErroHttp(401, 'Entre com sua conta para continuar.');
         }

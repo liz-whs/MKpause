@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { StudentHeader } from './StudentHeader';
 import { ProSidebar, type ProSidebarProps } from './ProSidebar';
 
@@ -19,9 +19,10 @@ export function StudentLayout({ iniciais }: { iniciais: string }) {
  * cada tela traz o próprio "Voltar" ou "Sair da pausa".
  */
 export function StudentFocusLayout() {
+  const video = useLocation().pathname === '/estudante/pausa/video';
   return (
     <div className="min-h-dvh bg-bg">
-      <main id="conteudo" tabIndex={-1} className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 pb-8 md:px-8">
+      <main id="conteudo" tabIndex={-1} className={video ? 'w-full' : 'mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 pb-8 md:px-8'}>
         <Outlet />
       </main>
     </div>

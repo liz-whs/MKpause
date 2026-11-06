@@ -21,10 +21,10 @@ import { t } from '../../i18n';
 import { AdicionarComCodigo } from './AdicionarComCodigo';
 
 export const NOME_ATIVIDADE: Record<AtividadeId, string> = {
-  respiracao: 'Respiração',
+  respiracao: 'Respire&Pause',
   pianopause: 'PianoPause',
   mkpotion: 'MK Potion',
-  video: 'Vídeo',
+  video: 'MK Breath',
 };
 
 const visto = (a: Alerta, profissionalId: string) => a.vistoPor?.includes(profissionalId) ?? false;

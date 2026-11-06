@@ -50,7 +50,7 @@ function titulosDasRotas(lista: RouteObject[]): string[] {
 const DINAMICAS = [
   ...titulosDasRotas(rotas),
   ...DESTINOS_SAIDA,
-  ...api.admin.conteudos().flatMap((c) => [c.nome, c.tipo, c.duracao]),
+  ...api.admin.conteudos().flatMap((c) => [c.nome, c.tipo]),
   // Menus e abas
   'Início', 'Atividades', 'Cuidados', 'Usuários', 'Vínculos', 'Fichas', 'Conteúdos', 'Acompanhados', 'Alertas e avisos',
   'Alertas', 'Avisos de saída', 'Estudantes', 'Histórico e humor', 'Ficha de acompanhamento',

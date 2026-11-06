@@ -12,15 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Convite ao responsável e e-mails.
- *
- * GET/POST /api/admin/estudantes/<id>/convites-responsavel/   admin lista e envia
- * POST     /api/admin/convites-responsavel/<id>/revogar/       admin
- * POST     /api/convites-responsavel/verificar/ {"token"}      público (link do e-mail)
- * POST     /api/convites-responsavel/aceitar/ | recusar/       público
- * GET/POST /api/admin/emails/                                  admin vê a fila / processa agora
- */
 class ConvitesController extends Controller
 {
     public function listar(Request $request, $id)
@@ -121,8 +112,6 @@ class ConvitesController extends Controller
         return $this->json(Convites::dados($c));
     }
 
-    // ----------------------------------------------------- público (link do e-mail)
-
     public function verificar(Request $request)
     {
         Limite::exigir($request, 'convite');
@@ -173,8 +162,6 @@ class ConvitesController extends Controller
     {
         return preg_split('/\s+/', trim((string) $nome))[0] ?? '';
     }
-
-    // ------------------------------------------------------------------ e-mails
 
     public function emails(Request $request)
     {

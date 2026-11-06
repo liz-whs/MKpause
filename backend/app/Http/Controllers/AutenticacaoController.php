@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Middleware\Autenticar;
 use App\Mkpause\Conta;
 use App\Mkpause\Csrf;
-use App\Mkpause\SenhaDjango;
+use App\Mkpause\SenhaPbkdf2;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/** Login (RF01, RF10, RF19, RF26), logout, conta atual e token CSRF. */
 class AutenticacaoController extends Controller
 {
-    /** GET /api/auth/csrf/: entrega o cookie csrftoken, que a interface manda em X-CSRFToken. */
     public function csrf(Request $request)
     {
         $segredo = Csrf::segredo($request);
@@ -27,8 +25,7 @@ class AutenticacaoController extends Controller
         $e->falharSeHouverErros();
 
         $usuario = DB::table('usuario')->whereRaw('UPPER(email) = UPPER(?)', [$email])->where('ativo', true)->first();
-        $conta = $usuario && SenhaDjango::conferir($senha, $usuario->senha_hash) ? Conta::comPerfil($usuario) : null;
-        // Mesma mensagem para e-mail inexistente e senha errada.
+        $conta = $usuario && SenhaPbkdf2::conferir($senha, $usuario->senha_hash) ? Conta::comPerfil($usuario) : null;
         if ($conta === null) {
             return $this->json(['detail' => 'E-mail ou senha não conferem. Confira e tente de novo.'], 401)
                 ->header('WWW-Authenticate', 'Session');

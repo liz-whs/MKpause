@@ -8,13 +8,6 @@ use App\Mkpause\ErroApi;
 use Closure;
 use Illuminate\Http\Request;
 
-/**
- * Login pela sessão (cookie). A cada pedido a conta é recarregada do banco: desativar a
- * conta ou o perfil corta o acesso na hora.
- *
- * Uso nas rotas: 'conta' (só exige login) ou 'conta:administrador' / 'conta:professor,psicologo_escolar'.
- * Pedidos que alteram dados exigem o token CSRF.
- */
 class Autenticar
 {
     public const CHAVE_SESSAO = 'id_usuario';

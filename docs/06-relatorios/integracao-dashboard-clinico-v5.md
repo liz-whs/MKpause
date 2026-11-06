@@ -24,12 +24,12 @@ O endpoint recebido na `main` está conectado à página **Psicólogo clínico �
 | Interface V5 | Carregamento, quatro períodos, resposta atrasada, 403 após sucesso, falha de rede e nova tentativa, ausência de vínculo, percentual nulo/zero e múltiplas sessões no mesmo dia |
 | Acessibilidade automatizada | Axe sem violações na página com dados e tabela aberta; contraste não é avaliado no jsdom |
 
-As simulações HTTP usam servidor real de teste Django e banco temporário PostgreSQL, sem inserir registros no banco principal. Os testes React usam respostas controladas para exercitar os estados da interface. A inspeção visual manual no navegador não foi realizada nesta etapa.
+As simulações HTTP usam servidor real de teste da API e banco temporário PostgreSQL, sem inserir registros no banco principal. Os testes React usam respostas controladas para exercitar os estados da interface. A inspeção visual manual no navegador não foi realizada nesta etapa.
 
-Não houve push nem deploy nesta etapa. A integração usa o serviço Django existente; os indicadores agregados administrativos em PHP continuam sendo outra funcionalidade.
+Não houve push nem deploy nesta etapa. A integração usa o serviço de API existente; os indicadores agregados administrativos em PHP continuam sendo outra funcionalidade.
 
-Na checagem do localhost, a interface respondeu 200, mas o Django em `127.0.0.1:8000` ainda estava com o código antigo carregado (`runserver --noreload`) e respondeu 404 para a rota V5. A tentativa de reiniciar esse processo foi bloqueada pela política automática. É necessário reiniciar o backend manualmente antes de experimentar o painel no localhost; a nova rota foi validada no servidor temporário dos testes HTTP.
+Na checagem do localhost, a interface respondeu 200, mas a API em `127.0.0.1:8000` ainda estava com o código antigo carregado e respondeu 404 para a rota V5. A tentativa de reiniciar esse processo foi bloqueada pela política automática. É necessário reiniciar o backend manualmente antes de experimentar o painel no localhost; a nova rota foi validada no servidor temporário dos testes HTTP.
 
 ## Verificação após reinício
 
-Em 05/11/2026, após solicitação explícita do usuário, o Django foi reiniciado com o código atualizado em `127.0.0.1:8000`. A rota V5 passou a responder **401 sem autenticação**, conforme o contrato, e a interface em `http://localhost:5173/` respondeu **200**. A pendência de reinício local está resolvida. O usuário também autorizou o envio dos commits para a `main`; essa autorização não equivale à confirmação de um deploy no Render.
+Em 05/11/2026, após solicitação explícita do usuário, a API foi reiniciada com o código atualizado em `127.0.0.1:8000`. A rota V5 passou a responder **401 sem autenticação**, conforme o contrato, e a interface em `http://localhost:5173/` respondeu **200**. A pendência de reinício local está resolvida. O usuário também autorizou o envio dos commits para a `main`; essa autorização não equivale à confirmação de um deploy no Render.

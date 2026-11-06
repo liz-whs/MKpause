@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { emocaoPorId, sugereEscalada, type Emocao, type EmocaoId } from '../../domain/emocoes';
 import type { AtividadeId } from '../../domain/tipos';
-import { api } from '../../data/api';
 import { useEstudante } from '../../state/EstudanteContext';
 import { EmotionGrid } from '../../components/student/EmotionGrid';
 import { BackButton, FocusTopBar, SairDaPausa } from '../../components/student/FocusTopBar';
-import { ActivityRow, ScreenTitle, PrivacyNote } from '../../components/student/Bits';
+import { ActivityRow, ScreenTitle } from '../../components/student/Bits';
 import { BreathingCircle, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
 import { ProgressSteps } from '../../components/ui/ProgressSteps';
-import { ChoiceChips } from '../../components/ui/ChoiceChips';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Field } from '../../components/ui/Field';
@@ -18,7 +16,8 @@ import { atividades } from '../student/Paginas';
 import { EspacoDoJogo, useTelaGrande } from './JogoPianoPause';
 import mascote from '../../assets/chinchila/mascote.svg';
 import { t } from '../../i18n';
-import { usePreferencias } from '../../preferencias/preferencias';
+import { VideoRespiracao } from './VideoRespiracao';
+import { RetornoSala } from '../../components/student/RetornoSala';
 
 const ROTA_ATIVIDADE: Record<AtividadeId, string> = {
   respiracao: '/estudante/pausa/respiracao',
@@ -40,13 +39,12 @@ function Desativado({ children }: { children: string }) {
 export function Humor() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { iniciarSessao, avisoSaida } = useEstudante();
+  const { iniciarSessao } = useEstudante();
   // Vindo de Atividades, a atividade já chega escolhida; senão, escolhe na etapa 2.
   const escolhida = (location.state as { atividade?: AtividadeId } | null)?.atividade;
-  // "Voltar" leva de onde a pausa começou: Atividades, Fora da sala ou Início.
-  const voltar = escolhida ? '/estudante/atividades' : avisoSaida ? '/estudante/fora-da-sala' : '/estudante';
+  // "Voltar" leva de onde a pausa começou: Atividades ou Início.
+  const voltar = escolhida ? '/estudante/atividades' : '/estudante';
   const [emocao, setEmocao] = useState<EmocaoId | null>(null);
-  const [dispensou, setDispensou] = useState(false);
 
   const continuar = () => {
     if (!emocao) return;
@@ -62,33 +60,7 @@ export function Humor() {
       </FocusTopBar>
       <ProgressSteps current={1} total={3} label={t('Como você está')} />
       <ScreenTitle>{t('Como você está?')}</ScreenTitle>
-      <EmotionGrid
-        value={emocao}
-        onChange={(e) => {
-          setEmocao(e);
-          setDispensou(false);
-        }}
-      />
-
-      {sugereEscalada(emocao) && !dispensou && (
-        <section role="status" className="flex flex-col gap-3 rounded-card-lg bg-surface p-4.5">
-          <div className="flex items-start gap-3">
-            <span className="flex size-11 flex-none items-center justify-center rounded-full bg-rose text-dark">
-              <Icon name="mao" size={22} />
-            </span>
-            <div className="flex flex-col gap-1">
-              <h2 className="text-button">{t('Está pesado demais?')}</h2>
-              <p className="text-muted">{t('Vá direto para a respiração.')}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button to="/estudante/agora">{t('Ir direto')}</Button>
-            <Button variant="outline" onClick={() => setDispensou(true)}>
-              {t('Agora não')}
-            </Button>
-          </div>
-        </section>
-      )}
+      <EmotionGrid value={emocao} onChange={setEmocao} />
 
       <div className="mt-1 flex flex-col gap-2.5">
         {emocao ? (
@@ -98,7 +70,6 @@ export function Humor() {
         ) : (
           <Desativado>{t('Escolha como está')}</Desativado>
         )}
-        <PrivacyNote>{t('Sua turma não vê o que você responde.')}</PrivacyNote>
       </div>
     </>
   );
@@ -159,67 +130,27 @@ function CabecalhoAtividade() {
   );
 }
 
-const DURACOES = ['2 min', '5 min'] as const;
-type Duracao = (typeof DURACOES)[number];
-const SEGUNDOS: Record<Duracao, number> = { '2 min': 120, '5 min': 300 };
-
-function mmss(segundos: number) {
-  const s = Math.max(0, Math.ceil(segundos));
-  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-}
-
-/** Respiração: 4 s para inspirar, 4 s para soltar, com 2 ou 5 min. */
+/** Respiração contínua: o estudante decide quando pausar ou encerrar. */
 export function Respiracao() {
+  const navigate = useNavigate();
   const valida = useSessaoValida();
   const reduzir = usePrefersReducedMotion();
-  const [duracao, setDuracao] = useState<Duracao>('5 min');
   const [rodando, setRodando] = useState(true);
-  const total = SEGUNDOS[duracao];
-  const { t: tempo, reiniciar } = useBreathClock(rodando, reduzir);
-  const restante = total - tempo;
-  const pronto = restante <= 0;
-
-  useEffect(() => {
-    if (pronto) setRodando(false);
-  }, [pronto]);
-
+  const { t: tempo } = useBreathClock(rodando, reduzir);
   if (!valida) return <Navigate to="/estudante/pausa" replace />;
-
-  const recomecar = (d: Duracao = duracao) => {
-    setDuracao(d);
-    reiniciar();
-    setRodando(true);
-  };
-
-  return (
-    <>
-      <CabecalhoAtividade />
-      <ScreenTitle className="text-center">{t('Respiração')}</ScreenTitle>
-      <ChoiceChips
-        label={t('Duração')}
-        columns={2}
-        options={DURACOES}
-        value={duracao}
-        onChange={(d) => d && recomecar(d)}
-      />
-      <BreathingCircle t={tempo} reduzir={reduzir} texto={pronto ? t('Pronto!') : rodando ? undefined : t('Pausado')} />
-      <p className="text-center font-semibold" aria-label={t('Faltam {tempo}', { tempo: mmss(restante) })}>
-        {mmss(restante)}
-      </p>
-      <div className="grid grid-cols-2 gap-2.5">
-        {pronto ? (
-          <Button variant="outline" onClick={() => recomecar()}>
-            {t('De novo')}
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={() => setRodando((v) => !v)}>
-            {rodando ? t('Pausar') : t('Continuar')}
-          </Button>
-        )}
-        <Button to="/estudante/pausa/fim">{t('Terminei')}</Button>
-      </div>
-    </>
-  );
+  return <>
+    <CabecalhoAtividade />
+    <ScreenTitle className="text-center">{t('Respire&Pause')}</ScreenTitle>
+    <BreathingCircle t={tempo} reduzir={reduzir} texto={rodando ? undefined : t('Pausado')} />
+    <div className="grid grid-cols-2 gap-2.5">
+      <Button variant="outline" onClick={() => setRodando((v) => !v)}>{rodando ? t('Pausar') : t('Continuar')}</Button>
+      <Button onClick={() => {
+        // Interrompe as atualizações da animação antes da transição de página.
+        setRodando(false);
+        void navigate('/estudante/pausa/fim');
+      }}>{t('Terminei')}</Button>
+    </div>
+  </>;
 }
 
 /**
@@ -296,74 +227,10 @@ export function MKPotion() {
   );
 }
 
-/** Legendas do vídeo de respiração: o texto da tela em cada idioma do site. */
-const LEGENDAS = [
-  { lang: 'pt-BR', rotulo: 'Português' },
-  { lang: 'en', rotulo: 'English' },
-  { lang: 'es', rotulo: 'Español' },
-] as const;
-
-/**
- * Vídeo de respiração guiada (gerado por scripts/video-respiracao.py com as cores e fontes do MKpause).
- * Horizontal no computador e vertical no celular, do tamanho que couber sem rolar a página.
- * O texto do vídeo é em português; em inglês e espanhol a legenda do idioma já vem ligada.
- */
+/** Atividade de respiração em vídeo, com controles acessíveis. */
 export function Video() {
-  const video = api.estudante.video();
-  const computador = useTelaGrande();
-  const { idioma } = usePreferencias();
   if (!useSessaoValida()) return <Navigate to="/estudante/pausa" replace />;
-  const formato = computador ? 'computador' : 'celular';
-  return (
-    <>
-      <CabecalhoAtividade />
-      <div
-        className={
-          computador
-            ? 'mx-auto aspect-video w-[min(100%,calc((100dvh-22rem)*16/9))] overflow-hidden rounded-card-lg bg-bg'
-            : 'mx-auto aspect-[9/16] w-[min(100%,calc((100dvh-20rem)*9/16))] overflow-hidden rounded-card-lg bg-bg'
-        }
-      >
-        <video
-          key={formato}
-          controls
-          playsInline
-          preload="metadata"
-          poster={`/videos/respiracao-${formato}.jpg`}
-          aria-label={t('Vídeo de respiração guiada: inspire por 5 segundos e solte o ar por 5 segundos, três vezes.')}
-          className="size-full"
-        >
-          <source src={`/videos/respiracao-${formato}.mp4`} type="video/mp4" />
-          {LEGENDAS.map((l) => (
-            <track
-              key={l.lang}
-              kind="captions"
-              srcLang={l.lang}
-              label={l.rotulo}
-              src={`/videos/respiracao.${l.lang}.vtt`}
-              default={idioma !== 'pt-BR' && l.lang === idioma}
-            />
-          ))}
-        </video>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Badge icon="play">{t('Vídeo')} · {video.duracao}</Badge>
-        <ScreenTitle>{t(video.titulo)}</ScreenTitle>
-      </div>
-      <div className="flex items-center gap-2.5 rounded-[18px] bg-surface px-4 py-3.5">
-        <Icon name="info" size={22} />
-        <span className="text-muted">{t('Na sala, use fones.')}</span>
-      </div>
-      <div className="mt-auto flex flex-col gap-2">
-        <Button to="/estudante/pausa/fim" block>
-          {t('Terminei')}
-        </Button>
-        <Button to="/estudante/pausa/atividade" variant="text" className="self-center">
-          {t('Trocar')}
-        </Button>
-      </div>
-    </>
-  );
+  return <VideoRespiracao />;
 }
 
 /** Etapa 3 de 3: E agora? Se ainda não está bem, leva ao nível 3. */
@@ -406,7 +273,6 @@ export function ComoFicou() {
           <Desativado>{t('Escolha como está')}</Desativado>
         )}
         {/* Não há "Pedir ajuda": o nível 3 já avisa a escola automaticamente. */}
-        <p className="mt-1.5 text-center font-semibold text-muted">{t('Ainda não está bem?')}</p>
         <Button to="/estudante/agora" variant="help" block>
           <Icon name="respiracao" size={22} />
           {t('Não estou bem')}
@@ -428,7 +294,7 @@ function EmocaoRegistrada({ rotulo, emocao }: { rotulo: string; emocao: Emocao }
 
 /** Pausa feita! Antes → depois. */
 export function PausaFeita() {
-  const { sessao, avisoSaida } = useEstudante();
+  const { sessao } = useEstudante();
   if (!sessao.antes || !sessao.depois) return <Navigate to="/estudante" replace />;
   const antes = emocaoPorId(sessao.antes);
   const depois = emocaoPorId(sessao.depois);
@@ -443,16 +309,7 @@ export function PausaFeita() {
         <Icon name="seta" size={26} className="text-muted" />
         <EmocaoRegistrada rotulo={t('Depois')} emocao={depois} />
       </div>
-      {avisoSaida && (
-        <Link
-          to="/estudante/fora-da-sala"
-          className="flex w-full items-center gap-2.5 rounded-[18px] bg-sky px-4 py-3.5 text-left font-semibold no-underline hover:text-ink"
-        >
-          <Icon name="porta" size={22} />
-          <span className="flex-1">{t('Voltei para a sala')}</span>
-          <Icon name="seguir" size={20} />
-        </Link>
-      )}
+      <div className="w-full"><RetornoSala /></div>
       <div className="mt-auto flex w-full flex-col gap-2.5">
         <Button to="/estudante" block>
           {t('Início')}

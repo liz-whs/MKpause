@@ -10,21 +10,6 @@ use App\Mkpause\Permissoes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Alertas e observações (RF08, RF14, RF15, RF21–RF23, RN11–RN19).
- *
- * POST  /api/alertas/                      estudante emite {"nivel": 2|3, "id_sessao"?, "descricao"?}
- * GET   /api/alertas/[?status=ABERTO]      estudante: os seus; professor/psi. escolar: recebidos;
- *                                          psi. clínico: dos vinculados; admin: todos
- * GET   /api/alertas/<id>/
- * PATCH /api/alertas/<id>/                 {"status": ...} destinatário, admin, ou estudante (só CANCELADO)
- * POST  /api/alertas/<id>/lido/            destinatário marca a notificação como lida
- * GET/POST /api/alertas/<id>/observacoes/  {"conteudo": "..."}
- *
- * Destinatários (RN12, RN13): nível 2 -> professores vinculados; nível 3 -> professores e
- * psicólogos escolares vinculados. O clínico não é destinatário (CHECK do banco); ele consulta
- * os alertas dos vinculados pela listagem (RF15).
- */
 class AlertasController extends Controller
 {
     public const STATUS = ['ABERTO', 'EM_ACOMPANHAMENTO', 'RESOLVIDO', 'CANCELADO'];
@@ -57,7 +42,6 @@ class AlertasController extends Controller
 
         $sessao = null;
         if (is_int($idSessao) && $idSessao !== 0) {
-            // Espelha a FK composta (id_sessao, id_estudante) do banco.
             $sessao = DB::table('sessao')->where('id_sessao', $idSessao)->where('id_estudante', $estudante)->value('id_sessao');
             if ($sessao === null) {
                 throw ErroApi::campos(['id_sessao' => 'Sessão não encontrada.']);
@@ -98,7 +82,6 @@ class AlertasController extends Controller
         ], 201);
     }
 
-    /** Lista de [usuario, tipo_destinatario], sem repetir usuário. */
     public static function destinatariosPara(int $estudante, int $nivel): array
     {
         $escolhidos = [];
@@ -180,8 +163,6 @@ class AlertasController extends Controller
             ->where('o.id_observacao', $idObs)->select('o.*', 'u.nome_completo as nome_autor')->first();
         return $this->json(self::observacao($o) + ['mensagem' => 'Observação salva.'], 201);
     }
-
-    // ------------------------------------------------------------------ apoio
 
     private function consulta(Request $request)
     {

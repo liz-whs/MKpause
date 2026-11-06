@@ -5,7 +5,7 @@
 -- IMPORTANTE:
 -- 1. Esta migration cria a estrutura do banco antes do backend.
 -- 2. A tabela usuario centraliza a identidade dos usuarios do sistema.
--- 3. A integracao com a autenticacao do Django sera definida no backend.
+-- 3. A integração com a autenticação é implementada pelo backend.
 -- 4. Cadastros devem ser desativados (ativo = FALSE), nao apagados fisicamente,
 --    para preservar o historico.
 --

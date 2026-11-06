@@ -18,7 +18,7 @@ import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, Primei
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
 import { ComoFicou, EscolherAtividade, Humor, MKPotion, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
 import { JogoPianoPauseProvider } from './features/session/JogoPianoPause';
-import { AgoraRespira, AvisoSaida, ForaDaSala, VoceSeCuidou } from './features/levels/Niveis';
+import { AgoraRespira, AvisoSaida, VoceSeCuidou } from './features/levels/Niveis';
 import { EscolaAlertas, EscolaAvisos, EscolaEstudante, EscolaEstudantes, EscolaLayout } from './features/school/Escola';
 import { ClinicoAcompanhados, ClinicoAlertas, ClinicoEstudante, ClinicoFicha, ClinicoLayout } from './features/clinical/Clinico';
 import { PerfilProfissional } from './features/pro/PerfilProfissional';
@@ -92,14 +92,14 @@ export const rotas: RouteObject[] = [
         children: [
           { path: 'pausa', element: <Humor />, handle: { titulo: 'Como você está' } },
           { path: 'pausa/atividade', element: <EscolherAtividade />, handle: { titulo: 'Escolha uma atividade' } },
-          { path: 'pausa/respiracao', element: <Respiracao />, handle: { titulo: 'Respiração' } },
+          { path: 'pausa/respiracao', element: <Respiracao />, handle: { titulo: 'Respire&Pause' } },
           { path: 'pausa/pianopause', element: <PianoPause />, handle: { titulo: 'PianoPause' } },
           { path: 'pausa/mkpotion', element: <MKPotion />, handle: { titulo: 'MK Potion' } },
-          { path: 'pausa/video', element: <Video />, handle: { titulo: 'Vídeo' } },
+          { path: 'pausa/video', element: <Video />, handle: { titulo: 'MK Breath' } },
           { path: 'pausa/fim', element: <ComoFicou />, handle: { titulo: 'E agora?' } },
           { path: 'pausa/concluida', element: <PausaFeita />, handle: { titulo: 'Pausa feita' } },
           { path: 'aviso-de-saida', element: <AvisoSaida />, handle: { titulo: 'Sair da sala' } },
-          { path: 'fora-da-sala', element: <ForaDaSala />, handle: { titulo: 'Fora da sala' } },
+          { path: 'fora-da-sala', element: <Navigate to="/estudante" replace /> },
           { path: 'agora', element: <AgoraRespira />, handle: { titulo: 'Respire' } },
           { path: 'agora/fim', element: <VoceSeCuidou />, handle: { titulo: 'Você se cuidou' } },
         ],

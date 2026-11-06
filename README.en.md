@@ -90,7 +90,7 @@ Depending on the state identified, the system may alert the professionals respon
 |---|---|---|
 | PianoPause | A musical-keys game with no score and a guided-breathing pause | [PianoPause README](./src/jogos/pianopause/README.en.md) |
 | MK Potion | Liquid sorting game adapted for phones and desktops | [Game README](./src/MKpotion/mk_potion/README.md) |
-| Breathing video | A 30-second video with portrait/landscape versions and captions | [Web interface](./src/web/README.md) |
+| MK Breath | Guided breathing video with portrait/landscape versions and captions | [Web interface](./src/web/README.md) |
 
 ---
 
@@ -154,7 +154,7 @@ Every document is available in Portuguese (`file.md`) and English (`file.en.md`)
 
 **In development.**
 
-The interface and API integrate breaks, games, links and guardian invitations. Administrative aggregate indicators use PHP; the individual clinical dashboard has a separate Django API. The PHP module runs locally, with a [Docker hosting option](./docs/indicadores-php.md) prepared for validation before deployment. Real email delivery requires an SMTP provider.
+The interface and Laravel API integrate breaks, games, links and guardian invitations. Administrative aggregate indicators use PHP. The PHP module runs locally, with a [Docker hosting option](./docs/indicadores-php.md) prepared for validation before deployment. Real email delivery requires an SMTP provider.
 
 ---
 

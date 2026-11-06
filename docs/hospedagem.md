@@ -22,13 +22,14 @@ que aplica só as versões V1 a V4 que faltam).
    `render.indicadores.yaml`**.
 3. Preencha as variáveis pedidas:
    - `DATABASE_URL`: a URL do Neon;
-   - `DJANGO_SECRET_KEY`: uma chave longa e aleatória (se já existia um serviço, use a mesma, para manter sessões, códigos e convites válidos);
+   - `MKPAUSE_SECRET_KEY`: uma chave longa e aleatória;
+   - `APP_DEBUG`: `false`;
    - `DEMO_SENHA`: senha das contas de demonstração (pelo menos 8 caracteres);
    - `PUBLIC_BASE_URL`: o endereço público do serviço (ex.: `https://mkpause.onrender.com`);
    - `INDICADORES_DATABASE_URL`: opcional (URL sem pooler, só para o módulo de indicadores).
 4. Clique em **Apply**. O primeiro build leva alguns minutos.
 
-> Os nomes `DJANGO_*` vêm do backend anterior e foram mantidos para não mudar o Render.
+> Se estiver migrando um serviço existente, mantenha o valor da chave secreta ao renomeá-la para `MKPAUSE_SECRET_KEY`; trocar o valor invalida sessões, códigos e convites existentes.
 
 ## Contas de demonstração
 

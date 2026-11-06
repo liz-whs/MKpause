@@ -4,14 +4,8 @@ namespace App\Mkpause;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Cadastro de perfis (RF27–RF30). Cada perfil grava duas linhas na mesma transação:
- * `usuario` (nome, e-mail, senha) e a tabela do perfil. Para a interface, os campos
- * aparecem juntos num objeto só. Usado pelo admin e pelo cadastro com código.
- */
 class Cadastros
 {
-    /** perfil => [tabela, chave, campos próprios do perfil] */
     public const TIPOS = [
         'estudante' => ['estudante', 'id_estudante', ['data_nascimento', 'telefone', 'instituicao_ensino', 'turma']],
         'professor' => ['professor', 'id_professor', ['telefone', 'instituicao_ensino', 'cargo']],
@@ -24,10 +18,6 @@ class Cadastros
     private const UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG',
         'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 
-    /**
-     * Valida o corpo. $idUsuario: no PATCH, o usuário atual (o e-mail dele não conta como repetido).
-     * Devolve ['usuario' => [...], 'perfil' => [...], 'senha' => ?string] só com os campos enviados.
-     */
     public static function validar(string $tipo, Entrada $e, bool $parcial, ?int $idUsuario = null): array
     {
         $usuario = $perfil = [];
@@ -65,7 +55,6 @@ class Cadastros
         }
         $e->falharSeHouverErros();
 
-        // Regras do objeto inteiro: só rodam se os campos passaram.
         if (!$parcial && ($senha === Entrada::AUSENTE || $senha === null || $senha === '')) {
             throw ErroApi::campos(['senha' => ['Defina uma senha para o primeiro acesso.']]);
         }
@@ -88,7 +77,6 @@ class Cadastros
         return $valor;
     }
 
-    /** Cria usuario + perfil (transação). Devolve o id do perfil. */
     public static function criar(string $tipo, array $dados): int
     {
         [$tabela, $chave] = self::TIPOS[$tipo];
@@ -96,7 +84,7 @@ class Cadastros
             $agora = Formato::banco(Formato::agora());
             $idUsuario = DB::table('usuario')->insertGetId([
                 ...$dados['usuario'],
-                'senha_hash' => SenhaDjango::criar($dados['senha']),
+                'senha_hash' => SenhaPbkdf2::criar($dados['senha']),
                 'ativo' => true, 'criado_em' => $agora, 'atualizado_em' => $agora,
             ], 'id_usuario');
             return DB::table($tabela)->insertGetId([
@@ -113,14 +101,13 @@ class Cadastros
             $agora = Formato::banco(Formato::agora());
             $usuario = $dados['usuario'] + ['atualizado_em' => $agora];
             if ($dados['senha']) {
-                $usuario['senha_hash'] = SenhaDjango::criar($dados['senha']);
+                $usuario['senha_hash'] = SenhaPbkdf2::criar($dados['senha']);
             }
             DB::table('usuario')->where('id_usuario', $atual->id_usuario)->update($usuario);
             DB::table($tabela)->where($chave, $atual->$chave)->update($dados['perfil'] + ['atualizado_em' => $agora]);
         });
     }
 
-    /** Consulta com os campos do perfil e do usuario (apelido p e u). */
     public static function consulta(string $tipo)
     {
         [$tabela] = self::TIPOS[$tipo];
@@ -133,7 +120,6 @@ class Cadastros
         return self::consulta($tipo)->where('p.'.self::TIPOS[$tipo][1], $id)->first();
     }
 
-    /** O que a API devolve (sem a senha). */
     public static function dados(string $tipo, object $p): array
     {
         [, $chave, $campos] = self::TIPOS[$tipo];

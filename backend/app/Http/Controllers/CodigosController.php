@@ -14,17 +14,11 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Códigos de cadastro (gerados pelo admin) e de vínculo (gerados pelo estudante).
- * Contrato em docs/codigos-de-acesso.md. O texto do código só aparece na resposta de criação.
- */
 class CodigosController extends Controller
 {
     private const CADASTRO_INVALIDO = 'Código inválido ou expirado. Peça um novo à escola.';
     private const VINCULO_INVALIDO = 'Código inválido ou expirado. Peça um novo ao estudante.';
     private const PERFIS = ['ESTUDANTE', 'PROFESSOR', 'PSICOLOGO_ESCOLAR', 'PSICOLOGO_CLINICO'];
-
-    // ------------------------------------------------------- cadastro (admin)
 
     public function listarCadastro(Request $request)
     {
@@ -99,8 +93,6 @@ class CodigosController extends Controller
         ];
     }
 
-    // ------------------------------------------------------- cadastro (público)
-
     private function textoCodigo(Entrada $e): string
     {
         $texto = $e->texto('codigo', max: 100);
@@ -136,7 +128,6 @@ class CodigosController extends Controller
             $idUsuario = DB::transaction(function () use ($texto, &$campos) {
                 $c = self::codigoCadastro($texto, bloquear: true);
                 if ($c->perfil === 'ESTUDANTE') {
-                    // O que a escola definiu no código vence o que veio no formulário.
                     foreach (['turma', 'instituicao_ensino'] as $campo) {
                         if ($c->$campo !== null) {
                             $campos[$campo] = $c->$campo;
@@ -153,7 +144,6 @@ class CodigosController extends Controller
                 return $idUsuario;
             });
         } catch (QueryException $erro) {
-            // Uma tentativa concorrente com o mesmo e-mail também não consome o convite.
             if (str_starts_with((string) ($erro->errorInfo[0] ?? ''), '23')
                 && DB::table('usuario')->whereRaw('UPPER(email) = UPPER(?)', [(string) ($campos['email'] ?? '')])->exists()) {
                 throw ErroApi::campos(['email' => ['Já existe uma conta com este e-mail.']]);
@@ -164,8 +154,6 @@ class CodigosController extends Controller
         Autenticar::entrar($request, $conta);
         return $this->json($conta->dados(), 201);
     }
-
-    // ------------------------------------------------------------ vínculo (estudante)
 
     private static function abertos(int $estudante)
     {
@@ -181,7 +169,6 @@ class CodigosController extends Controller
     {
         $estudante = $this->conta($request)->idPerfil();
         [$id, $texto, $expira] = DB::transaction(function () use ($estudante) {
-            // A linha do estudante também serializa a geração quando ainda não há código.
             DB::table('estudante')->where('id_estudante', $estudante)->lockForUpdate()->first();
             self::revogarAbertos($estudante);
             $texto = Codigos::gerar(6);
@@ -215,14 +202,12 @@ class CodigosController extends Controller
         return $this->vazio();
     }
 
-    /** Pedidos aguardando o estudante, ainda válidos. */
     private static function pendentes()
     {
         return DB::table('codigo_vinculo as c')->where('c.status', 'AGUARDANDO_ESTUDANTE')->whereNull('c.revogado_em')
             ->where('c.expira_em', '>', Formato::banco(Formato::agora()));
     }
 
-    /** Professor ou psicólogo escolar do pedido, se ainda ativo. */
     private static function profissionalAtivo(object $c): ?object
     {
         [$tabela, $chave, $id] = $c->id_professor
@@ -254,7 +239,6 @@ class CodigosController extends Controller
         return $this->json($lista);
     }
 
-    /** Bloqueia estudante e depois o código (mesma ordem da geração) e confere validade. */
     private static function bloquearCodigo($consulta, string $mensagem): object
     {
         $estudante = (clone $consulta)->value('id_estudante');
@@ -306,8 +290,6 @@ class CodigosController extends Controller
         });
         return $this->json(['status' => $status]);
     }
-
-    // ------------------------------------------------------- vínculo (profissional)
 
     public function resgatar(Request $request)
     {
