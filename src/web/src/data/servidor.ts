@@ -107,8 +107,7 @@ export const sair = () => chamar('POST', 'auth/logout/').catch(() => undefined);
 
 export const idDe = (texto: string) => Number(texto.split('-').pop());
 
-/** Conversão usada apenas para ler registros antigos 1–5 sem emoção categórica. */
-const EMOCAO_DO_HUMOR: EmocaoId[] = ['triste', 'triste', 'ansioso', 'cansado', 'calmo', 'feliz'];
+/** Os registros legados só têm emoção exata quando a marca antiga a preservou. */
 const MARCA = /^\[mkpause antes=(\w+) depois=(\w+)\]\n?/;
 
 const TIPO_PARA_ATIVIDADE: Record<string, AtividadeId> = { RESPIRACAO: 'respiracao', JOGO: 'pianopause', VIDEO: 'video' };
@@ -176,8 +175,8 @@ function converterSessao(s: SessaoApi): SessaoRegistrada | null {
   const obs = s.observacoes_sessao ?? '';
   const marca = obs.match(MARCA);
   const relato = obs.replace(MARCA, '').trim();
-  const antes = pre.emocao ?? (marca?.[1] as EmocaoId | undefined) ?? (pre.estado === null ? undefined : EMOCAO_DO_HUMOR[pre.estado]);
-  const depois = pos.emocao ?? (marca?.[2] as EmocaoId | undefined) ?? (pos.estado === null ? undefined : EMOCAO_DO_HUMOR[pos.estado]);
+  const antes = pre.emocao ?? (marca?.[1] as EmocaoId | undefined);
+  const depois = pos.emocao ?? (marca?.[2] as EmocaoId | undefined);
   if (!antes || !depois) return null;
   return {
     id: `sessao-${s.id_sessao}`,
