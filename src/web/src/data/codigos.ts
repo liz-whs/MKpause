@@ -4,7 +4,7 @@ import { chamar, ErroApi } from './servidor';
  * Códigos de cadastro (gerados pelo admin) e de vínculo (gerados pelo estudante).
  * Contrato: docs/codigos-de-acesso.md (seção 5).
  *
- * No site, todos os fluxos usam a API Django e persistem no banco.
+ * No site, todos os fluxos usam a API Laravel e persistem no banco.
  * Nos testes (Vitest), a simulação é usada em memória.
  */
 

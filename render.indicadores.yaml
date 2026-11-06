@@ -9,9 +9,9 @@ services:
     dockerContext: .
     healthCheckPath: /api/auth/csrf/
     envVars:
-      - key: DJANGO_DEBUG
-        value: "0"
-      - key: DJANGO_SECRET_KEY
+      - key: APP_DEBUG
+        value: "false"
+      - key: MKPAUSE_SECRET_KEY
         sync: false
       - key: DATABASE_URL
         sync: false

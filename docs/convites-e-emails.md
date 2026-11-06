@@ -7,7 +7,7 @@ O fluxo está implementado localmente com a V4. Sem um provedor configurado, as 
 1. Inicie o backend e a interface (`npm run backend` e `npm run dev` em `src/web`). Em `backend/`, execute `php artisan mkpause:aplicar-esquema` para aplicar versões ausentes até V4.
 2. Entre como administrador e abra **Vínculos**. Escolha o estudante, informe nome e e-mail do responsável e, quando necessário, o psicólogo clínico. Clique em **Enviar convite**.
 3. Em **E-mails**, clique em **Processar fila de e-mails**. As mensagens são gravadas em `backend/.emails/`, pasta ignorada pelo Git. Também é possível executar `php artisan mkpause:processar-emails`.
-4. No cartão do convite, **Abrir convite de teste** abre a página pública. Esse atalho só aparece com `DJANGO_DEBUG=1` e a caixa local de arquivos. A indicação de caixa local continua visível mesmo sem debug.
+4. No cartão do convite, **Abrir convite de teste** abre a página pública. Esse atalho só aparece com `APP_DEBUG=true` e a caixa local de arquivos. A indicação de caixa local continua visível mesmo sem debug.
 5. Abrir o convite não cria vínculo. O responsável precisa ler o texto, confirmar que é responsável e aceitar a autorização. A recusa não exige marcar as confirmações.
 6. Ao aceitar, o sistema registra data, versão e texto da autorização e cria ou reativa os vínculos autorizados. Atualize a tela de Vínculos ou volte à aba para ver o resultado.
 7. **Revogar convite ou autorização** invalida o link e retira o acesso clínico concedido por essa autorização, salvo se houver outro aceite ativo para o mesmo profissional e estudante.

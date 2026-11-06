@@ -7,7 +7,7 @@ import * as servidor from './servidor';
 
 /**
  * Única porta de dados da interface. As telas leem de forma síncrona do
- * `banco` (um cache em memória); o cache é carregado do backend Django no
+ * `banco` (um cache em memória); o cache é carregado da API Laravel no
  * login e cada escrita vai para o backend e depois recarrega o cache.
  * Nos testes (Vitest) não há backend: o banco começa com os dados de exemplo.
  *

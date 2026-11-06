@@ -11,19 +11,8 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Ficha de acompanhamento (RF16, RF17, RF31, RN22), avisos (RF18, RF25) e o painel do
- * psicólogo clínico.
- *
- * GET/POST/PATCH /api/estudantes/<id>/ficha/       POST só admin; PATCH admin ou psi. clínico
- * GET    /api/estudantes/<id>/dashboard/?dias=14   psi. clínico vinculado
- * GET    /api/avisos/                              avisos ativos para o público do perfil
- * POST   /api/avisos/  PATCH/DELETE /api/avisos/<id>/   admin (DELETE desativa)
- */
 class AcompanhamentoController extends Controller
 {
-    // ------------------------------------------------------------------- ficha
-
     public function verFicha(Request $request, $id)
     {
         $estudante = $this->estudante($request, $id, 'ver_ficha');
@@ -93,8 +82,6 @@ class AcompanhamentoController extends Controller
             'informacoes_acompanhamento' => $f->informacoes_acompanhamento, 'criada_em' => Formato::local($f->criada_em),
             'atualizada_em' => Formato::local($f->atualizada_em), 'ativo' => (bool) $f->ativo];
     }
-
-    // ------------------------------------------------------------------- avisos
 
     public const PUBLICOS = ['TODOS', 'ESTUDANTES', 'PROFESSORES', 'PSICOLOGOS_ESCOLARES', 'PSICOLOGOS_CLINICOS', 'RESPONSAVEIS'];
     private const PUBLICO_DO_PERFIL = [
@@ -174,9 +161,6 @@ class AcompanhamentoController extends Controller
             'publico_destinatario' => $a->publico_destinatario, 'ativo' => (bool) $a->ativo];
     }
 
-    // --------------------------------------------------------- painel do clínico
-
-    /** Indicadores descritivos de autorrelato; não faz diagnóstico e não grava agregados. */
     public function dashboard(Request $request, $id)
     {
         $e = Entrada::do($request->query());
@@ -191,7 +175,6 @@ class AcompanhamentoController extends Controller
             throw ErroApi::proibido('Você não acompanha este estudante.');
         }
 
-        // Limites de data no fuso do projeto, sem incluir dados de amanhã.
         $hoje = CarbonImmutable::now(Formato::FUSO)->startOfDay();
         $inicio = $hoje->subDays($dias - 1);
         $fim = $hoje->addDay();
@@ -213,7 +196,7 @@ class AcompanhamentoController extends Controller
                 $porMomento[$h->momento] = (int) $h->estado;
             }
             if (count($porMomento) !== 2) {
-                continue; // Não usar sessão com registro incompleto.
+                continue;
             }
             [$pre, $pos] = [$porMomento['PRE'], $porMomento['POS']];
             $antes[$pre]++;

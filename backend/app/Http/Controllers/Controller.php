@@ -16,7 +16,6 @@ abstract class Controller
         return $request->attributes->get('conta');
     }
 
-    /** Corpo JSON do pedido (vazio = {}). Outros formatos dão 415, JSON quebrado dá 400. */
     protected function corpo(Request $request): mixed
     {
         $bruto = $request->getContent();
@@ -49,7 +48,6 @@ abstract class Controller
         return response()->noContent();
     }
 
-    /** ID numérico da URL; outro texto dá 404, como no Django. */
     protected static function id(mixed $valor): int
     {
         if (!is_numeric($valor) || (string) (int) $valor !== (string) $valor) {

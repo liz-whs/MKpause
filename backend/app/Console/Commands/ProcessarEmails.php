@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Mkpause\Emails;
 use Illuminate\Console\Command;
 
-/** php artisan mkpause:processar-emails [--limite=50] */
 class ProcessarEmails extends Command
 {
     protected $signature = 'mkpause:processar-emails {--limite=50}';

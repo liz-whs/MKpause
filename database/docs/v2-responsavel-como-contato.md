@@ -75,7 +75,7 @@ Verificar a presença de `nome_completo` e `email`, a ausência de `id_usuario` 
 
 O backend já foi adaptado à V2: `Responsavel` contém os campos do contato, o cadastro não cria usuário e as operações administrativas não dependem de `id_usuario`. O comando `aplicar_esquema` reconhece a V2 pelas colunas, não a reaplica e interrompe diante de dados legados ou esquema parcial. A conferência local dos models passou, e os testes de PostgreSQL exercitam o SQL real da V2, sua repetição e as proteções contra aplicação indevida.
 
-A V2 **não** altera os demais perfis, o registro de observações, as sessões, os alertas, nem a integração com a autenticação Django. Esses temas devem ser avaliados separadamente antes de novas migrações.
+A V2 **não** altera os demais perfis, o registro de observações, as sessões, os alertas, nem a integração com a autenticação. Esses temas devem ser avaliados separadamente antes de novas migrações.
 
 Também permanece necessário definir as validações de contato, o processo de convite, as políticas de privacidade e a estratégia de atualização de vínculos.
 

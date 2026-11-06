@@ -3,19 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Mkpause\Formato;
-use App\Mkpause\SenhaDjango;
+use App\Mkpause\SenhaPbkdf2;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-/**
- * php artisan mkpause:criar-demo
- *
- * Cria contas de demonstração (administrador, estudante, professor, psicólogo escolar e
- * clínico), os vínculos entre elas e as atividades da interface web. Só para desenvolvimento
- * e demonstração. Pode rodar de novo: o que já existe fica (inclusive a senha).
- *
- * A senha das contas vem de DEMO_SENHA no .env (ou --senha).
- */
 class CriarDemo extends Command
 {
     protected $signature = 'mkpause:criar-demo {--senha= : Senha das contas de demonstração (padrão: DEMO_SENHA do .env)}';
@@ -86,7 +77,7 @@ class CriarDemo extends Command
         if ($id === null) {
             $agora = Formato::banco(Formato::agora());
             $id = DB::table('usuario')->insertGetId(['nome_completo' => $nome, 'email' => $email,
-                'senha_hash' => SenhaDjango::criar($senha), 'ativo' => true, 'criado_em' => $agora, 'atualizado_em' => $agora],
+                'senha_hash' => SenhaPbkdf2::criar($senha), 'ativo' => true, 'criado_em' => $agora, 'atualizado_em' => $agora],
                 'id_usuario');
             $this->line("  conta {$email} criada");
         }

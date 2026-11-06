@@ -1,6 +1,6 @@
 # Códigos de cadastro e de vínculo: especificação para o backend
 
-**Para:** Otávio (backend Django e banco)
+**Para:** Otávio (backend Laravel e banco)
 **De:** Giovanna (interface web)
 **Branch base:** `main`. O deploy no Render segue a branch configurada no Render.
 
@@ -293,7 +293,7 @@ Vínculo:
 - Outro estudante não consegue aceitar uma solicitação que não é dele (404).
 - O vínculo inativo é reativado no aceite, sem criar linha duplicada.
 
-Rodar também `python manage.py verificar_esquema` contra um banco com a V3.
+Rodar também `php artisan mkpause:verificar-esquema` contra um banco com a V3.
 
 ## 8. Deploy (Render + Neon)
 

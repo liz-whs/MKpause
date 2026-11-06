@@ -14,7 +14,7 @@ GET /api/estudantes/{id_estudante}/dashboard/?dias=14
 
 - Login por sessão obrigatório.
 - Acesso exclusivo ao perfil `psicologo_clinico`, com **vínculo ativo** com o estudante. A autorização é conferida no backend em todas as requisições, por `pode(usuario, "ver_historico", estudante)`.
-- `dias` é opcional. Valores aceitos: `7`, `14`, `30`, `90`; padrão `14`. O intervalo inclui hoje, no fuso horário configurado no Django.
+- `dias` é opcional. Valores aceitos: `7`, `14`, `30`, `90`; padrão `14`. O intervalo inclui hoje, no fuso horário configurado pela aplicação.
 - Sem acesso: HTTP 403; sem login: HTTP 401; ID inexistente: HTTP 404; filtro inválido: HTTP 400.
 - O backend retorna somente sessões **CONCLUIDAS com PRE e POS válidos (1–5)**, ordenadas do registro mais antigo ao mais recente no período.
 - Nenhum resultado: contagens `0`, lista de evolução vazia e percentual `null`.
@@ -86,8 +86,7 @@ A interface deve mostrar estado de carregamento, ausência de dados e erros (inc
 
 ```powershell
 cd backend
-python manage.py test acompanhamento.test_dashboard
-python manage.py test contas sessoes alertas atividades acompanhamento nucleo
+php artisan test
 ```
 
 Os testes automatizados em `acompanhamento/test_dashboard.py` cobrem resultado vazio, contas e distribuições, períodos, perfil, vínculo e sessão incompleta/cancelada. A execução da suíte deve ser confirmada no ambiente de desenvolvimento ou CI antes do merge.

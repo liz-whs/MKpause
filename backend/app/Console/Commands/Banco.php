@@ -7,10 +7,8 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
 
-/** Checagem de conexão usada pelos comandos de terminal. */
 class Banco
 {
-    /** Conecta no PostgreSQL ou para com uma mensagem que diz o que conferir. */
     public static function exigir(Command $comando): void
     {
         $cfg = DB::connection()->getConfig();

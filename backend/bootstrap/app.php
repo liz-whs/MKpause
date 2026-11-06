@@ -12,10 +12,6 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-// Mesmo esquema de variáveis do backend anterior: backend/.env e, por cima do que faltar,
-// o .env.local da raiz do repositório (onde o `neon deploy` grava DATABASE_URL).
-// As variáveis do processo (Render, Docker, terminal) sempre vencem os arquivos. Lê também por
-// getenv(): com variables_order = "GPCS" (XAMPP, php.ini de produção) elas não aparecem em $_ENV.
 $ambiente = Dotenv\Repository\RepositoryBuilder::createWithNoAdapters()
     ->addAdapter(Dotenv\Repository\Adapter\PutenvAdapter::class)
     ->addAdapter(Dotenv\Repository\Adapter\EnvConstAdapter::class)
@@ -36,7 +32,6 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // A sessão é um cookie (como o Django); o csrftoken precisa ser legível pelo JavaScript.
         $middleware->encryptCookies(except: [Csrf::COOKIE]);
         $middleware->api(prepend: [
             \Illuminate\Cookie\Middleware\EncryptCookies::class,
@@ -44,10 +39,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
         ]);
         $middleware->alias(['conta' => Autenticar::class]);
-        $middleware->trustProxies(at: '*'); // o Render termina o HTTPS antes
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) use ($json): void {
-        // Respostas previstas da API (400, 401, 403...): não são falhas do servidor, não vão para o log.
         $exceptions->dontReport([ErroApi::class]);
         $exceptions->render(fn (ErroApi $e) => $json($e->status, $e->corpo, $e->cabecalhos));
 
@@ -59,7 +53,6 @@ return Application::configure(basePath: dirname(__DIR__))
             return $request->is('api/*') ? $json(404, ['detail' => 'Não encontrado.']) : null;
         });
 
-        // Restrições e gatilhos do PostgreSQL viram mensagens compreensíveis, sem detalhes do banco.
         $exceptions->render(function (QueryException $e) use ($json) {
             $estado = (string) ($e->errorInfo[0] ?? $e->getCode());
             if (str_starts_with($estado, '23')) {

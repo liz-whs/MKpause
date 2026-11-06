@@ -11,21 +11,13 @@ use App\Mkpause\Permissoes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Cadastros do administrador (RF27–RF30, RF34): GET / POST / PATCH / DELETE em
- * admin/estudantes, admin/professores, admin/psicologos-escolares, admin/psicologos-clinicos
- * e admin/responsaveis (?ativo=true|false filtra). DELETE não apaga: desativa e mantém o histórico.
- */
 class CadastrosController extends Controller
 {
-    // Nomes dos modelos do backend anterior, usados na mensagem do 404.
     private const MODELOS = ['estudante' => 'Estudante', 'professor' => 'Professor',
         'psicologo_escolar' => 'PsicologoEscolar', 'psicologo_clinico' => 'PsicologoClinico'];
     private const MODELOS_VINCULO = ['professores' => 'ProfessorEstudante',
         'psicologos-escolares' => 'PsicologoEscolarEstudante', 'psicologos-clinicos' => 'PsicologoClinicoEstudante',
         'responsaveis' => 'EstudanteResponsavel'];
-
-    // ------------------------------------------------------------ perfis com login
 
     public function listar(Request $request, string $tipo)
     {
@@ -79,8 +71,6 @@ class CadastrosController extends Controller
             $q->where($coluna, $ativo === 'true');
         }
     }
-
-    // ------------------------------------------------- responsáveis (contato, sem login)
 
     public function listarResponsaveis(Request $request)
     {
@@ -155,9 +145,6 @@ class CadastrosController extends Controller
             'ativo' => (bool) $r->ativo, 'criado_em' => Formato::local($r->criado_em), 'telefone' => $r->telefone];
     }
 
-    // ------------------------------------------------------------ vínculos (admin)
-
-    /** tipo => [tabela, coluna do profissional, campo na API, tabela do profissional, chave, mensagem ao remover] */
     private const VINCULOS = [
         'professores' => ['professor_estudante', 'id_professor', 'professor', 'professor', 'id_professor',
             'Vínculo desativado. O professor deixa de receber os alertas deste estudante.'],
@@ -193,7 +180,6 @@ class CadastrosController extends Controller
         $e->falharSeHouverErros();
         $chave = [$coluna => $prof, 'id_estudante' => $estudante];
 
-        // Vínculo clínico e de responsável novos exigem o aceite do convite pelo responsável (RN24).
         if (in_array($tipo, ['psicologos-clinicos', 'responsaveis'], true)
             && !DB::table($tabela)->where($chave)->where('ativo', true)->exists()
             && !DB::table('convite_responsavel as c')->join('responsavel as r', 'r.id_responsavel', '=', 'c.id_responsavel')
@@ -237,8 +223,6 @@ class CadastrosController extends Controller
         }
         return $saida + ['ativo' => (bool) $v->ativo, 'criado_em' => Formato::local($v->criado_em)];
     }
-
-    // ------------------------------------------ estudantes vinculados (RF11, RF20)
 
     public function meusEstudantes(Request $request)
     {

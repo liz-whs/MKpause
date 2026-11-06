@@ -37,7 +37,7 @@ O teste dos convites inválidos também foi ajustado para testar expiração, re
 
 - Interface: `npm test` — 108 testes passaram, incluindo telas, acessibilidade, contrato da API e simulações de expiração.
 - Build: `npm run build` — passou; permanece o aviso de tamanho do pacote JavaScript.
-- Backend: `python manage.py test contas sessoes alertas atividades acompanhamento nucleo` — 40 testes passaram; 3 de concorrência são pulados no SQLite.
+- Backend: testes automatizados da API — 40 testes passaram; 3 de concorrência são pulados no SQLite.
 - PostgreSQL: 20 testes de códigos, concorrência e HTTP real passaram, sem testes pulados, no banco temporário `test_mkpause_tokens`. O banco temporário foi removido pelo executor após a execução.
 - As quatro simulações em `backend/contas/test_simulacoes_http.py` usam um servidor HTTP real e cookies separados por pessoa, sem simular as respostas da API.
 
@@ -45,7 +45,7 @@ O teste dos convites inválidos também foi ajustado para testar expiração, re
 
 O serviço de automação do navegador estava indisponível. As telas foram verificadas pelos testes automatizados de interface; não houve inspeção visual manual nesta rodada.
 
-O banco temporário dos testes é criado a partir dos models pelo executor do Django. Na rodada acima, a divergência entre o model `Responsavel` e a V2 ainda estava pendente. Ela foi resolvida posteriormente: cadastro, edição, listagem e desativação agora usam o contato sem login, e `verificar_esquema` passou com 22 tabelas no banco local.
+O banco temporário dos testes é criado para a suíte de integração. Na rodada acima, a divergência entre `Responsavel` e a V2 ainda estava pendente. Ela foi resolvida posteriormente: cadastro, edição, listagem e desativação agora usam o contato sem login, e `verificar_esquema` passou com 22 tabelas no banco local.
 
 Na atualização da V2, 46 testes passaram em SQLite (6 específicos de PostgreSQL foram pulados) e 9 testes de responsáveis e migração passaram no PostgreSQL temporário, incluindo execução do SQL real da V2, repetição do comando e proteção contra dados legados ou esquema parcial.
 

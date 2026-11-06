@@ -125,5 +125,5 @@ Precisam entrar na documentação ou sair da interface:
   do navegador; falta um aviso no padrão visual da interface.
 - **RN37 (emergências):** o backend devolve a mensagem com 192/188 ao emitir alerta;
   conferir se a interface mostra esse texto em todas as telas de nível 3.
-- **Testes do backend:** `python manage.py test` encontra o `testar_api.py`, que pede
+- **Testes do backend:** a suíte de testes encontra o `testar_api.py`, que pede
   entrada no terminal e quebra a execução. Renomear ou mover o script.
