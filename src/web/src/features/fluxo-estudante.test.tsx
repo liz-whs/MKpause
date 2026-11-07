@@ -70,24 +70,24 @@ describe('Nível 1', () => {
 });
 
 describe('Nova pausa', () => {
-  it('mostra Respire&Pause e as atividades sem duração', () => {
+  it('mostra respire & pause e as atividades sem duração', () => {
     abrir('/estudante/atividades');
-    expect(screen.getByRole('link', { name: /Respire&Pause/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /respire & pause/ })).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/\b\d+\s*(min|s)\b/);
   });
 
-  it('Respire&Pause continua além do antigo limite e só pausa por escolha do estudante', async () => {
+  it('respire & pause continua além do antigo limite e só pausa por escolha do estudante', async () => {
     definirPreferencias({ menosMovimento: true });
     abrir('/estudante/pausa');
-    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-    await userEvent.click(screen.getByRole('link', { name: /Respire&Pause/ }));
+    await userEvent.click(screen.getByRole('link', { name: /respire & pause/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Pausar' }));
     vi.useFakeTimers();
     try {
       fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
       act(() => vi.advanceTimersByTime(600_000));
-      expect(screen.getByRole('heading', { name: 'Respire&Pause' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'respire & pause' })).toBeInTheDocument();
       expect(screen.queryByText(/\d{2}:\d{2}|\d+ min|Faltam/)).toBeNull();
       fireEvent.click(screen.getByRole('button', { name: 'Pausar' }));
       act(() => vi.advanceTimersByTime(30_000));
@@ -98,12 +98,12 @@ describe('Nova pausa', () => {
     } finally { vi.useRealTimers(); }
   });
 
-  it.each([false, true])('Terminei encerra Respire&Pause e registra a sessão após o humor final (pausada: %s)', async (pausada) => {
+  it.each([false, true])('Terminei encerra respire & pause e registra a sessão após o humor final (pausada: %s)', async (pausada) => {
     const { router } = abrir('/estudante/pausa');
     const quantidade = api.escola.sessoes('pe-1', 'est-1').length;
-    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-    await userEvent.click(screen.getByRole('link', { name: /Respire&Pause/ }));
+    await userEvent.click(screen.getByRole('link', { name: /respire & pause/ }));
     if (pausada) {
       await userEvent.click(screen.getByRole('button', { name: 'Pausar' }));
       expect(router.state.location.pathname).toBe('/estudante/pausa/respiracao');
@@ -126,7 +126,7 @@ describe('Nova pausa', () => {
 
   it('não reaproveita a atividade nem a emoção da pausa anterior', async () => {
     const { router } = abrir('/estudante/atividades');
-    await userEvent.click(screen.getByRole('link', { name: /PianoPause/ }));
+    await userEvent.click(screen.getByRole('link', { name: /piano pause/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/pianopause');
@@ -134,19 +134,19 @@ describe('Nova pausa', () => {
     // Nova pausa pelo card do nível 1: começa do zero e passa pela escolha da atividade.
     await router.navigate('/estudante/pausa');
     expect(await screen.findByRole('button', { name: 'Escolha como está' })).toBeDisabled();
-    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/atividade');
   });
 
-  it('o PianoPause abre o jogo original dentro da tela', async () => {
+  it('o piano pause abre o jogo original dentro da tela', async () => {
     const { router } = abrir('/estudante/pausa');
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     await router.navigate('/estudante/pausa/pianopause');
     expect(await screen.findByRole('link', { name: 'Terminei' })).toHaveAttribute('href', '/estudante/pausa/fim');
-    const jogo = screen.getByTitle('Jogo PianoPause');
-    expect(jogo).toHaveAttribute('src', '/jogos/pianopause/index.html');
+    const jogo = screen.getByTitle('Jogo piano pause');
+    expect(jogo).toHaveAttribute('src', '/jogos/pianopause/index.html?mkpause=1');
     // Na tela do jogo ele fica visível e acessível.
     expect(jogo.parentElement).not.toHaveAttribute('aria-hidden', 'true');
   });
@@ -162,17 +162,17 @@ describe('Nova pausa', () => {
     expect([...container.querySelectorAll('track')].map((t) => t.getAttribute('srclang'))).toEqual(['pt-BR', 'en', 'es']);
   });
 
-  it('o MK Potion aparece em Jogos e abre dentro da pausa', async () => {
+  it('o mk potion aparece em Jogos e abre dentro da pausa', async () => {
     const { router } = abrir('/estudante/atividades');
     await userEvent.click(screen.getByRole('button', { name: 'Jogos' }));
     const jogos = screen.getAllByRole('link').filter((l) => l.getAttribute('href') === '/estudante/pausa');
-    expect(jogos.map((l) => l.textContent)).toEqual([expect.stringContaining('PianoPause'), expect.stringContaining('MK Potion')]);
+    expect(jogos.map((l) => l.textContent)).toEqual([expect.stringContaining('piano pause'), expect.stringContaining('mk potion'), expect.stringContaining('mk connection')]);
 
-    await userEvent.click(screen.getByRole('link', { name: /MK Potion/ }));
-    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    await userEvent.click(screen.getByRole('link', { name: /mk potion/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/mkpotion');
-    expect(screen.getByTitle('Jogo MK Potion')).toHaveAttribute('src', '/jogos/mkpotion/index.html?mkpause=1');
+    expect(screen.getByTitle('Jogo mk potion')).toHaveAttribute('src', '/jogos/mkpotion/index.html?mkpause=1&estudante=est-1');
     expect(screen.getByRole('link', { name: 'Terminei' })).toHaveAttribute('href', '/estudante/pausa/fim');
   });
 });
@@ -185,7 +185,7 @@ describe('Navegação sem labirinto', () => {
 
   it('vindo de Atividades, o Voltar do "Como você está" retorna a Atividades', async () => {
     abrir('/estudante/atividades');
-    await userEvent.click(screen.getByRole('link', { name: /PianoPause/ }));
+    await userEvent.click(screen.getByRole('link', { name: /piano pause/ }));
     expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/estudante/atividades');
   });
 
@@ -236,9 +236,9 @@ describe('Nível 2', () => {
     expect(screen.queryByText('Quem sabe')).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Fora da sala' })).toBeNull();
     expect(api.escola.avisos('pe-1').some((a) => !a.voltouEm && a.destino === 'Biblioteca')).toBe(true);
-    await userEvent.click(screen.getByRole('link', { name: 'Voltar' }));
+    await userEvent.click(await screen.findByRole('link', { name: 'Voltar' }));
     expect(router.state.location.pathname).toBe('/estudante');
-    await userEvent.click(screen.getByRole('button', { name: 'Voltei para a sala' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Voltei para a sala' }));
     expect(screen.getByText('Avisamos seu retorno.')).toHaveAttribute('role', 'status');
     expect(screen.queryByRole('button', { name: 'Voltei para a sala' })).toBeNull();
     expect(api.escola.avisos('pe-1').some((a) => !a.voltouEm && a.destino === 'Biblioteca')).toBe(false);
@@ -248,7 +248,7 @@ describe('Nível 2', () => {
     const { router } = abrir('/estudante/aviso-de-saida');
     await userEvent.click(screen.getByRole('button', { name: 'Avisar e sair' }));
     const avisos = api.escola.avisos('pe-1').filter((a) => !a.voltouEm);
-    await userEvent.click(screen.getByRole('link', { name: 'Voltar' }));
+    await userEvent.click(await screen.findByRole('link', { name: 'Voltar' }));
     await userEvent.click(screen.getByRole('link', { name: 'Preciso sair da sala, Nível 2' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa');
     await act(() => router.navigate('/estudante/aviso-de-saida'));
@@ -262,14 +262,14 @@ describe('Nível 2', () => {
     const existentes = new Set(api.escola.avisos('pe-1').map((a) => a.id));
     await userEvent.click(screen.getByRole('button', { name: 'Avisar e sair' }));
     const aviso = api.escola.avisos('pe-1').find((a) => !existentes.has(a.id))!;
-    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-    await userEvent.click(screen.getByRole('link', { name: /PianoPause/ }));
+    await userEvent.click(screen.getByRole('link', { name: /piano pause/ }));
     await userEvent.click(screen.getByRole('link', { name: 'Terminei' }));
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Finalizar' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/concluida');
-    await userEvent.click(screen.getByRole('button', { name: 'Voltei para a sala' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Voltei para a sala' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/concluida');
     expect(screen.getByRole('heading', { name: 'Pausa feita!' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Avisamos seu retorno.');

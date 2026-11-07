@@ -10,26 +10,16 @@ Legenda: ✅ feito · ⚠️ parcial ou adaptado · ❌ falta
 
 | Requisito | Banco | Backend | Interface | O que falta |
 |---|:-:|:-:|:-:|---|
-| RF09 Histórico do estudante | ✅ | ✅ | ❌ | Tela de histórico para o estudante |
 | RF13 Registros de humor | ⚠️ | ✅ | ⚠️ | Banco guarda humor 1–5; a interface usa 6 emoções |
 | RF14/RN18 Observações por estudante | ⚠️ | ⚠️ | ✅ | No banco a observação é presa a um alerta |
-| RF15 Clínico recebe alertas | ❌ | ⚠️ | ⚠️ | Banco não aceita o clínico como destinatário |
 | RF17 Registro do clínico | ⚠️ | ✅ | ⚠️ | Não há tabela de registros; vai em JSON na ficha |
 | RF18/RF25 Avisos da plataforma | ✅ | ✅ | ❌ | Telas para ler e publicar avisos |
 | RF28–RF30 Cadastro de profissionais | ✅ | ✅ | ❌ | Formulário de cadastro e edição |
 | RF31 Ficha de acompanhamento | ⚠️ | ✅ | ⚠️ | Campos da ficha não existem no banco |
-| RF34/RN23–RN25 Responsáveis e convite | ⚠️ | ⚠️ | ⚠️ | Convite não existe; V2 ainda não aplicada |
 | RF35 Conteúdos | ✅ | ✅ | ⚠️ | Interface só oculta/exclui; não cadastra nem edita |
-| RN13 Destinatários (clínico) | ❌ | ⚠️ | — | Igual ao RF15 |
 | RNF06/RNF19 etc. | — | — | ⚠️ | Ver "Outros pontos" |
 
 ## Detalhes
-
-### RF09 — Estudante consulta o próprio histórico
-- **Backend:** `GET /api/sessoes/` já devolve as sessões do estudante.
-- **Interface:** ❌ não há tela. O `api.ts` diz que "o estudante não recebe
-  contagem nem histórico de pausas", uma decisão do protótipo que **contraria o RF09**.
-  É preciso decidir com o grupo: mudar o requisito ou criar a tela.
 
 ### RF13 — Registros de humor
 - **Banco:** `registro_humor.estado` é um número de 1 a 5.
@@ -47,13 +37,6 @@ Legenda: ✅ feito · ⚠️ parcial ou adaptado · ❌ falta
   alerta, a observação **não é salva** no servidor.
 - **Falta:** migração deixando `id_alerta` opcional e adicionando `id_estudante`,
   e ajuste em `alertas/views.py` (ou um endpoint `estudantes/<id>/observacoes/`).
-
-### RF15 / RN13 — Psicólogo clínico recebe alertas
-- **Banco:** `ck_destinatario_alerta_tipo` só aceita `PROFESSOR` e `PSICOLOGO_ESCOLAR`.
-- **Backend:** o clínico só **consulta** os alertas dos vinculados; não é notificado
-  e não pode marcar como lido.
-- **Interface:** o "visto" do clínico fica só na tela (some ao recarregar).
-- **Falta:** migração incluindo `PSICOLOGO_CLINICO` no CHECK e ajuste em `alertas/regras.py`.
 
 ### RF17 / RF31 — Ficha de acompanhamento e registros clínicos
 - **Banco:** a ficha tem só `informacoes_acompanhamento` (texto).
@@ -77,16 +60,6 @@ Legenda: ✅ feito · ⚠️ parcial ou adaptado · ❌ falta
   (no `src/web/README.md` está como "tela sem desenho no protótipo").
 - **Falta:** formulário: nome, e-mail, senha inicial; professor: cargo/disciplina;
   psicólogos: registro (CRP) e UF.
-
-### RF34 / RN23–RN25 — Responsáveis e convite
-- **Banco:** a V2 (`responsavel` como contato sem login) está em
-  `database/migrations/` mas ainda não foi aplicada no banco local; o
-  backend ainda segue a V1 (cria um `usuario` sem senha para o responsável).
-- **Backend:** ✅ cadastro e vínculo; ❌ convite (RN24) e confirmação do vínculo (RN25).
-- **Interface:** o responsável é só texto dentro da ficha; não usa
-  `admin/responsaveis/` nem `admin/vinculos/responsaveis/`. "Reenviar convite"
-  não faz nada no servidor.
-- **Falta:** aplicar a V2 e ajustar `contas/models.py`; definir e implementar o convite.
 
 ### RF35 — Conteúdos de autorregulação
 - **Backend:** ✅ cria, edita e oculta atividades.

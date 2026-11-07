@@ -36,7 +36,7 @@ return [
     // Interface web compilada (npm run build em src/web).
     'interface_web' => env('MKPAUSE_INTERFACE_WEB', dirname(__DIR__, 2).'/src/web/dist'),
 
-    'limites' => ['cadastro' => 10, 'vinculo' => 10, 'convite' => 10], // pedidos por minuto
+    'limites' => ['cadastro' => 10, 'vinculo' => 10, 'login' => 10, 'login-ip' => 120],
 
     'email' => [
         // "arquivo" grava cada mensagem em backend/.emails (padrão no desenvolvimento); "smtp" envia.

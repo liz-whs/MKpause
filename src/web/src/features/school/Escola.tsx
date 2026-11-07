@@ -1,3 +1,4 @@
+import { agir } from '../../state/acoes';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { api } from '../../data/api';
@@ -21,10 +22,13 @@ import { t } from '../../i18n';
 import { AdicionarComCodigo } from './AdicionarComCodigo';
 
 export const NOME_ATIVIDADE: Record<AtividadeId, string> = {
-  respiracao: 'Respire&Pause',
-  pianopause: 'PianoPause',
-  mkpotion: 'MK Potion',
-  video: 'MK Breath',
+  respiracao: 'respire & pause',
+  pianopause: 'piano pause',
+  mkpotion: 'mk potion',
+  video: 'mk breath',
+  mkconnection: 'mk connection',
+  espiral: 'spiral pause',
+  chinchila: 'chinchilla pause',
 };
 
 const visto = (a: Alerta, profissionalId: string) => a.vistoPor?.includes(profissionalId) ?? false;
@@ -73,7 +77,7 @@ function AlertaCard({ alerta, estudante, eu }: { alerta: Alerta; estudante: Estu
             {t('Visto por você')}
           </Badge>
         ) : (
-          <Button size="md" variant="outline" onClick={() => api.escola.marcarVisto(eu.id, alerta.id)}>
+          <Button size="md" variant="outline" onClick={() => { void agir(() => api.escola.marcarVisto(eu.id, alerta.id), 'Aviso marcado como visto.'); }}>
             <Icon name="check" size={18} />
             {t('Marcar como visto')}
           </Button>
@@ -375,10 +379,12 @@ function FichaEscolar({ estudanteId, eu }: { estudanteId: string; eu: Profission
                 setErro(t('Escreva a observação antes de salvar.'));
                 return;
               }
-              api.escola.adicionarObservacao(eu.id, estudanteId, texto.trim());
-              setTexto('');
-              setErro(undefined);
-              setSalvo(true);
+              void agir(async () => {
+                await api.escola.adicionarObservacao(eu.id, estudanteId, texto.trim());
+                setTexto('');
+                setErro(undefined);
+                setSalvo(true);
+              });
             }}
           >
             <Field

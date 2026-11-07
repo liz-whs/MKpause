@@ -1,15 +1,16 @@
+import { agir } from '../../state/acoes';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { NIVEIS } from '../../domain/niveis';
 import { emocaoPorId } from '../../domain/emocoes';
 import { CUIDADOS_DO_DIA, MAIS_IDEIAS } from '../../domain/cuidados';
-import type { AtividadeId } from '../../domain/tipos';
+import type { AtividadeId, Conteudo } from '../../domain/tipos';
 import { api } from '../../data/api';
 import { useEstudante } from '../../state/EstudanteContext';
 import { LevelCard } from '../../components/student/LevelCard';
 import { CareStreakCard, CareStreakSummary } from '../../components/student/CareStreak';
 import { ActivityRow, CalmFab, PeopleList, PrivacyNote, ScreenTitle, SectionTitle } from '../../components/student/Bits';
-import { ChoiceChips } from '../../components/ui/ChoiceChips';
+import { AtividadesPorCategoria } from '../../components/student/AtividadesPorCategoria';
 import { Icon, type IconName } from '../../components/ui/Icon';
 import { Switch } from '../../components/ui/Switch';
 import { Field } from '../../components/ui/Field';
@@ -56,6 +57,7 @@ export function Inicio() {
 
 export interface AtividadeInfo {
   id: AtividadeId;
+  tipo: Conteudo['tipo'];
   titulo: string;
   detalhe: string;
   icone: IconName;
@@ -67,6 +69,9 @@ const VISUAL: Record<AtividadeId, Pick<AtividadeInfo, 'icone' | 'fundo' | 'rota'
   respiracao: { icone: 'respiracao', fundo: 'bg-lavender', rota: '/estudante/pausa/respiracao' },
   pianopause: { icone: 'musica', fundo: 'bg-peony', rota: '/estudante/pausa/pianopause' },
   mkpotion: { icone: 'pocao', fundo: 'bg-leaf', rota: '/estudante/pausa/mkpotion' },
+  mkconnection: { icone: 'atividades', fundo: 'bg-leaf', rota: '/estudante/pausa/mkconnection' },
+  espiral: { icone: 'respiracao', fundo: 'bg-leaf', rota: '/estudante/pausa/espiral' },
+  chinchila: { icone: 'play', fundo: 'bg-lavender', rota: '/estudante/pausa/chinchila' },
   video: { icone: 'play', fundo: 'bg-sky', rota: '/estudante/pausa/video' },
 };
 
@@ -74,6 +79,7 @@ const VISUAL: Record<AtividadeId, Pick<AtividadeInfo, 'icone' | 'fundo' | 'rota'
 export function atividades(): AtividadeInfo[] {
   return api.estudante.conteudos().map((c) => ({
     id: c.id,
+    tipo: c.tipo,
     // Conteúdo da escola: os nomes conhecidos têm tradução; os novos aparecem como cadastrados.
     titulo: t(c.nome),
     detalhe: t(c.tipo),
@@ -81,27 +87,19 @@ export function atividades(): AtividadeInfo[] {
   }));
 }
 
-const FILTROS = ['todas', 'respiracao', 'jogos', 'video'] as const;
-type Filtro = (typeof FILTROS)[number];
-const FILTRO_LABEL: Record<Filtro, string> = { todas: 'Todas', respiracao: 'Respiração', jogos: 'Jogos', video: 'Vídeos' };
-const JOGOS: AtividadeId[] = ['pianopause', 'mkpotion'];
-const noFiltro = (filtro: Filtro, id: AtividadeId) =>
-  filtro === 'todas' || (filtro === 'jogos' ? JOGOS.includes(id) : id === filtro);
-
 export function Atividades() {
-  const [filtro, setFiltro] = useState<Filtro>('todas');
   const [busca, setBusca] = useState('');
 
   const termo = busca.trim().toLowerCase();
   const lista = atividades().filter(
-    (a) => noFiltro(filtro, a.id) && (!termo || a.titulo.toLowerCase().includes(termo)),
+    (a) => !termo || a.titulo.toLowerCase().includes(termo),
   );
 
   return (
     <div className="flex flex-col gap-5 pb-20">
       <ScreenTitle>{t('Atividades')}</ScreenTitle>
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-4">
-      <div className="flex min-h-13 items-center gap-2 rounded-pill bg-surface px-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-ink lg:flex-1">
+      <AtividadesPorCategoria atividades={lista} ferramentas={
+      <div className="flex min-h-13 items-center gap-2 rounded-pill bg-surface px-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-ink">
         <Icon name="busca" size={20} className="text-muted" />
         <label htmlFor="busca" className="sr-only">
           {t('Buscar atividades')}
@@ -115,31 +113,17 @@ export function Atividades() {
           className="min-w-0 flex-1 bg-transparent text-body outline-none placeholder:text-muted"
         />
       </div>
-      <ChoiceChips
-        label={t('Filtrar por tipo')}
-        tone="ink"
-        options={FILTROS}
-        labels={FILTRO_LABEL}
-        value={filtro}
-        onChange={(v) => setFiltro(v ?? 'todas')}
-      />
-      </div>
-      {/* Uma coluna no celular, duas no tablet e três no computador. */}
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {lista.map((a) => (
-          // Para começar, toda atividade passa pelo "Como você está".
-          <ActivityRow
-            key={a.id}
-            to="/estudante/pausa"
-            state={{ atividade: a.id }}
-            icone={a.icone}
-            fundo={a.fundo}
-            titulo={a.titulo}
-            detalhe={a.detalhe}
-          />
-        ))}
-        {lista.length === 0 && <p role="status" className="text-muted">{t('Nenhuma atividade com esse nome.')}</p>}
-      </div>
+      } renderAtividade={(a) => (
+        // Para começar, toda atividade passa pelo "Como você está".
+        <ActivityRow
+          to="/estudante/pausa"
+          state={{ atividade: a.id }}
+          icone={a.icone}
+          fundo={a.fundo}
+          titulo={a.titulo}
+          detalhe={a.detalhe}
+        />
+      )} />
       <CalmFab />
     </div>
   );
@@ -310,8 +294,7 @@ export function Perfil() {
           block
           className="lg:col-start-1 lg:row-start-2"
           onClick={() => {
-            sair();
-            navigate('/');
+            void agir(async () => { await sair(); navigate('/'); }, 'Você saiu da sua conta.');
           }}
         >
           <Icon name="sair" size={22} />

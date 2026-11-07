@@ -85,24 +85,25 @@ export const FICHAS: Ficha[] = [
   {
     estudanteId: 'est-1', responsavel: 'Rosa Lima', parentesco: 'Mãe', contato: '(41) 99999-0000 · rosa.lima@email.com',
     inicio: '07/10/2026', encaminhamento: 'Ansiedade em períodos de prova.', atualizadaEm: diasAtras(14, 16, 0),
-    convite: { enviadoEm: diasAtras(20, 9, 0), aceito: false },
   },
   {
     estudanteId: 'est-3', responsavel: 'Jorge Souza', parentesco: 'Pai', contato: '(41) 98888-1111',
     inicio: '02/09/2026', encaminhamento: 'Tristeza frequente relatada pela família.', atualizadaEm: diasAtras(28, 10, 0),
-    convite: { enviadoEm: diasAtras(40, 9, 0), aceito: true },
   },
   {
     estudanteId: 'est-6', responsavel: 'Marta Nunes', parentesco: 'Mãe', contato: '(41) 97777-2222',
-    inicio: '', encaminhamento: '', atualizadaEm: '', convite: null,
+    inicio: '', encaminhamento: '', atualizadaEm: '',
   },
 ];
 
 export const CONTEUDOS: Conteudo[] = [
-  { id: 'respiracao', nome: 'Respire&Pause', tipo: 'Exercício', disponivel: true },
-  { id: 'pianopause', nome: 'PianoPause', tipo: 'Jogo', disponivel: true },
-  { id: 'mkpotion', nome: 'MK Potion', tipo: 'Jogo', disponivel: true },
-  { id: 'video', nome: 'MK Breath', tipo: 'Vídeo', disponivel: true },
+  { id: 'respiracao', nome: 'respire & pause', tipo: 'Exercício', disponivel: true },
+  { id: 'pianopause', nome: 'piano pause', tipo: 'Jogo', disponivel: true },
+  { id: 'mkpotion', nome: 'mk potion', tipo: 'Jogo', disponivel: true },
+  { id: 'mkconnection', nome: 'mk connection', tipo: 'Jogo', disponivel: true },
+  { id: 'espiral', nome: 'spiral pause', tipo: 'Vídeo', disponivel: true },
+  { id: 'chinchila', nome: 'chinchilla pause', tipo: 'Vídeo', disponivel: true },
+  { id: 'video', nome: 'mk breath', tipo: 'Vídeo', disponivel: true },
 ];
 
 export interface VideoAtividade {

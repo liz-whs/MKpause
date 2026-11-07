@@ -1,3 +1,4 @@
+import { agir } from '../../state/acoes';
 import { useState } from 'react';
 import { useEstudante } from '../../state/EstudanteContext';
 import { t } from '../../i18n';
@@ -11,8 +12,7 @@ export function RetornoSala() {
   if (!avisoSaida) return retornou ? <p role="status">{t('Avisamos seu retorno.')}</p> : null;
 
   return <Button variant="outline" block onClick={() => {
-    voltei();
-    setRetornou(true);
+    void agir(async () => { await voltei(); setRetornou(true); }, '');
   }}>
     <Icon name="check" size={22} />
     {t('Voltei para a sala')}

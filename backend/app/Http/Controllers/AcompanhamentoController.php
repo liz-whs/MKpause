@@ -10,6 +10,7 @@ use App\Mkpause\Permissoes;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Ficha de acompanhamento (RF16, RF17, RF31, RN22), avisos (RF18, RF25) e o painel do
@@ -27,7 +28,14 @@ class AcompanhamentoController extends Controller
     public function verFicha(Request $request, $id)
     {
         $estudante = $this->estudante($request, $id, 'ver_ficha');
-        return $this->json(self::ficha($this->fichaDe($estudante)));
+        $dados = self::ficha($this->fichaDe($estudante));
+        // Registros clínicos não são disponibilizados à escola nem à administração.
+        if (!$this->conta($request)->e(Conta::PSICOLOGO_CLINICO)) {
+            $conteudo = self::conteudoFicha($dados['informacoes_acompanhamento']);
+            unset($conteudo['registros']);
+            $dados['informacoes_acompanhamento'] = json_encode($conteudo, JSON_UNESCAPED_UNICODE);
+        }
+        return $this->json($dados);
     }
 
     public function criarFicha(Request $request, $id)
@@ -40,6 +48,11 @@ class AcompanhamentoController extends Controller
             throw ErroApi::conflito('Este estudante já tem uma ficha.');
         }
         $dados = $this->validarFicha($this->entrada($request), parcial: false);
+        if (array_key_exists('informacoes_acompanhamento', $dados)) {
+            $conteudo = self::conteudoFicha($dados['informacoes_acompanhamento']);
+            unset($conteudo['registros']);
+            $dados['informacoes_acompanhamento'] = json_encode($conteudo, JSON_UNESCAPED_UNICODE);
+        }
         $agora = Formato::banco(Formato::agora());
         $idFicha = DB::table('ficha_acompanhamento')->insertGetId($dados + [
             'id_estudante' => $estudante->id_estudante, 'ativo' => true, 'criada_em' => $agora, 'atualizada_em' => $agora,
@@ -55,9 +68,57 @@ class AcompanhamentoController extends Controller
         if (array_key_exists('ativo', $dados) && !$this->conta($request)->e(Conta::ADMINISTRADOR)) {
             throw ErroApi::proibido('Só a administração ativa ou desativa fichas.');
         }
-        DB::table('ficha_acompanhamento')->where('id_ficha', $ficha->id_ficha)
-            ->update($dados + ['atualizada_em' => Formato::banco(Formato::agora())]);
-        return $this->json(self::ficha(DB::table('ficha_acompanhamento')->where('id_ficha', $ficha->id_ficha)->first()));
+        DB::transaction(function () use ($ficha, $dados) {
+            $atual = DB::table('ficha_acompanhamento')->where('id_ficha', $ficha->id_ficha)->lockForUpdate()->first();
+            if (array_key_exists('informacoes_acompanhamento', $dados)) {
+                $novo = self::conteudoFicha($dados['informacoes_acompanhamento']);
+                // PATCH atualiza os campos da ficha; registros só entram pela operação de acréscimo.
+                $novo['registros'] = self::conteudoFicha($atual->informacoes_acompanhamento)['registros'] ?? [];
+                $dados['informacoes_acompanhamento'] = json_encode($novo, JSON_UNESCAPED_UNICODE);
+            }
+            DB::table('ficha_acompanhamento')->where('id_ficha', $ficha->id_ficha)
+                ->update($dados + ['atualizada_em' => Formato::banco(Formato::agora())]);
+        });
+        return $this->verFicha($request, $id);
+    }
+
+    private static function conteudoFicha(?string $texto): array
+    {
+        $dados = json_decode($texto ?? '{}', true);
+        return is_array($dados) && !array_is_list($dados) ? $dados : ['encaminhamento' => $texto ?? ''];
+    }
+
+    public function registrarAcompanhamento(Request $request, $id)
+    {
+        $conta = $this->conta($request);
+        if (!$conta->e(Conta::PSICOLOGO_CLINICO)) throw ErroApi::proibido('Só o psicólogo clínico registra acompanhamentos.');
+        $estudante = $this->estudante($request, $id, 'editar_ficha');
+        $e = $this->entrada($request);
+        $texto = $e->texto('texto', max: 10000);
+        $chave = $e->texto('chave', max: 100);
+        $e->falharSeHouverErros();
+        $registro = DB::transaction(function () use ($conta, $estudante, $texto, $chave) {
+            $ficha = DB::table('ficha_acompanhamento')->where('id_estudante', $estudante->id_estudante)->lockForUpdate()->first();
+            if (!$ficha || !$ficha->ativo) throw ErroApi::conflito('Peça à administração para criar ou ativar a ficha antes de registrar.');
+            $dados = self::conteudoFicha($ficha->informacoes_acompanhamento);
+            $registros = $dados['registros'] ?? [];
+            $autor = 'u-'.$conta->id();
+            foreach ($registros as $r) {
+                if (($r['chave'] ?? null) === $chave && ($r['autorId'] ?? null) === $autor) {
+                    if ($r['texto'] !== $texto) throw ErroApi::conflito('Esta tentativa já foi salva com outro conteúdo. Atualize a ficha.');
+                    return $r;
+                }
+            }
+            $registro = ['id' => (string) Str::uuid(), 'chave' => $chave, 'autorId' => $autor,
+                'em' => Formato::utc(Formato::agora()), 'texto' => $texto];
+            $dados['registros'] = [...$registros, $registro];
+            DB::table('ficha_acompanhamento')->where('id_ficha', $ficha->id_ficha)->update([
+                'informacoes_acompanhamento' => json_encode($dados, JSON_UNESCAPED_UNICODE),
+                'atualizada_em' => Formato::banco(Formato::agora()),
+            ]);
+            return $registro;
+        });
+        return $this->json($registro, 201);
     }
 
     private function estudante(Request $request, $id, string $acao): object

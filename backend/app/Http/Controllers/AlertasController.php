@@ -11,19 +11,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Alertas e observações (RF08, RF14, RF15, RF21–RF23, RN11–RN19).
+ * Alertas e observações (RF08, RF14, RF21–RF23, RN11–RN19).
  *
  * POST  /api/alertas/                      estudante emite {"nivel": 2|3, "id_sessao"?, "descricao"?}
  * GET   /api/alertas/[?status=ABERTO]      estudante: os seus; professor/psi. escolar: recebidos;
- *                                          psi. clínico: dos vinculados; admin: todos
+ *                                          admin: todos; clínico: sem acesso a alertas
  * GET   /api/alertas/<id>/
  * PATCH /api/alertas/<id>/                 {"status": ...} destinatário, admin, ou estudante (só CANCELADO)
  * POST  /api/alertas/<id>/lido/            destinatário marca a notificação como lida
  * GET/POST /api/alertas/<id>/observacoes/  {"conteudo": "..."}
  *
  * Destinatários (RN12, RN13): nível 2 -> professores vinculados; nível 3 -> professores e
- * psicólogos escolares vinculados. O clínico não é destinatário (CHECK do banco); ele consulta
- * os alertas dos vinculados pela listagem (RF15).
+ * psicólogos escolares vinculados. O clínico não recebe nem consulta alertas.
  */
 class AlertasController extends Controller
 {
@@ -162,6 +161,23 @@ class AlertasController extends Controller
         return $this->json($lista->map(fn ($o) => self::observacao($o))->all());
     }
 
+    /** Leitura das observações escolares preservada pelo RF14, independente de alertas. */
+    public function observacoesDoEstudante(Request $request, $id)
+    {
+        $id = self::id($id);
+        if (!Permissoes::pode($this->conta($request), 'ver_observacoes', $id)) {
+            throw ErroApi::proibido('Seu perfil não tem acesso a estas observações.');
+        }
+        $lista = DB::table('observacao as o')->join('alerta as a', 'a.id_alerta', '=', 'o.id_alerta')
+            ->join('usuario as u', 'u.id_usuario', '=', 'o.id_autor')->where('a.id_estudante', $id)
+            ->orderByDesc('o.criado_em')->orderByDesc('o.id_observacao')
+            ->select('o.id_observacao', 'o.id_autor', 'o.conteudo', 'o.criado_em', 'u.nome_completo as nome_autor')->get();
+        return $this->json($lista->map(fn ($o) => [
+            'id_observacao' => (int) $o->id_observacao, 'autor' => (int) $o->id_autor,
+            'nome_autor' => $o->nome_autor, 'conteudo' => $o->conteudo, 'criado_em' => Formato::local($o->criado_em),
+        ])->all());
+    }
+
     public function observar(Request $request, $id)
     {
         $alerta = $this->alerta($request, $id);
@@ -190,10 +206,11 @@ class AlertasController extends Controller
         if ($conta->e(Conta::ESTUDANTE)) {
             $q->where('a.id_estudante', $conta->idPerfil());
         } elseif ($conta->e(Conta::PROFESSOR, Conta::PSICOLOGO_ESCOLAR)) {
+            $q->whereIn('a.id_estudante', Permissoes::estudantesVinculados($conta));
             $q->whereExists(fn ($s) => $s->from('destinatario_alerta as d')->whereColumn('d.id_alerta', 'a.id_alerta')
                 ->where('d.id_usuario', $conta->id()));
         } elseif ($conta->e(Conta::PSICOLOGO_CLINICO)) {
-            $q->whereIn('a.id_estudante', Permissoes::estudantesVinculados($conta));
+            throw ErroApi::proibido('Seu perfil não tem acesso a alertas.');
         }
         if ($status = $request->query('status')) {
             $q->where('a.status', mb_strtoupper($status));

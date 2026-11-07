@@ -1,5 +1,6 @@
+import { agir } from '../../state/acoes';
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import { api } from '../../data/api';
 import { DESTINOS_SAIDA, type Alerta } from '../../domain/tipos';
 import type { EmocaoId } from '../../domain/emocoes';
@@ -18,7 +19,6 @@ import { t } from '../../i18n';
 
 /** Aviso de saída: destino opcional, quem vai saber, "Avisar e sair". */
 export function AvisoSaida() {
-  const navigate = useNavigate();
   const { avisoSaida, avisarSaida } = useEstudante();
   const [destino, setDestino] = useState<string | null>(null);
   if (avisoSaida) return <Navigate to="/estudante/pausa" replace />;
@@ -45,8 +45,7 @@ export function AvisoSaida() {
       <Button
         block
         onClick={() => {
-          avisarSaida(destino ?? undefined);
-          navigate('/estudante/pausa', { replace: true });
+          void agir(() => avisarSaida(destino ?? undefined), 'Aviso enviado à escola.');
         }}
       >
         <Icon name="porta" size={22} />
@@ -72,17 +71,28 @@ export function AgoraRespira() {
 
   const [alerta, setAlerta] = useState<Alerta | null>(null);
   const [cancelado, setCancelado] = useState(false);
+  const [falhou, setFalhou] = useState(false);
   const enviou = useRef(false);
+
+  const enviarAviso = () => {
+    setFalhou(false);
+    return agir(async () => { setAlerta(await api.estudante.enviarAlertaNivel3(perfil.id)); }, 'Aviso enviado à escola.')
+      .then((ok) => { if (!ok) { enviou.current = false; setFalhou(true); } });
+  };
 
   useEffect(() => {
     if (semAviso || enviou.current) return;
     enviou.current = true;
-    setAlerta(api.estudante.enviarAlertaNivel3(perfil.id));
+    void enviarAviso();
   }, [semAviso, perfil.id]);
 
   return (
     <div className="flex min-h-[calc(100dvh-2rem)] flex-col gap-4">
       <FocusTopBar />
+      {falhou && <div role="alert" className="rounded-card bg-surface p-4">
+        <p>{t('O aviso ainda não foi enviado. Você pode continuar respirando e tentar novamente.')}</p>
+        <Button onClick={() => { void enviarAviso(); }}>{t('Tentar enviar o aviso novamente')}</Button>
+      </div>}
       {alerta && !cancelado && (
         <div role="status" className="flex flex-col gap-1.5 rounded-card bg-surface px-4 py-3.5">
           <span className="flex items-center gap-2.5 font-semibold">
@@ -94,8 +104,7 @@ export function AgoraRespira() {
           <button
             type="button"
             onClick={() => {
-              api.estudante.cancelarAlerta(alerta.id);
-              setCancelado(true);
+              void agir(async () => { await api.estudante.cancelarAlerta(alerta.id); setCancelado(true); }, '');
             }}
             className="min-h-12 self-start font-semibold underline underline-offset-4"
           >

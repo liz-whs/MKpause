@@ -28,7 +28,8 @@ class SenhaDjango
             return false;
         }
         $partes = explode('$', $hash, 4);
-        if (count($partes) !== 4 || $partes[0] !== 'pbkdf2_sha256' || !ctype_digit($partes[1])) {
+        if (count($partes) !== 4 || $partes[0] !== 'pbkdf2_sha256' || !ctype_digit($partes[1])
+            || (int) $partes[1] < 1 || (int) $partes[1] > 10000000 || $partes[2] === '') {
             return false;
         }
         return hash_equals($hash, self::calcular($senha, $partes[2], (int) $partes[1]));

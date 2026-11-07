@@ -1,5 +1,8 @@
+import { AtividadesPorCategoria } from '../../components/student/AtividadesPorCategoria';
+import { dataParaISO, nascimentoValido, telefoneValido } from '../../domain/formularios';
+import { agir } from '../../state/acoes';
 import { useCallback, useState, type FormEvent } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { api } from '../../data/api';
 import { useDados } from '../../data/useDados';
 import { TURMAS } from '../../data/mocks/escola';
@@ -18,7 +21,6 @@ import { Field } from '../../components/ui/Field';
 import { Icon, type IconName } from '../../components/ui/Icon';
 import { cx } from '../../components/ui/cx';
 import { t } from '../../i18n';
-import { ConviteResponsavel } from './ConviteResponsavel';
 
 export function AdminLayout() {
   const eu = administradorLogado();
@@ -42,7 +44,7 @@ export function AdminLayout() {
 
 /** Pede confirmação antes de uma ação; devolve o diálogo pronto para renderizar. */
 function useConfirmacao() {
-  const [pedido, setPedido] = useState<{ titulo: string; texto: string; confirmar: string; acao: () => void } | null>(null);
+  const [pedido, setPedido] = useState<{ titulo: string; texto: string; confirmar: string; acao: () => void | Promise<void> } | null>(null);
   const cancelar = useCallback(() => setPedido(null), []);
   const dialogo = (
     <ConfirmDialog
@@ -52,8 +54,7 @@ function useConfirmacao() {
       confirmar={pedido?.confirmar ?? ''}
       onCancelar={cancelar}
       onConfirmar={() => {
-        pedido?.acao();
-        setPedido(null);
+        void agir(async () => { await pedido?.acao(); setPedido(null); });
       }}
     />
   );
@@ -92,7 +93,8 @@ interface Linha {
 }
 
 export function AdminUsuarios() {
-  const [aba, setAba] = useState<Aba>('estudantes');
+  const location = useLocation();
+  const [aba, setAba] = useState<Aba>(() => ABAS.find((a) => a === (location.state as { aba?: string } | null)?.aba) ?? 'estudantes');
   const [busca, setBusca] = useState('');
   const [aviso, setAviso] = useState('');
   const { pedir, dialogo } = useConfirmacao();
@@ -110,9 +112,9 @@ export function AdminUsuarios() {
       titulo: t('Desativar este cadastro?'),
       texto: t('A pessoa não entra mais. O histórico continua e os vínculos ficam inativos.'),
       confirmar: t('Desativar'),
-      acao: () => {
-        if (l.tipo === 'estudante') api.admin.desativarEstudante(l.id);
-        else api.admin.desativarProfissional(l.id);
+      acao: async () => {
+        if (l.tipo === 'estudante') await api.admin.desativarEstudante(l.id);
+        else await api.admin.desativarProfissional(l.id);
         setAviso(t('Cadastro desativado. O histórico foi mantido.'));
       },
     });
@@ -123,12 +125,12 @@ export function AdminUsuarios() {
         titulo={t('Usuários')}
         descricao={t('Cadastre, consulte e desative usuários.')}
         acao={
-          aba === 'estudantes' && (
+          aba === 'estudantes' ? (
             <Button to="/admin/usuarios/novo">
               <Icon name="mais" size={20} />
               {t('Cadastrar estudante')}
             </Button>
-          )
+          ) : <Button to={`/admin/profissionais/novo/${aba}`}><Icon name="mais" size={20} />{t(aba === 'professor' ? 'Cadastrar professor' : aba === 'psicologo-escolar' ? 'Cadastrar psicólogo escolar' : 'Cadastrar psicólogo clínico')}</Button>
         }
       />
       <ChoiceChips
@@ -183,7 +185,8 @@ type Campos = Pick<Estudante, 'nome' | 'nascimento' | 'email' | 'telefone' | 'ma
 function validar(c: Campos): Partial<Record<keyof Campos, string>> {
   const erros: Partial<Record<keyof Campos, string>> = {};
   if (!c.nome?.trim()) erros.nome = t('Escreva o nome completo.');
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(c.nascimento ?? '')) erros.nascimento = t('Use o formato DD/MM/AAAA.');
+  if (!nascimentoValido(c.nascimento ?? '')) erros.nascimento = t('Informe uma data válida, sem estar no futuro.');
+  if (!telefoneValido(c.telefone ?? '')) erros.telefone = t('Informe um telefone com DDD e 10 ou 11 dígitos.');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c.email ?? '')) erros.email = t('Use um e-mail completo, como nome@escola.edu.br.');
   if (!c.matricula?.trim()) erros.matricula = t('Escreva a matrícula.');
   return erros;
@@ -202,6 +205,7 @@ export function AdminCadastro() {
     turma: existente?.turma ?? TURMAS[1],
     ativo: existente?.ativo === false ? 'Inativo' : 'Ativo',
   });
+  const [senha, setSenha] = useState('');
   const [tentou, setTentou] = useState(false);
   const [salvo, setSalvo] = useState(false);
   const erros = tentou ? validar(c) : {};
@@ -218,40 +222,37 @@ export function AdminCadastro() {
   function salvar(e: FormEvent) {
     e.preventDefault();
     setTentou(true);
-    if (Object.keys(validar(c)).length > 0) return;
+    if (Object.keys(validar(c)).length > 0 || (!existente && senha.length < 8)) return;
     const dados = { ...c, ativo: c.ativo === 'Ativo' };
-    if (existente) api.admin.atualizarEstudante(existente.id, dados);
+    void agir(async () => {
+    if (existente) await api.admin.atualizarEstudante(existente.id, dados);
     else {
-      const novo = api.admin.cadastrarEstudante(dados);
+      const novo = await api.admin.cadastrarEstudante(dados, senha);
       navigate(`/admin/usuarios/${novo.id}`, { replace: true });
     }
     setSalvo(true);
+    });
   }
 
   return (
     <>
       <BackLink to="/admin/usuarios">{t('Usuários')}</BackLink>
       <PageHeader titulo={existente ? t('Editar estudante') : t('Cadastrar estudante')} descricao={t('Campos com * precisam ser preenchidos.')} />
-      {salvo && <SuccessBanner>{existente ? t('Cadastro atualizado.') : t('Estudante cadastrado. Já pode entrar com a matrícula.')}</SuccessBanner>}
+      {salvo && <SuccessBanner>{existente ? t('Cadastro atualizado.') : t('Estudante cadastrado. Já pode entrar com e-mail e senha.')}</SuccessBanner>}
       <form noValidate onSubmit={salvar} className="flex max-w-215 flex-col gap-5.5 rounded-[26px] bg-surface p-7">
         <h2 className="text-section">{t('Dados pessoais')}</h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4.5">
           <Field label={t('Nome completo *')} autoComplete="off" {...campo('nome')} />
-          <Field label={t('Data de nascimento *')} placeholder={t('DD/MM/AAAA')} inputMode="numeric" {...campo('nascimento')} />
+          <Field label={t('Data de nascimento *')} placeholder={t('DD/MM/AAAA')} mask="data" {...campo('nascimento')} />
           <Field label={t('E-mail *')} type="email" placeholder={t('nome@escola.edu.br')} {...campo('email')} />
+          {!existente && <Field label={t('Senha do primeiro acesso *')} type="password" autoComplete="new-password" value={senha} onChange={(e) => setSenha(e.target.value)} error={tentou && senha.length < 8 ? t('Use pelo menos 8 caracteres.') : undefined} />}
           <Field label={t('Telefone de contato')} type="tel" placeholder="(00) 00000-0000" {...campo('telefone')} />
         </div>
         <h2 className="text-section">{t('Escola')}</h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4.5">
-          <Field label={t('Matrícula *')} {...campo('matricula')} />
+          <Field maxLength={30} label={t('Matrícula *')} {...campo('matricula')} />
           <SelectField label={t('Turma *')} value={c.turma} onChange={(v) => setC({ ...c, turma: v })} options={TURMAS.map((turma) => ({ value: turma, label: turma }))} />
           <SelectField label={t('Situação')} value={c.ativo} onChange={(v) => setC({ ...c, ativo: v })} options={['Ativo', 'Inativo'].map((situacao) => ({ value: situacao, label: situacao }))} />
-        </div>
-        <div className="flex items-start gap-3 rounded-[18px] bg-peony px-4 py-3.5">
-          <Icon name="info" size={22} className="flex-none" />
-          <span>
-            {t('O responsável é convidado depois, em')} <Link to="/admin/vinculos" className="font-semibold">{t('Vínculos')}</Link>.
-          </span>
         </div>
         <div className="flex flex-wrap justify-end gap-2.5">
           <Button to="/admin/usuarios" variant="outline" size="md">
@@ -298,8 +299,7 @@ function SecaoVinculo({ estudante, papel, titulo, onRemover }: { estudante: Estu
         ))}
         {vinculados.length === 0 && <li className="py-3 text-muted">{t('Ninguém vinculado.')}</li>}
       </ul>
-      {papel === 'psicologo-clinico' && <p className="text-muted">{t('Para um novo acompanhamento clínico, envie o convite ao responsável abaixo.')}</p>}
-      {papel !== 'psicologo-clinico' && disponiveis.length > 0 && (
+      {disponiveis.length > 0 && (
         <div className="flex flex-wrap items-end gap-2.5 pt-3">
           <SelectField
             label={t('Adicionar {papel}', { papel: PAPEL_LABEL[papel].toLowerCase() })}
@@ -313,8 +313,7 @@ function SecaoVinculo({ estudante, papel, titulo, onRemover }: { estudante: Estu
             variant="outline"
             disabled={!escolhido}
             onClick={() => {
-              api.admin.vincular(estudante.id, escolhido);
-              setEscolhido('');
+              void agir(async () => { await api.admin.vincular(estudante.id, escolhido); setEscolhido(''); });
             }}
           >
             <Icon name="mais" size={18} />
@@ -332,7 +331,6 @@ export function AdminVinculos() {
   const [selecionadoId, setSelecionadoId] = useState(estudantes[0]?.id ?? '');
   const [aviso, setAviso] = useState('');
   const { pedir, dialogo } = useConfirmacao();
-  const ficha = useDados(() => api.admin.ficha(selecionadoId));
 
   const termo = busca.trim().toLowerCase();
   const lista = estudantes.filter((e) => !termo || e.nome.toLowerCase().includes(termo));
@@ -392,17 +390,16 @@ export function AdminVinculos() {
                 onRemover={(p) =>
                   pedir({
                     titulo: t('Remover este vínculo?'),
-                    texto: t('{profissional} deixa de ver {estudante} e de receber seus alertas e avisos. O que já foi registrado continua.', { profissional: p.nome, estudante: primeiroNome }),
+                    texto: t('{profissional} deixa de ver {estudante}. O que já foi registrado continua.', { profissional: p.nome, estudante: primeiroNome }),
                     confirmar: t('Remover vínculo'),
-                    acao: () => {
-                      api.admin.desvincular(selecionado.id, p.id);
+                    acao: async () => {
+                      await api.admin.desvincular(selecionado.id, p.id);
                       setAviso(t('Vínculo removido. Os registros anteriores foram mantidos.'));
                     },
                   })
                 }
               />
             ))}
-            <ConviteResponsavel key={selecionado.id} estudanteId={selecionado.id} ficha={ficha} />
           </div>
         )}
       </div>
@@ -530,8 +527,10 @@ function FormFicha({ estudanteId, opcoesNova, clinicos, onSalvo }: {
         className="flex flex-col gap-4.5"
         onSubmit={(e) => {
           e.preventDefault();
-          api.admin.salvarFicha({ estudanteId: alvo, ...f }, clinico || null);
-          onSalvo();
+          void agir(async () => {
+            if (f.inicio && !dataParaISO(f.inicio)) throw new Error(t('Informe uma data válida no formato DD/MM/AAAA.'));
+            await api.admin.salvarFicha({ estudanteId: alvo, ...f }, clinico || null); onSalvo();
+          });
         }}
       >
         {!estudanteId && (
@@ -539,9 +538,9 @@ function FormFicha({ estudanteId, opcoesNova, clinicos, onSalvo }: {
         )}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4.5">
           <Field label={t('Responsável')} {...muda('responsavel')} />
-          <Field label={t('Parentesco')} placeholder={t('Ex.: Mãe')} {...muda('parentesco')} />
-          <Field label={t('Contato do responsável')} {...muda('contato')} />
-          <Field label={t('Início do acompanhamento')} placeholder={t('DD/MM/AAAA')} {...muda('inicio')} />
+          <Field maxLength={80} label={t('Parentesco')} placeholder={t('Ex.: Mãe')} {...muda('parentesco')} />
+          <Field maxLength={254} label={t('Contato do responsável')} {...muda('contato')} />
+          <Field label={t('Início do acompanhamento')} mask="data" placeholder={t('DD/MM/AAAA')} {...muda('inicio')} />
           <SelectField
             label={t('Psicólogo clínico')}
             value={clinico}
@@ -549,8 +548,7 @@ function FormFicha({ estudanteId, opcoesNova, clinicos, onSalvo }: {
             options={[{ value: '', label: 'Sem psicólogo clínico' }, ...clinicos.map((p) => ({ value: p.id, label: p.nome }))]}
           />
         </div>
-        <Field label={t('Encaminhamento')} multiline rows={2} {...muda('encaminhamento')} />
-        <p>{t('O profissional indicado só terá acesso após o aceite do responsável em Vínculos.')}</p>
+        <Field maxLength={2000} label={t('Encaminhamento')} multiline rows={2} {...muda('encaminhamento')} />
         <LockNote>{t('Os registros clínicos não aparecem aqui.')}</LockNote>
         <div className="flex justify-end">
           <Button type="submit" size="md">
@@ -568,6 +566,9 @@ const VISUAL: Record<AtividadeId, { icone: IconName; fundo: string }> = {
   respiracao: { icone: 'respiracao', fundo: 'bg-lavender' },
   pianopause: { icone: 'musica', fundo: 'bg-peony' },
   mkpotion: { icone: 'pocao', fundo: 'bg-leaf' },
+  mkconnection: { icone: 'atividades', fundo: 'bg-leaf' },
+  espiral: { icone: 'respiracao', fundo: 'bg-leaf' },
+  chinchila: { icone: 'play', fundo: 'bg-lavender' },
   video: { icone: 'play', fundo: 'bg-sky' },
 };
 
@@ -580,69 +581,67 @@ export function AdminConteudos() {
     <>
       <PageHeader titulo={t('Conteúdos')} descricao={t('Só os disponíveis aparecem para os estudantes.')} />
       {aviso && <SuccessBanner>{aviso}</SuccessBanner>}
-      <ul className="flex flex-col gap-2.5">
-        {conteudos.map((c) => {
-          const usos = api.admin.usos(c.id);
-          const v = VISUAL[c.id];
-          return (
-            <li key={c.id} className="flex flex-wrap items-center gap-4 rounded-card bg-surface px-5 py-4">
-              <span className={cx('flex size-14 flex-none items-center justify-center rounded-[18px]', v.fundo)}>
-                <Icon name={v.icone} size={28} />
+      <AtividadesPorCategoria atividades={conteudos} gradeClassName="" renderAtividade={(c) => {
+        const usos = api.admin.usos(c.id);
+        const v = VISUAL[c.id];
+        return (
+          <div className="flex flex-wrap items-center gap-4 rounded-card bg-surface px-5 py-4">
+            <span className={cx('flex size-14 flex-none items-center justify-center rounded-[18px]', v.fundo)}>
+              <Icon name={v.icone} size={28} />
+            </span>
+            <span className="flex flex-[1_1_240px] flex-col">
+              <strong className="text-button">{t(c.nome)}</strong>
+              <span className="text-caption text-muted">
+                {t(c.tipo)} · {usos > 0 ? (usos === 1 ? t('usado em {n} sessão', { n: usos }) : t('usado em {n} sessões', { n: usos })) : t('ainda não usado')}
               </span>
-              <span className="flex flex-[1_1_240px] flex-col">
-                <strong className="text-button">{t(c.nome)}</strong>
-                <span className="text-caption text-muted">
-                  {t(c.tipo)} · {usos > 0 ? (usos === 1 ? t('usado em {n} sessão', { n: usos }) : t('usado em {n} sessões', { n: usos })) : t('ainda não usado')}
-                </span>
-              </span>
-              <span className="flex min-w-37.5 items-center gap-2.5 font-semibold">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={c.disponivel}
-                  aria-label={t('{nome}: disponível para estudantes', { nome: t(c.nome) })}
-                  onClick={() => api.admin.alternarConteudo(c.id)}
-                  className={cx('relative h-8.5 w-14 flex-none rounded-pill transition-colors', c.disponivel ? 'bg-ink' : 'bg-disabled')}
-                >
-                  <span
-                    className={cx(
-                      'absolute top-1 size-6.5 rounded-full bg-surface transition-[left] motion-reduce:transition-none',
-                      c.disponivel ? 'left-6.5' : 'left-1',
-                    )}
-                  />
-                </button>
-                {c.disponivel ? t('Disponível') : t('Oculto')}
-              </span>
-              <Button
-                size="md"
-                variant="outline"
-                disabled={usos > 0}
-                aria-label={t('Excluir {nome}', { nome: t(c.nome) })}
-                aria-describedby={usos > 0 ? `uso-${c.id}` : undefined}
-                onClick={() =>
-                  pedir({
-                    titulo: t('Excluir este conteúdo?'),
-                    texto: t('Ele some da lista de atividades e não volta.'),
-                    confirmar: t('Excluir'),
-                    acao: () => {
-                      api.admin.excluirConteudo(c.id);
-                      setAviso(t('Conteúdo excluído.'));
-                    },
-                  })
-                }
+            </span>
+            <span className="flex min-w-37.5 items-center gap-2.5 font-semibold">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={c.disponivel}
+                aria-label={t('{nome}: disponível para estudantes', { nome: t(c.nome) })}
+                onClick={() => { void agir(() => api.admin.alternarConteudo(c.id)); }}
+                className={cx('relative h-8.5 w-14 flex-none rounded-pill transition-colors', c.disponivel ? 'bg-ink' : 'bg-disabled')}
               >
-                <Icon name="lixeira" size={18} />
-                {t('Excluir')}
-              </Button>
-              {usos > 0 && (
-                <span id={`uso-${c.id}`} className="sr-only">
-                  {t('Já usado em sessões: só pode ser ocultado.')}
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                <span
+                  className={cx(
+                    'absolute top-1 size-6.5 rounded-full bg-surface transition-[left] motion-reduce:transition-none',
+                    c.disponivel ? 'left-6.5' : 'left-1',
+                  )}
+                />
+              </button>
+              {c.disponivel ? t('Disponível') : t('Oculto')}
+            </span>
+            <Button
+              size="md"
+              variant="outline"
+              disabled={usos > 0}
+              aria-label={t('Excluir {nome}', { nome: t(c.nome) })}
+              aria-describedby={usos > 0 ? `uso-${c.id}` : undefined}
+              onClick={() =>
+                pedir({
+                  titulo: t('Excluir este conteúdo?'),
+                  texto: t('Ele some da lista de atividades e não volta.'),
+                  confirmar: t('Excluir'),
+                  acao: async () => {
+                    await api.admin.excluirConteudo(c.id);
+                    setAviso(t('Conteúdo excluído.'));
+                  },
+                })
+              }
+            >
+              <Icon name="lixeira" size={18} />
+              {t('Excluir')}
+            </Button>
+            {usos > 0 && (
+              <span id={`uso-${c.id}`} className="sr-only">
+                {t('Já usado em sessões: só pode ser ocultado.')}
+              </span>
+            )}
+          </div>
+        );
+      }} />
       <LockNote>{t('Conteúdo já usado em sessões não pode ser excluído, só ocultado.')}</LockNote>
       {dialogo}
     </>

@@ -70,7 +70,7 @@ describe('sequência real de cuidados', () => {
     expect(result.current.feitosHoje).toEqual(['agua']);
   });
 
-  it('migra marcações antigas comprovadas e descarta os cinco dias fictícios', () => {
+  it('não atribui marcações antigas sem identificação ao próximo estudante', () => {
     sessionStorage.setItem('mkpause:estudante', JSON.stringify({
       diasComCuidado: ['2026-10-29', '2026-10-30', '2026-11-02', '2026-11-03', '2026-11-04'],
       cuidadosHoje: { '2026-11-05': ['agua'] },
@@ -78,8 +78,8 @@ describe('sequência real de cuidados', () => {
     const { result, rerender } = renderHook(({ id }) => useCuidados(id), { initialProps: { id: 'est-0' } });
     expect(result.current.diasComCuidado.size).toBe(0);
     rerender({ id: 'est-1' });
-    expect([...result.current.diasComCuidado]).toEqual(['2026-11-05']);
-    expect(result.current.feitosHoje).toEqual(['agua']);
+    expect([...result.current.diasComCuidado]).toEqual([]);
+    expect(result.current.feitosHoje).toEqual([]);
     rerender({ id: 'est-2' });
     expect(result.current.feitosHoje).toEqual([]);
   });

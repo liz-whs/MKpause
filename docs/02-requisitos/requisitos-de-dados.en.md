@@ -36,7 +36,6 @@ A student may be related to:
 - teachers;
 - school psychologist;
 - clinical psychologist;
-- guardians.
 
 ---
 
@@ -109,29 +108,7 @@ A clinical psychologist may be related to:
 - followed students;
 - follow-up records;
 - students' history;
-- alerts;
 - records made available for follow-up.
-
----
-
-## Guardian
-
-The system must keep the data needed to identify a guardian and establish their link with a student.
-
-### Required data
-
-- guardian identifier;
-- name;
-- contact information;
-- relationship to the student;
-- information needed to establish the link;
-- link or registration status.
-
-### Relationships
-
-A guardian may be related to one or more students, according to the rules defined by the system.
-
-The guardian's link is not necessarily created during the student's initial registration. It may be established later through an invitation or an equivalent mechanism.
 
 ---
 
@@ -248,8 +225,7 @@ An alert may be related to:
 - student;
 - session;
 - teacher;
-- school psychologist;
-- clinical psychologist.
+- school psychologist.
 
 Recipients depend on existing links and on the business rules defined for each type of alert.
 
@@ -322,7 +298,6 @@ The links include:
 - student ↔ teacher;
 - student ↔ school psychologist;
 - student ↔ clinical psychologist;
-- student ↔ guardian.
 
 These links are used to determine which professionals may view information about, or receive alerts for, a given student.
 
@@ -346,7 +321,6 @@ For example, professionals who follow students should see only the information t
 | Teacher | Represent teachers linked to students |
 | School Psychologist | Represent psychological follow-up at school |
 | Clinical Psychologist | Represent clinical follow-up professionals |
-| Guardian | Represent guardians linked to the student |
 | Administrator | Represent administrative users |
 | Session | Record self-regulation sessions |
 | Mood Record | Store recorded emotional states |
@@ -355,7 +329,7 @@ For example, professionals who follow students should see only the information t
 | Note | Store follow-up notes |
 | Follow-up Record | Bring follow-up information together |
 | Announcement | Store notices published on the platform |
-| Link | Represent relationships between students and their guardians or professionals |
+| Link | Represent relationships between students and their professionals |
 
 ---
 

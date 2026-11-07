@@ -167,29 +167,6 @@ Situações classificadas nos níveis **2 e 3**, conforme as regras atuais do pr
 
 ---
 
-## UC06 — Consultar Histórico
-
-**Ator principal:** Estudante
-
-**Objetivo:**
-Permitir que o estudante consulte informações sobre suas sessões anteriores.
-
-**Pré-condição:**
-O estudante deve estar autenticado.
-
-### Fluxo principal
-
-1. O estudante acessa seu histórico.
-2. O sistema identifica o estudante autenticado.
-3. O sistema recupera os registros autorizados.
-4. O sistema apresenta as sessões anteriores.
-5. O estudante pode consultar as informações disponibilizadas sobre cada sessão.
-
-**Pós-condição:**
-Nenhum dado é alterado.
-
----
-
 ## UC07 — Consultar Estudantes
 
 **Atores:**
@@ -254,7 +231,7 @@ A associação de ambos ao mesmo caso de uso não exige participação simultân
 ## UC09 — Consultar Alertas
 
 **Atores:**
-Professor, Psicólogo Escolar e Psicólogo Clínico, conforme permissões.
+Professor e Psicólogo Escolar, conforme permissões.
 
 **Objetivo:**
 Permitir que profissionais autorizados consultem alertas relacionados aos estudantes acompanhados.
@@ -362,14 +339,13 @@ A funcionalidade deve considerar os diferentes perfis profissionais existentes n
 **Ator principal:** Administrador
 
 **Objetivo:**
-Permitir o gerenciamento das relações necessárias entre estudantes e profissionais ou responsáveis.
+Permitir o gerenciamento das relações necessárias entre estudantes e profissionais.
 
 ### Vínculos previstos
 
 - estudante ↔ professor;
 - estudante ↔ psicólogo escolar;
 - estudante ↔ psicólogo clínico;
-- estudante ↔ responsável.
 
 ### Fluxo principal
 
@@ -474,7 +450,6 @@ A direção exata das relações deve permanecer consistente com a versão final
 | UC03 | Registrar Humor | Estudante |
 | UC04 | Avaliar Estado | Sistema / fluxo da sessão |
 | UC05 | Emitir Alerta | Estudante |
-| UC06 | Consultar Histórico | Estudante |
 | UC07 | Consultar Estudantes | Profissionais |
 | UC08 | Registrar Observação | Professor / Psicólogo Escolar |
 | UC09 | Consultar Alertas | Profissionais autorizados |

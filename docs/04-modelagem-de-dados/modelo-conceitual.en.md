@@ -37,7 +37,6 @@ The student is related to elements such as:
 - follow-up record;
 - teachers;
 - psychologists;
-- guardians.
 
 The student is central to the MKpause model, since most follow-up records relate to them.
 
@@ -64,14 +63,6 @@ The school psychologist may be linked to students, receive alerts and record fol
 Represents the professional responsible for the student's clinical follow-up, when a corresponding link exists.
 
 The clinical psychologist may view the information the system makes available, according to their permissions and established links.
-
----
-
-### Guardian (Responsável)
-
-Represents the person responsible for the student.
-
-The guardian may be linked to the student after the initial registration, through the process defined by the platform.
 
 ---
 
@@ -213,17 +204,6 @@ Represents the link needed to allow the clinical follow-up provided for by the p
 
 ---
 
-### Student — Guardian
-
-```text
-ESTUDANTE N ───────── N RESPONSÁVEL
-```
-
-The model can represent cases in which a student has more than one guardian and a guardian is related to more than one student.
-
-This relationship may also require an associative entity in the logical model.
-
----
 
 ### Student — Note
 
@@ -282,7 +262,6 @@ Existing or planned examples in MKpause include:
 ```text
 ESTUDANTE N ───── N PROFESSOR
 
-ESTUDANTE N ───── N RESPONSÁVEL
 
 SESSÃO N ───── N ATIVIDADE
 ```

@@ -10,7 +10,7 @@ However, offering isolated resources is not enough. It is also important to have
 
 **MKpause** emerges in this context as a platform that brings self-regulation resources and follow-up together.
 
-Through the system, students can complete self-regulation sessions, record their emotional state before and after the activities, access content and view their history.
+Through the system, students can complete self-regulation sessions, record their emotional state before and after the activities and access content.
 
 At the same time, professionals such as teachers, school psychologists and clinical psychologists have specific features to follow students according to their links and permissions.
 

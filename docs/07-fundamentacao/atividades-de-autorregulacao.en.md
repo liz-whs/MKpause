@@ -38,7 +38,6 @@ The authors also point out that the methodological quality of most studies range
 
 **Sense of control.** The circle that expands and contracts gives students a visual reference for following their own breathing, at their own pace and with no score.
 
-**Repeated practice.** The session history (RF09) lets students return to the practice over time, which moves toward the multiple-sessions guideline.
 
 **Human guidance.** The platform does not replace professionals (RN36). Links with teachers and psychologists, along with the alert system, keep people involved in the process, which the review identified as a core component.
 

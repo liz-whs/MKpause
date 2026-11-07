@@ -40,6 +40,17 @@ describe('acesso por vínculo', () => {
 });
 
 describe('alertas chegam à escola', () => {
+  it('o clínico não vê alertas e o endereço antigo volta para acompanhados', () => {
+    api.estudante.enviarAlertaNivel3('est-1');
+    entrarComoProfissional('pc-1');
+    expect(api.escola.alertas('pc-1')).toEqual([]);
+    expect(api.escola.avisos('pc-1')).toEqual([]);
+    const { router } = abrir('/clinico/alertas');
+    expect(router.state.location.pathname).toBe('/clinico/acompanhados');
+    expect(screen.queryByRole('link', { name: /Alertas/ })).toBeNull();
+    expect(api.escola.sessoes('pc-1', 'est-1').length).toBeGreaterThan(0);
+  });
+
   it('o alerta do nível 3 aparece para o professor e pode ser marcado como visto', async () => {
     api.estudante.enviarAlertaNivel3('est-1');
     entrarComoProfissional('prof-1');
@@ -50,9 +61,9 @@ describe('alertas chegam à escola', () => {
     expect(within(card).getByText('Visto por você')).toBeInTheDocument();
   });
 
-  it('alerta cancelado pelo aluno não aparece', () => {
-    const a = api.estudante.enviarAlertaNivel3('est-1');
-    api.estudante.cancelarAlerta(a.id);
+  it('alerta cancelado pelo aluno não aparece', async () => {
+    const a = await api.estudante.enviarAlertaNivel3('est-1');
+    await api.estudante.cancelarAlerta(a.id);
     entrarComoProfissional('prof-1');
     abrir('/escola/alertas');
     expect(screen.queryByText('Ana L.')).toBeNull();
@@ -69,6 +80,15 @@ describe('sem intensidade nem "nível 2" nos registros', () => {
 });
 
 describe('administração', () => {
+  it('a ficha vincula o clínico diretamente e a tela não oferece convite ao responsável', () => {
+    const ficha = api.admin.ficha('est-1')!;
+    api.admin.salvarFicha(ficha, 'pc-2');
+    expect(api.escola.estudantes('pc-2').some((e) => e.id === 'est-1')).toBe(true);
+    abrir('/admin/vinculos');
+    expect(screen.queryByText(/Enviar convite/)).toBeNull();
+    expect(screen.queryByText(/Aceite do responsável/)).toBeNull();
+  });
+
   it('desativar pede confirmação e mantém o histórico', async () => {
     abrir('/admin/usuarios');
     await userEvent.click(screen.getByRole('button', { name: 'Desativar Bruno Martins' }));
@@ -88,13 +108,13 @@ describe('administração', () => {
 
   it('conteúdo oculto some das atividades do estudante', async () => {
     abrir('/admin/conteudos');
-    await userEvent.click(screen.getByRole('switch', { name: 'PianoPause: disponível para estudantes' }));
+    await userEvent.click(screen.getByRole('switch', { name: 'piano pause: disponível para estudantes' }));
     expect(api.estudante.conteudos().map((c) => c.id)).not.toContain('pianopause');
   });
 
   it('conteúdo já usado não pode ser excluído', () => {
     abrir('/admin/conteudos');
-    const excluir = screen.getByRole('button', { name: 'Excluir Respire&Pause' });
+    const excluir = screen.getByRole('button', { name: 'Excluir respire & pause' });
     expect(excluir).toBeDisabled();
     expect(excluir).toHaveAccessibleDescription('Já usado em sessões: só pode ser ocultado.');
   });

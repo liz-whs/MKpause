@@ -44,7 +44,6 @@ Os principais grupos considerados são:
 - professores;
 - psicólogos escolares;
 - psicólogos clínicos;
-- responsáveis;
 - administradores da plataforma.
 
 ### Contribuição para o projeto

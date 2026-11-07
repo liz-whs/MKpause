@@ -1,3 +1,4 @@
+import { nomeAtividade } from '../domain/atividades';
 import type { EmocaoId } from '../domain/emocoes';
 import type {
   Alerta, AtividadeId, AvisoSaida, Conteudo, Estudante, Ficha, Observacao, PapelProfissional, Profissional,
@@ -63,7 +64,10 @@ export async function chamar<T = unknown>(metodo: string, rota: string, corpo?: 
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
   });
   const dados = r.status === 204 ? null : await r.json().catch(() => null);
-  if (!r.ok) throw new ErroApi(r.status, mensagemDeErro(dados, r.status));
+  if (!r.ok) {
+    if (r.status === 401 && !rota.startsWith('auth/')) window.dispatchEvent(new Event('mkpause:sessao-expirada'));
+    throw new ErroApi(r.status, mensagemDeErro(dados, r.status));
+  }
   return dados as T;
 }
 
@@ -92,7 +96,10 @@ export async function dashboardClinico(estudanteId: string, dias: PeriodoDashboa
 
 /* ───────────── Conta ───────────── */
 
-export const contaAtual = () => chamar<Conta>('GET', 'auth/eu/').catch(() => null);
+export const contaAtual = () => chamar<Conta>('GET', 'auth/eu/').catch((erro) => {
+  if (erro instanceof ErroApi && erro.status === 401) return null;
+  throw erro;
+});
 
 export async function entrar(email: string, senha: string) {
   const conta = await chamar<Conta>('POST', 'auth/login/', { email: email.trim(), senha });
@@ -101,7 +108,7 @@ export async function entrar(email: string, senha: string) {
   return conta;
 }
 
-export const sair = () => chamar('POST', 'auth/logout/').catch(() => undefined);
+export const sair = () => chamar('POST', 'auth/logout/');
 
 /* ───────────── Conversões ───────────── */
 
@@ -113,14 +120,17 @@ const EMOCAO_DO_HUMOR: EmocaoId[] = ['triste', 'triste', 'ansioso', 'cansado', '
 const MARCA = /^\[mkpause antes=(\w+) depois=(\w+)\]\n?/;
 
 const TIPO_PARA_ATIVIDADE: Record<string, AtividadeId> = { RESPIRACAO: 'respiracao', JOGO: 'pianopause', VIDEO: 'video' };
-const ATIVIDADE_PARA_TIPO: Record<AtividadeId, string> = { respiracao: 'RESPIRACAO', pianopause: 'JOGO', mkpotion: 'JOGO', video: 'VIDEO' };
-const TIPO_LABEL: Record<AtividadeId, Conteudo['tipo']> = { respiracao: 'Exercício', pianopause: 'Jogo', mkpotion: 'Jogo', video: 'Vídeo' };
+const ATIVIDADE_PARA_TIPO: Record<AtividadeId, string> = { respiracao: 'RESPIRACAO', pianopause: 'JOGO', mkpotion: 'JOGO', mkconnection: 'JOGO', espiral: 'VIDEO', chinchila: 'VIDEO', video: 'VIDEO' };
+const TIPO_LABEL: Record<AtividadeId, Conteudo['tipo']> = { respiracao: 'Exercício', pianopause: 'Jogo', mkpotion: 'Jogo', mkconnection: 'Jogo', espiral: 'Vídeo', chinchila: 'Vídeo', video: 'Vídeo' };
 
 /**
- * Há dois jogos com tipo JOGO no banco: o que diferencia é a referência
+ * Jogos e vídeos com o mesmo tipo são diferenciados pela referência
  * (`conteudo_ou_referencia`, ex.: /jogos/mkpotion/index.html). Sem referência, é o PianoPause.
  */
 function atividadeDe(a: { tipo: string; conteudo_ou_referencia?: string | null }): AtividadeId | undefined {
+  if (a.tipo === 'JOGO' && a.conteudo_ou_referencia?.includes('mkconnection')) return 'mkconnection';
+  if (a.tipo === 'VIDEO' && a.conteudo_ou_referencia?.includes('espiral')) return 'espiral';
+  if (a.tipo === 'VIDEO' && a.conteudo_ou_referencia?.includes('chinchila')) return 'chinchila';
   if (a.tipo === 'JOGO' && a.conteudo_ou_referencia?.includes('mkpotion')) return 'mkpotion';
   return TIPO_PARA_ATIVIDADE[a.tipo];
 }
@@ -148,8 +158,7 @@ function converterAtividades(lista: AtividadeApi[]): Conteudo[] {
     const id = atividadeDe(a);
     if (!id || idsAtividade.has(id)) continue;
     idsAtividade.set(id, a.id_atividade);
-    let nome = id === 'respiracao' && ['Respiração da chinchila', 'Chinchila respirando', 'Respiração'].includes(a.nome) ? 'Respire&Pause' : a.nome;
-    if (id === 'video' && ['Respiração guiada em vídeo', 'Vídeo: um minuto de calma'].includes(nome)) nome = 'MK Breath';
+    const nome = nomeAtividade(id, a.nome);
     conteudos.push({ id, nome, tipo: TIPO_LABEL[id], disponivel: a.disponivel });
   }
   return conteudos;
@@ -214,7 +223,7 @@ function converterAlerta(a: AlertaApi): Alerta {
 }
 
 /** A ficha da interface tem campos que o banco ainda não tem: vão em JSON em informacoes_acompanhamento. */
-interface ConteudoFicha extends Omit<Ficha, 'estudanteId' | 'atualizadaEm' | 'convite'> {
+interface ConteudoFicha extends Omit<Ficha, 'estudanteId' | 'atualizadaEm'> {
   registros?: { autorId: string; em: string; texto: string }[];
 }
 
@@ -234,13 +243,12 @@ function lerFicha(estudanteId: string, f: { informacoes_acompanhamento: string |
     inicio: c.inicio ?? '',
     encaminhamento: c.encaminhamento ?? '',
     atualizadaEm: f.atualizada_em,
-    convite: null,
   };
   const registros: RegistroClinico[] = (c.registros ?? []).map((r, i) => ({ id: `reg-${estudanteId}-${i}`, estudanteId, ...r }));
   return { ficha, registros };
 }
 
-export function conteudoDaFicha(ficha: Omit<Ficha, 'atualizadaEm' | 'convite'>, registros: RegistroClinico[]) {
+export function conteudoDaFicha(ficha: Omit<Ficha, 'atualizadaEm'>, registros: RegistroClinico[]) {
   const { estudanteId: _, ...campos } = ficha;
   const c: ConteudoFicha = { ...campos, registros: registros.map(({ autorId, em, texto }) => ({ autorId, em, texto })) };
   return JSON.stringify(c);
@@ -311,12 +319,14 @@ export async function carregar(conta: Conta): Promise<Carga> {
   carga.estudantes = (await chamar<EstudanteApi[]>('GET', 'estudantes/')).map(converterEstudante);
   carga.vinculos = carga.estudantes.map((e) => ({ estudanteId: e.id, profissionalId: eu.id }));
 
-  const alertas = await chamar<AlertaApi[]>('GET', 'alertas/');
+  const alertas = conta.perfil === 'psicologo_clinico' ? [] : await chamar<AlertaApi[]>('GET', 'alertas/');
   carga.alertas = alertas.filter((a) => !ehSaida(a)).map(converterAlerta);
   carga.avisos = alertas.filter(ehSaida).map(converterAviso);
 
   // Observações ficam presas a alertas no banco; a interface mostra por estudante.
-  const obs = await Promise.all(alertas.map((a) =>
+  const obs = conta.perfil === 'psicologo_clinico' ? await Promise.all(carga.estudantes.map((e) =>
+    chamar<{ id_observacao: number; autor: number; nome_autor: string; conteudo: string; criado_em: string }[]>(
+      'GET', `estudantes/${idDe(e.id)}/observacoes/`).then((l) => l.map((o) => ({ ...o, estudante: idDe(e.id) }))))) : await Promise.all(alertas.map((a) =>
     chamar<{ id_observacao: number; autor: number; nome_autor: string; conteudo: string; criado_em: string }[]>(
       'GET', `alertas/${a.id_alerta}/observacoes/`).catch(() => []).then((l) => l.map((o) => ({ ...o, estudante: a.estudante })))));
   for (const o of obs.flat()) {

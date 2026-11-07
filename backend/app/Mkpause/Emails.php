@@ -94,25 +94,7 @@ class Emails
     /** [assunto, corpo], ou null quando o e-mail não deve mais sair. */
     private static function mensagem(object $item): ?array
     {
-        if ($item->id_convite) {
-            $c = DB::table('convite_responsavel as c')
-                ->join('responsavel as r', 'r.id_responsavel', '=', 'c.id_responsavel')
-                ->join('estudante as e', 'e.id_estudante', '=', 'c.id_estudante')
-                ->join('usuario as ue', 'ue.id_usuario', '=', 'e.id_usuario')
-                ->where('c.id_convite', $item->id_convite)
-                ->select('c.*', 'r.ativo as responsavel_ativo', 'r.email as responsavel_email',
-                    'e.ativo as estudante_ativo', 'ue.ativo as usuario_estudante_ativo')->first();
-            if (!$c || $c->status !== 'PENDENTE' || Formato::instante($c->expira_em) <= Formato::agora()
-                || !$c->responsavel_ativo || !$c->estudante_ativo || !$c->usuario_estudante_ativo
-                || $c->responsavel_email !== $item->email_destino) {
-                return null;
-            }
-            return ['MKpause: convite para responsável',
-                "A escola enviou um convite para confirmar sua responsabilidade e conhecer a autorização proposta.\n\n"
-                .'Leia e responda pelo link: '.Convites::link($c)."\n\n"
-                .'O link é pessoal e vale por sete dias. Se não reconhecer o convite, não aceite. '
-                .'Nenhuma conta será criada para você.'];
-        }
+        if ($item->id_convite || !$item->id_destinatario_alerta) return null;
 
         // Confere o vínculo de novo antes de enviar uma notificação pendente.
         $d = DB::table('destinatario_alerta as d')->join('alerta as a', 'a.id_alerta', '=', 'd.id_alerta')

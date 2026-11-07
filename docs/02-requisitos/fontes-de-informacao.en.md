@@ -44,7 +44,6 @@ The main groups considered are:
 - teachers;
 - school psychologists;
 - clinical psychologists;
-- guardians;
 - platform administrators.
 
 ### Contribution to the project

@@ -1,3 +1,4 @@
+import { agir } from '../../state/acoes';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { api } from '../../data/api';
@@ -32,7 +33,6 @@ const VE: Record<'escola' | 'clinico' | 'admin', { icone: IconName; texto: strin
     { icone: 'pausa', texto: 'Histórico de pausas e humor dos estudantes que você acompanha', ve: true },
     { icone: 'ficha', texto: 'Ficha de acompanhamento e registros clínicos', ve: true },
     { icone: 'lapis', texto: 'Observações da escola, só para leitura', ve: true },
-    { icone: 'alerta', texto: 'Alertas e avisos de saída', ve: true },
   ],
   admin: [
     { icone: 'pessoas', texto: 'Cadastros de estudantes e profissionais', ve: true },
@@ -146,16 +146,12 @@ export function PerfilProfissional({ area }: { area: Area }) {
           <div className="flex flex-col gap-5">
             <div className="rounded-card-lg bg-surface p-2.5">
               <div className="px-1.5 py-3.5">
-                <Switch
+                {area === 'escola' && <Switch
                   label={t('Notificações do navegador')}
-                  description={
-                    area === 'admin'
-                      ? t('Convites aceitos pelos responsáveis.')
-                      : t('Alertas de nível 3 e avisos de saída dos seus estudantes.')
-                  }
+                  description={t('Alertas de nível 3 e avisos de saída dos seus estudantes.')}
                   checked={notificacoes}
                   onChange={setNotificacoes}
-                />
+                />}
               </div>
               <Linha icone="acessibilidade" titulo={t('Acessibilidade e idioma')} valor={IDIOMAS.find((i) => i.id === idioma)?.nome}>
                 <OpcoesPreferencias />
@@ -184,8 +180,7 @@ export function PerfilProfissional({ area }: { area: Area }) {
           block
           className={cx('lg:col-start-1', eu && area !== 'admin' ? 'lg:row-start-3' : 'lg:row-start-2')}
           onClick={() => {
-            sairProfissional();
-            navigate('/');
+            void agir(async () => { await sairProfissional(); navigate('/'); }, 'Você saiu da sua conta.');
           }}
         >
           <Icon name="sair" size={22} />

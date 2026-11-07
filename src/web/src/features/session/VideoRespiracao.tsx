@@ -26,7 +26,8 @@ function useFormatoVideo() {
 }
 
 /** Vídeo em toda a janela, sem recortar as instruções e sem reprodução automática. */
-export function VideoRespiracao() {
+export function VideoRespiracao({ atividade = 'video' }: { atividade?: 'video' | 'espiral' | 'chinchila' }) {
+  const dados = { video: { titulo: 'mk breath', arquivo: 'respiracao', versao: 3 }, espiral: { titulo: 'spiral pause', arquivo: 'espiral', versao: 1 }, chinchila: { titulo: 'chinchilla pause', arquivo: 'chinchila', versao: 10 } }[atividade];
   const video = useRef<HTMLVideoElement>(null);
   const formato = useFormatoVideo();
   const anterior = useRef(formato);
@@ -64,10 +65,10 @@ export function VideoRespiracao() {
     }
   };
 
-  return <section aria-label={t('MK Breath')} className="relative h-dvh w-full overflow-hidden bg-bg">
-    <h1 className="sr-only">{t('MK Breath')}</h1>
+  return <section aria-label={t(dados.titulo)} className="relative h-dvh w-full overflow-hidden bg-bg">
+    <h1 className="sr-only">{t(dados.titulo)}</h1>
     <p id={instrucoes} className="sr-only">{t('O vídeo se repete até você pausar. Use o botão central para reproduzir ou pausar.')}</p>
-    <video ref={video} loop playsInline preload="auto" poster={`/videos/respiracao-${formato}.jpg?v=3`}
+    <video ref={video} loop playsInline preload="auto" poster={`/videos/${dados.arquivo}-${formato}.jpg?v=${dados.versao}`}
       aria-label={t('Vídeo de respiração guiada: acompanhe os movimentos para inspirar e soltar o ar no seu ritmo.')}
       aria-describedby={instrucoes} className="absolute inset-0 size-full object-contain"
       onPlay={() => setRodando(true)} onPause={() => setRodando(false)}
@@ -81,9 +82,9 @@ export function VideoRespiracao() {
         elemento.currentTime = Math.min(estado.tempo, Number.isFinite(elemento.duration) ? elemento.duration : estado.tempo);
         if (estado.rodando) void reproduzir();
       }}>
-      <source src={`/videos/respiracao-${formato}.mp4?v=3`} type="video/mp4" />
+      <source src={`/videos/${dados.arquivo}-${formato}.mp4?v=${dados.versao}`} type="video/mp4" />
       {LEGENDAS.map((l) => <track key={l.lang} kind="captions" srcLang={l.lang} label={l.rotulo}
-        src={`/videos/respiracao.${l.lang}.vtt`} default={idioma !== 'pt-BR' && l.lang === idioma} onLoad={aplicarLegendas} />)}
+        src={`/videos/${dados.arquivo}.${l.lang}.vtt`} default={idioma !== 'pt-BR' && l.lang === idioma} onLoad={aplicarLegendas} />)}
     </video>
     <div className="absolute inset-x-0 top-0 bg-bg/95 px-4 pb-2 md:px-6" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <FocusTopBar back={<BackButton to="/estudante/pausa/atividade" />}><SairDaPausa /></FocusTopBar>

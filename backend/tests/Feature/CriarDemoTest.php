@@ -54,10 +54,10 @@ class CriarDemoTest extends TestCase
     public function test_cria_catalogo_com_nomes_atualizados_sem_duplicar(): void
     {
         for ($i = 0; $i < 2; $i++) $this->artisan('mkpause:criar-demo', ['--senha' => 'senha-demo-teste'])->assertSuccessful();
-        $this->assertSame(4, DB::table('atividade')->count());
-        $this->assertSame('Respire&Pause', DB::table('atividade')->where('tipo', 'RESPIRACAO')->value('nome'));
-        $this->assertSame('MK Breath', DB::table('atividade')->where('tipo', 'VIDEO')->value('nome'));
-        $this->assertSame(2, DB::table('atividade')->where('tipo', 'JOGO')->count());
+        $this->assertSame(7, DB::table('atividade')->count());
+        $this->assertSame('respire & pause', DB::table('atividade')->where('tipo', 'RESPIRACAO')->value('nome'));
+        $this->assertSame('mk breath', DB::table('atividade')->where('conteudo_ou_referencia', 'video')->value('nome'));
+        $this->assertSame(3, DB::table('atividade')->where('tipo', 'JOGO')->count());
         $this->assertSame(5, DB::table('usuario')->count());
     }
 
@@ -67,11 +67,39 @@ class CriarDemoTest extends TestCase
             'conteudo_ou_referencia' => 'respiracao'], 'id_atividade');
         DB::table('atividade')->insert(['nome' => 'Vídeo: um minuto de calma', 'tipo' => 'VIDEO', 'conteudo_ou_referencia' => 'video']);
         $this->artisan('mkpause:criar-demo', ['--senha' => 'senha-demo-teste'])->assertSuccessful();
-        $this->assertSame('Respire&Pause', DB::table('atividade')->where('id_atividade', $id)->value('nome'));
-        $this->assertSame('MK Breath', DB::table('atividade')->where('tipo', 'VIDEO')->value('nome'));
-        DB::table('atividade')->where('tipo', 'VIDEO')->update(['nome' => 'Vídeo da escola']);
+        $this->assertSame('respire & pause', DB::table('atividade')->where('id_atividade', $id)->value('nome'));
+        $this->assertSame('mk breath', DB::table('atividade')->where('conteudo_ou_referencia', 'video')->value('nome'));
+        DB::table('atividade')->where('conteudo_ou_referencia', 'video')->update(['nome' => 'Vídeo da escola']);
         $this->artisan('mkpause:criar-demo', ['--senha' => 'senha-demo-teste'])->assertSuccessful();
-        $this->assertSame('Vídeo da escola', DB::table('atividade')->where('tipo', 'VIDEO')->value('nome'));
-        $this->assertSame(4, DB::table('atividade')->count());
+        $this->assertSame('Vídeo da escola', DB::table('atividade')->where('conteudo_ou_referencia', 'video')->value('nome'));
+        $this->assertSame(7, DB::table('atividade')->count());
     }
+
+    public function test_sincroniza_catalogo_sem_criar_contas_nem_reativar_atividade_oculta(): void
+    {
+        $this->artisan('mkpause:sincronizar-atividades')->assertSuccessful();
+        $this->assertSame(7, DB::table('atividade')->count());
+        $this->assertSame(0, DB::table('usuario')->count());
+        DB::table('atividade')->where('nome', 'mk connection')->update(['disponivel' => false]);
+        $this->artisan('mkpause:sincronizar-atividades')->assertSuccessful();
+        $this->assertSame(7, DB::table('atividade')->count());
+        $this->assertFalse((bool) DB::table('atividade')->where('nome', 'mk connection')->value('disponivel'));
+        $this->assertSame(3, DB::table('atividade')->where('tipo', 'VIDEO')->count());
+    }
+    public function test_renomeia_os_sete_nomes_sem_mudar_ids_ou_disponibilidade(): void
+    {
+        $antigos = ['Respire&Pause', 'PianoPause', 'MK Potion', 'MKconnection', 'MK Breath', 'Respiração em espiral', 'Respiração com a chinchila'];
+        $ids = [];
+        foreach (\App\Mkpause\CatalogoAtividades::ITENS as $i => [$nome, $tipo, $ref]) {
+            $ids[] = DB::table('atividade')->insertGetId(['nome' => $antigos[$i], 'tipo' => $tipo, 'conteudo_ou_referencia' => $ref, 'disponivel' => false]);
+        }
+        \App\Mkpause\CatalogoAtividades::sincronizar();
+        $this->assertSame(7, DB::table('atividade')->count());
+        foreach (\App\Mkpause\CatalogoAtividades::ITENS as $i => [$nome]) {
+            $item = DB::table('atividade')->where('id_atividade', $ids[$i])->first();
+            $this->assertSame($nome, $item->nome);
+            $this->assertFalse((bool) $item->disponivel);
+        }
+    }
+
 }

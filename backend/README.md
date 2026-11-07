@@ -5,8 +5,8 @@ API JSON em **PHP 8.2 + Laravel 12**, sobre o banco PostgreSQL criado pelo Flywa
 
 O backend foi reescrito do Django para o Laravel mantendo **as mesmas rotas, os mesmos
 formatos de resposta e as mesmas mensagens**. A interface não mudou. As senhas, os códigos de
-cadastro/vínculo e os links de convite criados antes continuam valendo, porque o PHP usa os
-mesmos formatos (hash PBKDF2 do Django, HMAC e assinatura com a `DJANGO_SECRET_KEY`).
+cadastro/vínculo continuam valendo, porque o PHP usa os
+mesmos formatos (hash PBKDF2 do Django, HMAC com a `DJANGO_SECRET_KEY`).
 
 ## Como rodar
 
@@ -44,6 +44,7 @@ O `npm run backend` liga as extensões do PHP que faltarem (no XAMPP, por exempl
 | `php artisan mkpause:aplicar-esquema` | Aplica V1 a V4 que faltam. Usa transação e bloqueio; não reaplica o que existe; para em esquema parcial. A V2 exige `responsavel` vazia. |
 | `php artisan mkpause:verificar-esquema` | Compara as colunas que o backend usa com o banco. `ERRO` quebra o backend; `AVISO` não. |
 | `php artisan mkpause:criar-demo` | Contas, vínculos e atividades de demonstração (senha: `DEMO_SENHA` ou `--senha`). |
+| `php artisan mkpause:sincronizar-atividades` | Acrescenta as sete atividades do catálogo, sem criar contas ou alterar senhas. Preserva atividades ocultadas e nomes personalizados. |
 | `php artisan mkpause:criar-admin` | Cria um administrador (pede a senha no terminal). |
 | `php artisan mkpause:processar-emails` | Processa a fila de e-mail (até 5 tentativas por mensagem). |
 
@@ -52,9 +53,9 @@ O `npm run backend` liga as extensões do PHP que faltarem (no XAMPP, por exempl
 | Onde | O que tem |
 |---|---|
 | `routes/api.php` | Todas as rotas e quem pode usar cada uma |
-| `app/Http/Controllers/` | Uma classe por área: `Autenticacao`, `Cadastros` (admin, vínculos, meus estudantes), `Atividades`, `Sessoes`, `Alertas`, `Acompanhamento` (ficha, avisos, painel clínico), `Codigos`, `Convites` (convites e e-mails) |
+| `app/Http/Controllers/` | Uma classe por área: `Autenticacao`, `Cadastros` (admin, vínculos, meus estudantes), `Atividades`, `Sessoes`, `Alertas`, `Acompanhamento` (ficha, avisos, painel clínico), `Codigos`, `Emails` (fila de alertas escolares) |
 | `app/Http/Middleware/Autenticar.php` | Login pela sessão, CSRF e perfil exigido pela rota |
-| `app/Mkpause/` | Regras e peças comuns: `Conta` (perfil do usuário), `Permissoes`, `Entrada` (validação com as mensagens da API), `Cadastros`, `Convites`, `Emails`, `Codigos`, `Csrf`, `Limite`, `Formato` (datas), `SenhaDjango`, `AssinaturaDjango` |
+| `app/Mkpause/` | Regras e peças comuns: `Conta` (perfil do usuário), `Permissoes`, `Entrada` (validação com as mensagens da API), `Cadastros`, `Emails`, `Codigos`, `Csrf`, `Limite`, `Formato` (datas), `SenhaDjango` |
 | `app/Console/Commands/` | Os comandos `mkpause:*` |
 | `config/mkpause.php` | Configurações do MKpause (lidas das variáveis de ambiente) |
 
@@ -85,9 +86,9 @@ o backend só lê e grava (`database/migrations/` do Laravel fica vazia de prop�
 
 Contrato em [`docs/codigos-de-acesso.md`](../docs/codigos-de-acesso.md). Os códigos são gerados com `random_int`, guardados só como HMAC-SHA256 e mostrados uma única vez. Verificação/cadastro: 10 tentativas por minuto por IP; resgate: 10 por minuto por usuário.
 
-### Convites ao responsável e e-mail (V4)
+### E-mail de alertas escolares
 
-O responsável recebe um link assinado e aceita ou recusa sem criar conta. Novos vínculos de responsável e acessos clínicos exigem o aceite. Em desenvolvimento os e-mails vão para `backend/.emails/`. Guia em [`docs/convites-e-emails.md`](../docs/convites-e-emails.md).
+A fila envia somente alertas aos profissionais escolares vinculados. Vínculos clínicos são gerenciados diretamente pelo administrador. Guia em [`docs/convites-e-emails.md`](../docs/convites-e-emails.md). As antigas tabelas de convites permanecem para preservar dados legados, sem rotas ativas.
 
 ## Rotas
 
@@ -109,7 +110,6 @@ Todas em `/api/`, com JSON. "Vinculados" quer dizer que o acesso exige vínculo 
 | POST | `sessoes/avaliar/` `{"humor": 1-5}`: nível sugerido, sem gravar |
 | POST | `sessoes/` `{"id_atividade", "humor_pre"}` |
 | POST | `sessoes/<id>/concluir/` `{"humor_pos", "observacoes_sessao"?}` ou `sessoes/<id>/cancelar/` |
-| GET | `sessoes/`, `sessoes/<id>/` |
 | POST | `alertas/` `{"nivel": 2\|3, "id_sessao"?, "descricao"?}` |
 | GET / PATCH | `alertas/`, `alertas/<id>/` (o estudante só pode `{"status": "CANCELADO"}`) |
 | GET | `avisos/` |
@@ -121,24 +121,25 @@ Todas em `/api/`, com JSON. "Vinculados" quer dizer que o acesso exige vínculo 
 |---|---|---|
 | GET | `estudantes/`, `estudantes/<id>/` | professor, psi. escolar, psi. clínico |
 | GET | `sessoes/?estudante=ID` (inclui os humores) | psi. escolar, psi. clínico, vinculados |
-| GET | `alertas/` (`?status=ABERTO`) | professor e psi. escolar: recebidos; clínico: dos vinculados |
+| GET | `alertas/` (`?status=ABERTO`) | professor e psi. escolar: recebidos; clínico sem acesso |
 | POST | `alertas/<id>/lido/` | destinatário |
 | PATCH | `alertas/<id>/` `{"status"}` | destinatário |
-| GET / POST | `alertas/<id>/observacoes/` `{"conteudo"}` | POST: professor e psi. escolar; GET: também o clínico |
+| GET / POST | `alertas/<id>/observacoes/` `{"conteudo"}` | professor e psi. escolar |
+| GET | `estudantes/<id>/observacoes/` | profissionais vinculados, inclusive clínico (somente leitura) |
 | GET | `estudantes/<id>/ficha/` | psi. escolar, psi. clínico |
 | PATCH | `estudantes/<id>/ficha/` | psi. clínico |
+| POST | `estudantes/<id>/registros/` `{"texto", "chave"}` | psi. clínico vinculado, ficha ativa; inclusão sem sobrescrever registros anteriores |
 | GET | `estudantes/<id>/dashboard/?dias=7\|14\|30\|90` | psi. clínico vinculado |
 | POST / GET | `vinculos/resgatar/`, `vinculos/enviados/` | professor e psi. escolar |
 
 ### Administrador
 | Método | Rota |
 |---|---|
-| GET / POST / PATCH / DELETE | `admin/estudantes/`, `admin/professores/`, `admin/psicologos-escolares/`, `admin/psicologos-clinicos/`, `admin/responsaveis/` (`?ativo=true`) |
-| GET / POST / DELETE | `admin/vinculos/professores/`, `admin/vinculos/psicologos-escolares/`, `admin/vinculos/psicologos-clinicos/`, `admin/vinculos/responsaveis/` |
+| GET / POST / PATCH / DELETE | `admin/estudantes/`, `admin/professores/`, `admin/psicologos-escolares/`, `admin/psicologos-clinicos/` (`?ativo=true`) |
+| GET / POST / DELETE | `admin/vinculos/professores/`, `admin/vinculos/psicologos-escolares/`, `admin/vinculos/psicologos-clinicos/` |
 | POST / PATCH / DELETE | `atividades/`, `avisos/` |
 | POST / PATCH | `estudantes/<id>/ficha/` |
 | GET / POST | `admin/codigos-cadastro/`, `admin/codigos-cadastro/<id>/revogar/` |
-| GET / POST | `admin/estudantes/<id>/convites-responsavel/`, `admin/convites-responsavel/<id>/revogar/` |
 | GET / POST | `admin/emails/` (ver a fila / processar agora) |
 
 **DELETE não apaga:** marca `ativo = false` e mantém o histórico (RN30).
@@ -148,10 +149,11 @@ Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "est
 
 | Assunto | Decisão | Onde mudar |
 |---|---|---|
+| Administração e histórico emocional | O administrador **não** consulta sessões, humores individuais nem registros clínicos, inclusive pela API; indicadores institucionais permanecem agregados | `app/Mkpause/Permissoes.php`, `routes/api.php` |
 | Professor e histórico emocional | O professor **não** vê sessões, humores nem ficha; vê alertas e observações | `app/Mkpause/Permissoes.php` |
-| Psicólogo clínico e alertas (RF15) | O banco não aceita o clínico como destinatário; ele consulta os alertas dos vinculados | `AlertasController`, depois migração |
 | Psicólogo clínico e observações | Só lê (o gatilho `trg_validar_autor_observacao` bloqueia a escrita); o registro clínico vai na ficha | migração, se mudar |
 | Alerta sem profissional vinculado | Não é criado; a resposta explica e indica 192 e 188 | `AlertasController::emitir` |
+| Vínculo removido e alertas antigos | Professor e psicólogo escolar precisam continuar vinculados para consultar ou atuar em alertas dos quais foram destinatários | `AlertasController::consulta` |
 | `status_notificacao` | Reflete envio e falha do e-mail; a leitura no site prevalece | `app/Mkpause/Emails.php` |
 
 ## Pendências conhecidas

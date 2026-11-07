@@ -85,15 +85,6 @@ O alerta poderá ser encaminhado aos profissionais responsáveis pelo acompanham
 
 ---
 
-### RF09 — Visualizar histórico de sessões
-
-**Descrição:**
-O sistema deve permitir que o estudante consulte o histórico de suas sessões de autorregulação.
-
-**Ator:** Estudante
-
----
-
 ## Psicólogo Clínico
 
 ### RF10 — Realizar login
@@ -136,15 +127,6 @@ O sistema deve permitir que o psicólogo clínico consulte os registros de humor
 
 **Descrição:**
 O sistema deve permitir que o psicólogo clínico consulte observações relacionadas aos estudantes sob seu acompanhamento, respeitando suas permissões de acesso.
-
-**Ator:** Psicólogo Clínico
-
----
-
-### RF15 — Receber alertas
-
-**Descrição:**
-O sistema deve permitir que o psicólogo clínico receba alertas relacionados aos estudantes vinculados ao seu acompanhamento.
 
 **Ator:** Psicólogo Clínico
 
@@ -322,17 +304,6 @@ O sistema deve permitir que o administrador estabeleça e gerencie os vínculos 
 
 ---
 
-### RF34 — Gerenciar vínculos com responsáveis
-
-**Descrição:**
-O sistema deve permitir o gerenciamento dos vínculos entre estudantes e seus responsáveis.
-
-O responsável não participa diretamente do cadastro inicial do estudante. O estabelecimento do vínculo ocorre posteriormente por meio do processo definido pelo sistema, como envio de convite ou mecanismo equivalente.
-
-**Ator principal:** Administrador
-
----
-
 ### RF35 — Gerenciar conteúdos de autorregulação
 
 **Descrição:**
@@ -346,11 +317,11 @@ O sistema deve permitir o gerenciamento dos conteúdos disponibilizados aos estu
 
 | Intervalo | Perfil | Quantidade |
 |---|---|---:|
-| RF01–RF09 | Estudante | 9 |
-| RF10–RF18 | Psicólogo Clínico | 9 |
+| RF01–RF08 | Estudante | 8 |
+| RF10–RF14, RF16–RF18 | Psicólogo Clínico | 8 |
 | RF19–RF25 | Professor / Psicólogo Escolar | 7 |
-| RF26–RF35 | Administrador | 10 |
-| **Total** | | **35** |
+| RF26–RF33, RF35 | Administrador | 9 |
+| **Total** | | **32** |
 
 ---
 

@@ -4,6 +4,7 @@ import type {
 } from '../domain/tipos';
 import * as seed from './mocks/escola';
 import * as servidor from './servidor';
+import { limparPausasLocais } from '../state/armazenamentoEstudante';
 
 /**
  * Única porta de dados da interface. As telas leem de forma síncrona do
@@ -65,34 +66,64 @@ const agora = () => new Date().toISOString();
 
 let conta: servidor.Conta | null = null;
 let carregado = OFFLINE;
+let erroCarga: string | null = null;
 
 const idEstudanteLogado = () => (conta?.perfil === 'estudante' ? `est-${conta.id_perfil}` : 'est-1');
 
 /** Recarrega o cache a partir do backend. */
 async function sincronizar() {
   if (OFFLINE) return;
-  conta = await servidor.contaAtual();
-  banco = conta ? await servidor.carregar(conta) : bancoInicial();
+  try {
+    erroCarga = null;
+    conta = await servidor.contaAtual();
+    limparPausasLocais(conta?.perfil === 'estudante' ? `est-${conta.id_perfil}` : undefined);
+    banco = conta ? await servidor.carregar(conta) : bancoInicial();
+  } catch (erro) {
+    erroCarga = 'Não foi possível carregar seus dados. Confira a conexão e tente novamente.';
+    throw erro;
+  } finally {
+    carregado = true;
+    mudou();
+  }
+}
+
+/** Em produção o cache só muda depois da confirmação da API. */
+function gravar<T>(remoto: () => Promise<unknown>, local: (resposta?: unknown) => T): Promise<T> {
+  if (OFFLINE) return Promise.resolve(local());
+  if (!conta) return Promise.reject(new servidor.ErroApi(401, 'Entre novamente para continuar.'));
+  return remoto().then(async (resposta) => {
+    const resultado = local(resposta);
+    // A escrita já foi confirmada. Uma falha ao atualizar a lista não deve induzir reenvio.
+    try { await sincronizar(); } catch { window.dispatchEvent(new Event('mkpause:atualizacao-pendente')); }
+    return resultado;
+  }).catch(async (erro) => {
+    // Reconciliamos também operações administrativas compostas parcialmente confirmadas.
+    try { await sincronizar(); } catch { /* O formulário mantém o rascunho para nova tentativa. */ }
+    throw erro;
+  });
+}
+
+window.addEventListener('mkpause:sessao-expirada', () => {
+  limparPausasLocais();
+  conta = null;
+  erroCarga = null;
+  banco = bancoInicial();
   carregado = true;
   mudou();
-}
-
-/** Manda uma escrita ao backend e recarrega; em caso de erro, avisa e volta ao que está no servidor. */
-function enviar(acao: () => Promise<unknown>) {
-  if (OFFLINE || !conta) return;
-  acao()
-    .catch((e: Error) => {
-      console.error(e);
-      window.alert(e.message);
-    })
-    .then(sincronizar);
-}
-
-/** Alertas criados aqui e ainda sem id do backend: id local -> promessa do id real. */
-const pendentes = new Map<string, Promise<string>>();
-const idReal = async (id: string) => (pendentes.has(id) ? pendentes.get(id)! : id);
+});
 
 const PERFIL_VAZIO: Estudante = { id: 'est-0', nome: '', apelido: '', matricula: '', turma: '', escola: '', ativo: true };
+
+export interface NovoProfissional {
+  nome_completo: string;
+  email: string;
+  senha: string;
+  telefone?: string;
+  cargo?: string;
+  instituicao_ensino?: string;
+  registro_profissional?: string;
+  estado_registro?: string;
+}
 
 function estudante(id: string): Estudante | undefined {
   return banco.estudantes.find((e) => e.id === id);
@@ -165,13 +196,15 @@ export const api = {
   sincronizar,
   conta: () => conta,
   carregado: () => carregado,
+  erroCarga: () => erroCarga,
   async entrar(email: string, senha: string) {
     conta = await servidor.entrar(email, senha);
     await sincronizar();
     return conta!;
   },
   async sair() {
-    await servidor.sair();
+    if (!OFFLINE) await servidor.sair();
+    limparPausasLocais();
     conta = null;
     banco = bancoInicial();
     mudou();
@@ -185,46 +218,39 @@ export const api = {
     conteudos: () => banco.conteudos.filter((c) => c.disponivel),
     video: (): seed.VideoAtividade => {
       const c = banco.conteudos.find((x) => x.id === 'video');
-      return { titulo: c?.nome ?? 'MK Breath' };
+      return { titulo: c?.nome ?? 'mk breath' };
     },
 
-    enviarAlertaNivel3(estudanteId: string): Alerta {
-      const alerta: Alerta = { id: novoId('alerta'), estudanteId, tipo: 'nivel3', criadoEm: agora() };
-      banco.alertas.push(alerta);
-      mudou();
-      if (!OFFLINE) {
-        pendentes.set(alerta.id, servidor.emitirAlerta(3));
-        enviar(() => pendentes.get(alerta.id)!);
-      }
-      return alerta;
+    enviarAlertaNivel3(estudanteId: string): Promise<Alerta> {
+      return gravar(() => servidor.emitirAlerta(3), (id) => {
+        const alerta: Alerta = { id: typeof id === 'string' ? id : novoId('alerta'), estudanteId, tipo: 'nivel3', criadoEm: agora() };
+        banco.alertas.push(alerta); mudou(); return alerta;
+      });
     },
     cancelarAlerta(id: string) {
-      const alerta = banco.alertas.find((a) => a.id === id);
-      if (alerta) alerta.cancelado = true;
-      mudou();
-      enviar(async () => servidor.mudarStatusAlerta(await idReal(id), 'CANCELADO'));
+      return gravar(() => servidor.mudarStatusAlerta(id, 'CANCELADO'), () => {
+        const alerta = banco.alertas.find((a) => a.id === id);
+        if (alerta) alerta.cancelado = true;
+        mudou();
+      });
     },
-    avisarSaida(estudanteId: string, destino?: string): AvisoSaida {
-      const aviso: AvisoSaida = { id: novoId('aviso'), estudanteId, desde: agora(), destino };
-      banco.avisos.push(aviso);
-      mudou();
-      // No backend, o aviso de saída é o alerta de nível 2 (vai para os professores).
-      if (!OFFLINE) {
-        pendentes.set(aviso.id, servidor.emitirAlerta(2, destino ? `Destino: ${destino}` : undefined));
-        enviar(() => pendentes.get(aviso.id)!);
-      }
-      return aviso;
+    avisarSaida(estudanteId: string, destino?: string): Promise<AvisoSaida> {
+      return gravar(() => servidor.emitirAlerta(2, destino ? `Destino: ${destino}` : undefined), (id) => {
+        const aviso: AvisoSaida = { id: typeof id === 'string' ? id : novoId('aviso'), estudanteId, desde: agora(), destino };
+        banco.avisos.push(aviso); mudou(); return aviso;
+      });
     },
     registrarRetorno(avisoId: string) {
-      const aviso = banco.avisos.find((a) => a.id === avisoId);
-      if (aviso) aviso.voltouEm = agora();
-      mudou();
-      enviar(async () => servidor.mudarStatusAlerta(await idReal(avisoId), 'CANCELADO'));
+      return gravar(() => servidor.mudarStatusAlerta(avisoId, 'CANCELADO'), () => {
+        const aviso = banco.avisos.find((a) => a.id === avisoId);
+        if (aviso) aviso.voltouEm = agora();
+        mudou();
+      });
     },
     registrarSessao(sessao: Omit<SessaoRegistrada, 'id' | 'em'>) {
-      banco.sessoes.push({ ...sessao, id: novoId('sessao'), em: agora() });
-      mudou();
-      enviar(() => servidor.registrarSessao(sessao));
+      return gravar(() => servidor.registrarSessao(sessao), () => {
+        banco.sessoes.push({ ...sessao, id: novoId('sessao'), em: agora() }); mudou();
+      });
     },
   },
 
@@ -239,42 +265,43 @@ export const api = {
     },
     /** Alertas ativos (não cancelados) dos estudantes vinculados. */
     alertas(profissionalId: string) {
+      if (profissional(profissionalId)?.papel === 'psicologo-clinico') return [];
       return banco.alertas
         .filter((a) => !a.cancelado && vinculado(profissionalId, a.estudanteId))
         .sort(recentesPrimeiro);
     },
     marcarVisto(profissionalId: string, alertaId: string) {
       const alerta = banco.alertas.find((a) => a.id === alertaId);
-      if (!alerta) return;
+      if (!alerta || profissional(profissionalId)?.papel === 'psicologo-clinico') return Promise.resolve();
       exigirVinculo(profissionalId, alerta.estudanteId);
-      alerta.vistoPor = [...new Set([...(alerta.vistoPor ?? []), profissionalId])];
-      mudou();
-      // O psicólogo clínico não é destinatário no banco: o "visto" dele fica só nesta tela.
-      if (profissional(profissionalId)?.papel !== 'psicologo-clinico') enviar(() => servidor.marcarLido(alertaId));
+      return gravar(() => servidor.marcarLido(alertaId), () => {
+        alerta.vistoPor = [...new Set([...(alerta.vistoPor ?? []), profissionalId])]; mudou();
+      });
     },
     avisos(profissionalId: string) {
+      if (profissional(profissionalId)?.papel === 'psicologo-clinico') return [];
       return banco.avisos.filter((a) => vinculado(profissionalId, a.estudanteId)).sort(recentesPrimeiro);
     },
     sessoes(profissionalId: string, estudanteId: string) {
       exigirVinculo(profissionalId, estudanteId);
+      if (!['psicologo-escolar', 'psicologo-clinico'].includes(profissional(profissionalId)?.papel ?? '')) return [];
       return banco.sessoes.filter((s) => s.estudanteId === estudanteId).sort(recentesPrimeiro);
     },
     observacoes(profissionalId: string, estudanteId: string) {
       exigirVinculo(profissionalId, estudanteId);
       return banco.observacoes.filter((o) => o.estudanteId === estudanteId).sort(recentesPrimeiro);
     },
-    adicionarObservacao(profissionalId: string, estudanteId: string, texto: string): Observacao {
+    adicionarObservacao(profissionalId: string, estudanteId: string, texto: string): Promise<Observacao> {
       exigirVinculo(profissionalId, estudanteId);
-      const obs: Observacao = { id: novoId('obs'), estudanteId, autorId: profissionalId, em: agora(), texto };
-      banco.observacoes.push(obs);
-      mudou();
-      // No banco a observação fica presa a um alerta: usa o mais recente do estudante.
       const alvo = [...banco.alertas, ...banco.avisos.map((a) => ({ ...a, criadoEm: a.desde }))]
-        .filter((a) => a.estudanteId === estudanteId)
-        .sort(recentesPrimeiro)[0];
-      if (alvo) enviar(() => servidor.observar(alvo.id, texto));
-      else if (!OFFLINE) window.alert('Este estudante ainda não tem alertas: a observação não foi salva no servidor.');
-      return obs;
+        .filter((a) => a.estudanteId === estudanteId).sort(recentesPrimeiro)[0];
+      return gravar(() => {
+        if (!alvo) throw new Error('Este estudante ainda não tem alertas. Não foi possível salvar a observação.');
+        return servidor.observar(alvo.id, texto);
+      }, () => {
+        const obs: Observacao = { id: novoId('obs'), estudanteId, autorId: profissionalId, em: agora(), texto };
+        banco.observacoes.push(obs); mudou(); return obs;
+      });
     },
     autor: (id: string) => profissional(id),
   },
@@ -285,18 +312,17 @@ export const api = {
       if (profissional(profissionalId)?.papel !== 'psicologo-clinico') return [];
       return banco.registros.filter((r) => r.estudanteId === estudanteId).sort(recentesPrimeiro);
     },
-    adicionarRegistro(profissionalId: string, estudanteId: string, texto: string) {
+    adicionarRegistro(profissionalId: string, estudanteId: string, texto: string, chave: string) {
       exigirVinculo(profissionalId, estudanteId);
-      banco.registros.push({ id: novoId('reg'), estudanteId, autorId: profissionalId, em: agora(), texto });
-      mudou();
-      // O registro clínico vai junto na ficha (informacoes_acompanhamento).
-      const ficha = banco.fichas.find((f) => f.estudanteId === estudanteId);
-      if (ficha) {
-        const registros = banco.registros.filter((r) => r.estudanteId === estudanteId);
-        enviar(() => servidor.salvarFicha(estudanteId, servidor.conteudoDaFicha(ficha, registros), true));
-      } else if (!OFFLINE) {
-        window.alert('Este estudante ainda não tem ficha: peça à administração para criar.');
-      }
+      if (profissional(profissionalId)?.papel !== 'psicologo-clinico') throw new Error('Apenas psicólogos clínicos podem registrar acompanhamentos.');
+      if (!banco.fichas.some((f) => f.estudanteId === estudanteId)) throw new Error('Peça à administração para criar a ficha antes de registrar.');
+      return gravar(() => servidor.chamar('POST', `estudantes/${servidor.idDe(estudanteId)}/registros/`, { texto, chave }), (resposta) => {
+        const r = resposta as Omit<RegistroClinico, 'estudanteId'> | undefined;
+        if (!banco.registros.some((reg) => reg.id === r?.id)) banco.registros.push(r ? { ...r, estudanteId } : {
+          id: chave, estudanteId, autorId: profissionalId, em: agora(), texto,
+        });
+        mudou();
+      });
     },
     ficha(profissionalId: string, estudanteId: string): Ficha | undefined {
       exigirVinculo(profissionalId, estudanteId);
@@ -309,33 +335,40 @@ export const api = {
     estudantes: () => banco.estudantes,
     profissionais: (papel?: PapelProfissional) =>
       banco.profissionais.filter((p) => !papel || p.papel === papel),
+    cadastrarProfissional(papel: PapelProfissional, dados: NovoProfissional): Promise<Profissional> {
+      const rota = servidor.ROTA_ADMIN[papel];
+      return gravar(() => servidor.chamar('POST', rota.rota, dados), (resposta) => {
+        const id = (resposta as Record<string, number> | undefined)?.[`id_${rota.campo}`];
+        const novo: Profissional = {
+          id: id ? `${rota.prefixo}-${id}` : novoId(rota.prefixo), nome: dados.nome_completo,
+          iniciais: dados.nome_completo.split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase(),
+          papel, ativo: true, detalhe: papel === 'professor' ? dados.cargo : `CRP ${dados.registro_profissional}`,
+        };
+        banco.profissionais.push(novo); mudou(); return novo;
+      });
+    },
     desativarEstudante(id: string) {
-      const e = estudante(id);
-      if (e) e.ativo = false;
-      mudou();
-      enviar(() => servidor.chamar('DELETE', `admin/estudantes/${servidor.idDe(id)}/`));
+      return gravar(() => servidor.chamar('DELETE', `admin/estudantes/${servidor.idDe(id)}/`), () => {
+        const e = estudante(id); if (e) e.ativo = false; mudou();
+      });
     },
     desativarProfissional(id: string) {
       const p = profissional(id);
-      if (p) p.ativo = false;
-      mudou();
-      if (p) enviar(() => servidor.chamar('DELETE', `${servidor.ROTA_ADMIN[p.papel].rota}${servidor.idDe(id)}/`));
+      return gravar(() => servidor.chamar('DELETE', `${servidor.ROTA_ADMIN[p!.papel].rota}${servidor.idDe(id)}/`), () => {
+        if (p) p.ativo = false; mudou();
+      });
     },
-    cadastrarEstudante(dados: Omit<Estudante, 'id' | 'apelido' | 'escola'>): Estudante {
-      const novo: Estudante = { ...dados, id: novoId('est'), apelido: dados.nome.split(' ')[0], escola: seed.ESTUDANTES[0].escola };
-      banco.estudantes.push(novo);
-      mudou();
-      enviar(() => servidor.chamar('POST', 'admin/estudantes/', {
-        ...estudanteParaApi(dados),
-        // Senha do primeiro acesso: mkpause-<matrícula>. O estudante troca depois.
-        senha: `mkpause-${dados.matricula || Date.now()}`,
-      }));
-      return novo;
+    cadastrarEstudante(dados: Omit<Estudante, 'id' | 'apelido' | 'escola'>, senha: string): Promise<Estudante> {
+      return gravar(() => servidor.chamar('POST', 'admin/estudantes/', { ...estudanteParaApi(dados), senha }), (resposta) => {
+        const id = (resposta as { id_estudante?: number } | undefined)?.id_estudante;
+        const novo: Estudante = { ...dados, id: id ? `est-${id}` : novoId('est'), apelido: dados.nome.split(' ')[0], escola: '' };
+        banco.estudantes.push(novo); mudou(); return novo;
+      });
     },
     atualizarEstudante(id: string, dados: Partial<Omit<Estudante, 'id'>>) {
-      banco.estudantes = banco.estudantes.map((e) => (e.id === id ? { ...e, ...dados } : e));
-      mudou();
-      enviar(() => servidor.chamar('PATCH', `admin/estudantes/${servidor.idDe(id)}/`, estudanteParaApi(dados)));
+      return gravar(() => servidor.chamar('PATCH', `admin/estudantes/${servidor.idDe(id)}/`, estudanteParaApi(dados)), () => {
+        banco.estudantes = banco.estudantes.map((e) => e.id === id ? { ...e, ...dados } : e); mudou();
+      });
     },
     profissionaisDe: (estudanteId: string) =>
       banco.vinculos
@@ -343,61 +376,54 @@ export const api = {
         .map((v) => profissional(v.profissionalId))
         .filter((p): p is Profissional => Boolean(p)),
     vincular(estudanteId: string, profissionalId: string) {
-      if (!vinculado(profissionalId, estudanteId)) banco.vinculos.push({ estudanteId, profissionalId });
-      mudou();
-      enviar(() => vincularNoServidor('POST', estudanteId, profissionalId));
+      return gravar(() => vincularNoServidor('POST', estudanteId, profissionalId), () => {
+        if (!vinculado(profissionalId, estudanteId)) banco.vinculos.push({ estudanteId, profissionalId }); mudou();
+      });
     },
-    /** Remove o vínculo; o que já foi registrado continua no histórico. */
     desvincular(estudanteId: string, profissionalId: string) {
-      banco.vinculos = banco.vinculos.filter((v) => !(v.estudanteId === estudanteId && v.profissionalId === profissionalId));
-      mudou();
-      enviar(() => vincularNoServidor('DELETE', estudanteId, profissionalId));
+      return gravar(() => vincularNoServidor('DELETE', estudanteId, profissionalId), () => {
+        banco.vinculos = banco.vinculos.filter((v) => !(v.estudanteId === estudanteId && v.profissionalId === profissionalId)); mudou();
+      });
     },
     fichas: () => banco.fichas,
     ficha: (estudanteId: string) => banco.fichas.find((f) => f.estudanteId === estudanteId),
     /** Salva a ficha e define o psicólogo clínico (o vínculo acompanha a ficha). */
-    salvarFicha(ficha: Omit<Ficha, 'atualizadaEm' | 'convite'>, psicologoClinicoId: string | null) {
+    salvarFicha(ficha: Omit<Ficha, 'atualizadaEm'>, psicologoClinicoId: string | null) {
       const existente = banco.fichas.find((f) => f.estudanteId === ficha.estudanteId);
       const paraSalvar = { ...ficha, clinicoIndicadoId: psicologoClinicoId };
-      const atualizada = { ...paraSalvar, atualizadaEm: agora(), convite: existente?.convite ?? null };
+      const anteriores = banco.vinculos.filter((v) => v.estudanteId === ficha.estudanteId && profissional(v.profissionalId)?.papel === 'psicologo-clinico').map((v) => v.profissionalId);
+      return gravar(async () => {
+        await servidor.salvarFicha(ficha.estudanteId, servidor.conteudoDaFicha(paraSalvar, []), Boolean(existente));
+        for (const id of anteriores) if (id !== psicologoClinicoId) await vincularNoServidor('DELETE', ficha.estudanteId, id);
+        if (psicologoClinicoId && !anteriores.includes(psicologoClinicoId)) await vincularNoServidor('POST', ficha.estudanteId, psicologoClinicoId);
+      }, () => {
+      const atualizada = { ...paraSalvar, atualizadaEm: agora() };
       banco.fichas = existente
         ? banco.fichas.map((f) => (f.estudanteId === ficha.estudanteId ? atualizada : f))
         : [...banco.fichas, atualizada];
       const clinicos = banco.profissionais.filter((p) => p.papel === 'psicologo-clinico').map((p) => p.id);
       const ehDoClinico = (v: { estudanteId: string; profissionalId: string }) =>
         v.estudanteId === ficha.estudanteId && clinicos.includes(v.profissionalId);
-      const anteriores = banco.vinculos.filter(ehDoClinico).map((v) => v.profissionalId);
       banco.vinculos = banco.vinculos.filter((v) => !ehDoClinico(v));
-      if (psicologoClinicoId && anteriores.includes(psicologoClinicoId)) {
+      if (psicologoClinicoId) {
         banco.vinculos.push({ estudanteId: ficha.estudanteId, profissionalId: psicologoClinicoId });
       }
       mudou();
-      enviar(async () => {
-        // Os registros clínicos que já estão na ficha continuam lá (o admin não os vê nem apaga).
-        const atual = await servidor.registrosDaFicha(ficha.estudanteId);
-        await servidor.salvarFicha(ficha.estudanteId, servidor.conteudoDaFicha(paraSalvar, atual), Boolean(existente));
-        for (const id of anteriores) {
-          if (id !== psicologoClinicoId) await vincularNoServidor('DELETE', ficha.estudanteId, id);
-        }
       });
     },
     conteudos: () => banco.conteudos,
     usos: (id: AtividadeId) => banco.sessoes.filter((s) => s.atividade === id).length,
     alternarConteudo(id: AtividadeId) {
       const c = banco.conteudos.find((x) => x.id === id);
-      if (c) c.disponivel = !c.disponivel;
-      mudou();
-      const idApi = servidor.idAtividade(id);
-      if (c && idApi) enviar(() => servidor.chamar('PATCH', `atividades/${idApi}/`, { disponivel: c.disponivel }));
+      return gravar(() => servidor.chamar('PATCH', `atividades/${servidor.idAtividade(id)}/`, { disponivel: !c?.disponivel }), () => {
+        if (c) c.disponivel = !c.disponivel; mudou();
+      });
     },
-    /** Só conteúdos nunca usados podem ser excluídos; os outros, só ocultados. */
     excluirConteudo(id: AtividadeId) {
       if (api.admin.usos(id) > 0) throw new Error('Conteúdo já usado: oculte em vez de excluir.');
-      banco.conteudos = banco.conteudos.filter((c) => c.id !== id);
-      mudou();
-      // O backend não apaga atividades: marca como indisponível.
-      const idApi = servidor.idAtividade(id);
-      if (idApi) enviar(() => servidor.chamar('DELETE', `atividades/${idApi}/`));
+      return gravar(() => servidor.chamar('DELETE', `atividades/${servidor.idAtividade(id)}/`), () => {
+        banco.conteudos = banco.conteudos.filter((c) => c.id !== id); mudou();
+      });
     },
   },
 };

@@ -3,7 +3,8 @@
  * com o pygbag e grava o resultado em public/jogos/pianopause.
  *
  * O jogo não é alterado: o main.py e a pasta fontes/ são copiados para uma pasta temporária.
- * Só a página que envolve o jogo (index.html do pygbag) ganha português e as cores do MKpause.
+ * A cópia web recebe entrada direta e encerramento pelo site; a página do pygbag
+ * ganha português e as cores do MKpause.
  *
  * Requer Python com pygbag:  python -m pip install pygbag
  * Uso:  npm run build:pianopause      (ou PYTHON=/caminho/python npm run build:pianopause)
@@ -13,6 +14,7 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync,
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { integrarPiano } from './integrar-jogos.mjs';
 
 const web = join(dirname(fileURLToPath(import.meta.url)), '..');
 const origem = join(web, '..', 'jogos', 'pianopause', 'main.py');
@@ -27,6 +29,7 @@ copyFileSync(origem, join(projeto, 'main.py'));
 const fontes = join(dirname(origem), 'fontes');
 if (existsSync(fontes)) cpSync(fontes, join(projeto, 'fontes'), { recursive: true });
 
+integrarPiano(projeto);
 console.log(`Compilando ${origem} com pygbag…`);
 // PYTHONUTF8: no Windows o pygbag leria o main.py como cp1252 e quebraria nos acentos.
 execFileSync(python, ['-m', 'pygbag', '--build', projeto], {
@@ -44,8 +47,8 @@ for (const arquivo of ['pianopause.apk', 'pianopause.tar.gz', 'favicon.png']) {
 // Página do jogo: idioma, fundo (Peony, o mesmo do jogo) e aviso de carregamento.
 const trocas = [
   ['<html lang="en-us">', '<html lang="pt-BR">'],
-  ['platform.document.body.style.background = "#7f7f7f"', 'platform.document.body.style.background = "#F7DDD5"'],
-  ['<title>pianopause</title>', '<title>PianoPause</title>'],
+  ['platform.document.body.style.background = "#7f7f7f"', 'platform.document.body.style.background = "#F6EFE4"'],
+  ['<title>pianopause</title>', '<title>piano pause</title>'],
   ['background: green;', 'background: #FFFAF7; border-radius: 999px; padding: 8px 16px; font: 600 16px system-ui, sans-serif;'],
   ['color: blue;', 'color: #594131;'],
   ['Loading, please wait ...', 'Carregando…'],

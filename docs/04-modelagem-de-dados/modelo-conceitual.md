@@ -35,7 +35,6 @@ O estudante está relacionado a elementos como:
 - ficha de acompanhamento;
 - professores;
 - psicólogos;
-- responsáveis.
 
 O estudante ocupa uma posição central na modelagem do MKpause, pois grande parte dos registros de acompanhamento está relacionada a ele.
 
@@ -62,14 +61,6 @@ O psicólogo escolar pode estar vinculado a estudantes, receber alertas e regist
 Representa o profissional responsável pelo acompanhamento clínico do estudante quando existir vínculo correspondente.
 
 O psicólogo clínico pode consultar informações disponibilizadas pelo sistema conforme suas permissões e os vínculos estabelecidos.
-
----
-
-### Responsável
-
-Representa a pessoa responsável pelo estudante.
-
-O responsável pode ser vinculado ao estudante posteriormente ao cadastro inicial por meio do processo definido pela plataforma.
 
 ---
 
@@ -211,17 +202,6 @@ Representa o vínculo necessário para permitir o acompanhamento clínico previs
 
 ---
 
-### Estudante — Responsável
-
-```text
-ESTUDANTE N ───────── N RESPONSÁVEL
-```
-
-O modelo permite representar situações em que um estudante possui mais de um responsável e um responsável está relacionado a mais de um estudante.
-
-Esse relacionamento também pode exigir uma entidade associativa no modelo lógico.
-
----
 
 ### Estudante — Observação
 
@@ -280,7 +260,6 @@ Exemplos existentes ou previstos no MKpause incluem:
 ```text
 ESTUDANTE N ───── N PROFESSOR
 
-ESTUDANTE N ───── N RESPONSÁVEL
 
 SESSÃO N ───── N ATIVIDADE
 ```

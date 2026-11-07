@@ -30,7 +30,6 @@ Entre os elementos representados estão:
 - estudantes;
 - professores;
 - psicólogos;
-- responsáveis;
 - sessões;
 - registros de humor;
 - alertas;
@@ -91,7 +90,8 @@ Cada etapa adiciona maior nível de detalhe à estrutura dos dados.
 
 ## Diagramas
 
-Os diagramas relacionados à modelagem estão armazenados em:
+Os PDFs abaixo são registros históricos anteriores à retirada de requisitos. Para o escopo atual, consulte os modelos em Markdown acima:
+
 
 - [Modelo Conceitual (PDF)](./diagramas/modelo-conceitual.pdf)
 - [Modelo Lógico (PDF)](./diagramas/modelo-logico.pdf)

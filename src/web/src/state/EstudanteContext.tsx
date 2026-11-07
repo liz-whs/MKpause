@@ -5,6 +5,7 @@ import type { EmocaoId } from '../domain/emocoes';
 import type { AtividadeId, AvisoSaida } from '../domain/tipos';
 import { useCuidados } from './cuidados';
 import { iniciais } from '../domain/formatos';
+import { chaveEstadoEstudante } from './armazenamentoEstudante';
 
 /** Sessão de pausa em andamento (nível 1). */
 export interface SessaoEmAndamento {
@@ -20,17 +21,15 @@ interface EstadoPersistido {
   avisoSaida: AvisoSaida | null;
 }
 
-const CHAVE = 'mkpause:estudante';
-
-function estadoInicial(): EstadoPersistido {
-  const salvo = sessionStorage.getItem(CHAVE);
+function estadoInicial(chave: string | null): EstadoPersistido {
+  const salvo = chave ? sessionStorage.getItem(chave) : null;
   if (salvo) {
     try {
       const dados = JSON.parse(salvo) as EstadoPersistido;
       return { apelido: dados.apelido ?? '', notificacoes: dados.notificacoes ?? true,
         sessao: dados.sessao ?? {}, avisoSaida: dados.avisoSaida ?? null };
     } catch {
-      sessionStorage.removeItem(CHAVE);
+      if (chave) sessionStorage.removeItem(chave);
     }
   }
   return {
@@ -41,16 +40,16 @@ function estadoInicial(): EstadoPersistido {
   };
 }
 
-function useEstadoEstudante() {
-  const [estado, setEstado] = useState<EstadoPersistido>(estadoInicial);
+function useEstadoEstudante(estudanteId: string) {
+  const chave = chaveEstadoEstudante(estudanteId);
+  const [estado, setEstado] = useState<EstadoPersistido>(() => estadoInicial(chave));
 
   const perfil = useDados(() => api.estudante.perfil());
-  const estudanteId = import.meta.env.MODE === 'test' || api.conta()?.perfil === 'estudante' ? perfil.id : '';
   const cuidados = useCuidados(estudanteId);
 
   useEffect(() => {
-    sessionStorage.setItem(CHAVE, JSON.stringify(estado));
-  }, [estado]);
+    if (chave) sessionStorage.setItem(chave, JSON.stringify(estado));
+  }, [estado, chave]);
 
   return {
     perfil: { ...perfil, apelido: estado.apelido || perfil.apelido },
@@ -69,28 +68,28 @@ function useEstadoEstudante() {
       setEstado((s) => ({ ...s, sessao: { ...s.sessao, ...parcial } })),
     // As chamadas à api ficam fora do setEstado: no StrictMode o atualizador roda duas vezes.
     /** `depois` vem do clique: o setEstado de atualizarSessao ainda não foi aplicado aqui. */
-    concluirSessao: (relato?: string, depoisAgora?: EmocaoId) => {
+    concluirSessao: async (relato?: string, depoisAgora?: EmocaoId) => {
       const { antes, atividade } = estado.sessao;
       const depois = depoisAgora ?? estado.sessao.depois;
       if (antes && atividade && depois) {
-        api.estudante.registrarSessao({ estudanteId: perfil.id, antes, atividade, depois, relato: relato || undefined });
+        await api.estudante.registrarSessao({ estudanteId: perfil.id, antes, atividade, depois, relato: relato || undefined });
       }
     },
 
-    avisarSaida: (destino?: string) => {
-      const aviso = api.estudante.avisarSaida(perfil.id, destino);
+    avisarSaida: async (destino?: string) => {
+      const aviso = await api.estudante.avisarSaida(perfil.id, destino);
       setEstado((s) => ({ ...s, avisoSaida: aviso }));
     },
-    voltei: () => {
-      if (estado.avisoSaida) api.estudante.registrarRetorno(estado.avisoSaida.id);
+    voltei: async () => {
+      if (estado.avisoSaida) await api.estudante.registrarRetorno(estado.avisoSaida.id);
       setEstado((s) => ({ ...s, avisoSaida: null }));
     },
 
 
-    sair: () => {
-      void api.sair();
-      sessionStorage.removeItem(CHAVE);
-      setEstado(estadoInicial());
+    sair: async () => {
+      await api.sair();
+      if (chave) sessionStorage.removeItem(chave);
+      setEstado(estadoInicial(null));
     },
   };
 }
@@ -101,7 +100,14 @@ export type EstudanteStore = ReturnType<typeof useEstadoEstudante>;
 const Ctx = createContext<EstudanteStore | null>(null);
 
 export function EstudanteProvider({ children }: { children: ReactNode }) {
-  const store = useEstadoEstudante();
+  const conta = useDados(() => api.conta());
+  const id = conta?.perfil === 'estudante' ? `est-${conta.id_perfil}` :
+    import.meta.env.MODE === 'test' && !conta ? api.estudante.perfil().id : '';
+  return <EstadoDoEstudante key={id || 'sem-conta'} estudanteId={id}>{children}</EstadoDoEstudante>;
+}
+
+function EstadoDoEstudante({ estudanteId, children }: { estudanteId: string; children: ReactNode }) {
+  const store = useEstadoEstudante(estudanteId);
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
 }
 

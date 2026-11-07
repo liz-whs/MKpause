@@ -1,3 +1,4 @@
+import { agir } from '../../state/acoes';
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { emocaoPorId, sugereEscalada, type Emocao, type EmocaoId } from '../../domain/emocoes';
@@ -5,6 +6,7 @@ import type { AtividadeId } from '../../domain/tipos';
 import { useEstudante } from '../../state/EstudanteContext';
 import { EmotionGrid } from '../../components/student/EmotionGrid';
 import { BackButton, FocusTopBar, SairDaPausa } from '../../components/student/FocusTopBar';
+import { AtividadesPorCategoria } from '../../components/student/AtividadesPorCategoria';
 import { ActivityRow, ScreenTitle } from '../../components/student/Bits';
 import { BreathingCircle, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
 import { ProgressSteps } from '../../components/ui/ProgressSteps';
@@ -24,6 +26,9 @@ const ROTA_ATIVIDADE: Record<AtividadeId, string> = {
   pianopause: '/estudante/pausa/pianopause',
   mkpotion: '/estudante/pausa/mkpotion',
   video: '/estudante/pausa/video',
+  mkconnection: '/estudante/pausa/mkconnection',
+  espiral: '/estudante/pausa/espiral',
+  chinchila: '/estudante/pausa/chinchila',
 };
 
 /** Botão desativado com o motivo no próprio rótulo ("Escolha como está"). */
@@ -95,26 +100,23 @@ export function EscolherAtividade() {
       </FocusTopBar>
       <ProgressSteps current={2} total={3} label={t('Atividade')} />
       <ScreenTitle>{t('Escolha uma atividade')}</ScreenTitle>
-      <div className="flex flex-col gap-3">
-        {atividades().map((a) => (
-          <ActivityRow
-            key={a.id}
-            to={a.rota}
-            onClick={() => atualizarSessao({ atividade: a.id })}
-            icone={a.icone}
-            fundo={a.fundo}
-            titulo={a.titulo}
-            detalhe={a.detalhe}
-            selo={
-              a.id === 'respiracao' && recomendaRespiracao ? (
-                <Badge tone="leaf" icon="coracao">
-                  {t('Para você')}
-                </Badge>
-              ) : undefined
-            }
-          />
-        ))}
-      </div>
+      <AtividadesPorCategoria atividades={atividades()} gradeClassName="md:grid-cols-2" renderAtividade={(a) => (
+        <ActivityRow
+          to={a.rota}
+          onClick={() => atualizarSessao({ atividade: a.id })}
+          icone={a.icone}
+          fundo={a.fundo}
+          titulo={a.titulo}
+          detalhe={a.detalhe}
+          selo={
+            a.id === 'respiracao' && recomendaRespiracao ? (
+              <Badge tone="leaf" icon="coracao">
+                {t('Para você')}
+              </Badge>
+            ) : undefined
+          }
+        />
+      )} />
     </>
   );
 }
@@ -140,7 +142,7 @@ export function Respiracao() {
   if (!valida) return <Navigate to="/estudante/pausa" replace />;
   return <>
     <CabecalhoAtividade />
-    <ScreenTitle className="text-center">{t('Respire&Pause')}</ScreenTitle>
+    <ScreenTitle className="text-center">{t('respire & pause')}</ScreenTitle>
     <BreathingCircle t={tempo} reduzir={reduzir} texto={rodando ? undefined : t('Pausado')} />
     <div className="grid grid-cols-2 gap-2.5">
       <Button variant="outline" onClick={() => setRodando((v) => !v)}>{rodando ? t('Pausar') : t('Continuar')}</Button>
@@ -168,7 +170,7 @@ export function PianoPause() {
   return (
     <>
       <CabecalhoAtividade />
-      <h1 className="sr-only">{t('PianoPause')}</h1>
+      <IntroducaoJogo titulo="piano pause" instrucao="Toque nas teclas e acompanhe as notas no seu ritmo." />
       <div className="flex flex-col gap-5 lg:w-[min(64rem,calc(100vw-4rem))] lg:self-center">
         {computador ? (
           // Deitado (5:3), do tamanho que couber sem rolar a página.
@@ -180,7 +182,7 @@ export function PianoPause() {
         <div className="flex flex-col gap-5 lg:mx-auto lg:w-[min(100%,calc((100dvh-16rem)*5/3))] lg:flex-row lg:items-center lg:justify-between">
           <p className="flex items-center justify-center gap-2 text-caption text-muted lg:text-body">
             <Icon name="info" size={16} className="flex-none" />
-            {t('Toque na tela do jogo para começar. Na sala, use fones.')}
+            {t('Na sala, use fones.')}
           </p>
           <Button to="/estudante/pausa/fim" block className="lg:w-auto lg:px-10">
             {t('Terminei')}
@@ -196,19 +198,30 @@ export function PianoPause() {
  * compilado com o pygbag para public/jogos/mkpotion (`npm run build:mkpotion`).
  * O jogo é deitado (1000 × 700) e se ajusta ao tamanho da janela; o progresso fica no navegador.
  */
-export function MKPotion() {
+function IntroducaoJogo({ titulo, instrucao }: { titulo: string; instrucao: string }) {
+  return <div className="space-y-2 text-center">
+    <ScreenTitle>{t(titulo)}</ScreenTitle>
+    <p className="text-body text-muted">{t(instrucao)}</p>
+  </div>;
+}
+
+export function MKPotion({ jogo = 'mkpotion' }: { jogo?: 'mkpotion' | 'mkconnection' }) {
+  const titulo = jogo === 'mkconnection' ? 'mk connection' : 'mk potion';
+  const { perfil } = useEstudante();
   if (!useSessaoValida()) return <Navigate to="/estudante/pausa" replace />;
   return (
     <>
       <CabecalhoAtividade />
-      <h1 className="sr-only">{t('MK Potion')}</h1>
+      <IntroducaoJogo titulo={titulo} instrucao={jogo === 'mkconnection'
+        ? 'Conecte os pontos da mesma cor, sem pressa.'
+        : 'Organize as cores nas garrafas, uma de cada vez.'} />
       <div className="flex flex-col gap-5 lg:w-[min(64rem,calc(100vw-4rem))] lg:self-center">
         {/* Ocupa a altura que sobra na tela (vertical no celular, horizontal no computador):
             com ?mkpause=1 o jogo desenha nesse tamanho exato, nítido, e se reorganiza ao redimensionar. */}
-        <div className="h-[max(26rem,calc(100dvh-15rem))] w-full overflow-hidden rounded-sheet bg-bg lg:h-[max(28rem,calc(100dvh-13rem))]">
+        <div className="h-[max(26rem,calc(100dvh-21rem))] w-full overflow-hidden rounded-sheet bg-bg lg:h-[max(28rem,calc(100dvh-19rem))]">
           <iframe
-            src="/jogos/mkpotion/index.html?mkpause=1"
-            title={t('Jogo MK Potion')}
+            src={`/jogos/${jogo}/index.html?mkpause=1&estudante=${encodeURIComponent(perfil.id)}`}
+            title={t(jogo === 'mkconnection' ? 'Jogo mk connection' : 'Jogo mk potion')}
             allow="autoplay; fullscreen"
             className="size-full border-0"
           />
@@ -216,7 +229,7 @@ export function MKPotion() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <p className="flex items-center justify-center gap-2 text-caption text-muted lg:text-body">
             <Icon name="info" size={16} className="flex-none" />
-            {t('Toque na tela do jogo para começar. Na sala, use fones.')}
+            {t('Na sala, use fones.')}
           </p>
           <Button to="/estudante/pausa/fim" block className="lg:w-auto lg:px-10">
             {t('Terminei')}
@@ -228,9 +241,9 @@ export function MKPotion() {
 }
 
 /** Atividade de respiração em vídeo, com controles acessíveis. */
-export function Video() {
+export function Video({ atividade = 'video' }: { atividade?: 'video' | 'espiral' | 'chinchila' }) {
   if (!useSessaoValida()) return <Navigate to="/estudante/pausa" replace />;
-  return <VideoRespiracao />;
+  return <VideoRespiracao key={atividade} atividade={atividade} />;
 }
 
 /** Etapa 3 de 3: E agora? Se ainda não está bem, leva ao nível 3. */
@@ -262,9 +275,11 @@ export function ComoFicou() {
           <Button
             block
             onClick={() => {
-              atualizarSessao({ depois: emocao });
-              concluirSessao(relato, emocao);
-              navigate('/estudante/pausa/concluida');
+              void agir(async () => {
+                await concluirSessao(relato, emocao);
+                atualizarSessao({ depois: emocao });
+                navigate('/estudante/pausa/concluida');
+              }, 'Sessão concluída.');
             }}
           >
             {t('Finalizar')}

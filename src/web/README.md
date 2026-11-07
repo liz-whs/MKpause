@@ -34,7 +34,7 @@ O login com qualquer senha e os atalhos por nome de perfil existem apenas nos te
 
 ### Códigos de acesso
 
-O cadastro por código e os pedidos de vínculo usam a API Laravel conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Execute `php artisan mkpause:aplicar-esquema` em `backend/` para aplicar os esquemas SQL ausentes. Os convites criam contas reais, e o aceite do estudante cria ou reativa o vínculo no banco. A simulação fica restrita aos testes; erros da API aparecem na tela.
+O cadastro por código e os pedidos de vínculo usam a API Laravel conforme o [contrato do backend](../../docs/codigos-de-acesso.md). Execute `php artisan mkpause:aplicar-esquema` em `backend/` para aplicar os esquemas SQL ausentes. Os códigos de cadastro criam contas reais, e o aceite do estudante cria ou reativa o vínculo no banco. A simulação fica restrita aos testes; erros da API aparecem na tela.
 
 ### Dashboard clínico V5
 
@@ -42,7 +42,7 @@ Em **Psicólogo clínico → Acompanhados → estudante → Histórico e humor**
 
 ## Estrutura
 
-Em **Administração → Vínculos**, envie o convite ao responsável e acompanhe a resposta. Novos acessos clínicos só são criados após o aceite. Em **E-mails**, acompanhe e processe a fila. O padrão é a caixa local, sem entrega pela internet; o convite de teste pode ser aberto pelo atalho do cartão com debug ligado. Veja o [guia de convites e e-mails](../../docs/convites-e-emails.md).
+Em **Administração → Vínculos**, gerencie os profissionais vinculados ao estudante. Em **E-mails**, acompanhe e processe a fila de avisos escolares. O padrão é a caixa local, sem entrega pela internet. Veja o [guia de e-mails](../../docs/convites-e-emails.md).
 
 ```text
 src/
@@ -111,7 +111,7 @@ Jogo de organizar líquidos da Ana (`src/MKpotion/mk_potion`), compilado com o p
 
 - Recompilar: `npm run build:mkpotion` (Python com `pygbag==0.9.3`; `PYTHON=/caminho/python` para escolher o interpretador). Precisa de internet: o pygbag baixa o modelo da página.
 - O script acrescenta `import pygame` só na cópia temporária do `main.py`: o pygbag só carrega o pygame se ele for importado no `main.py`, e o MK Potion importa em `game/screens.py`. Vale a Ana colocar essa linha no `main.py` dela.
-- No backend, a atividade é do tipo `JOGO` com `conteudo_ou_referencia = /jogos/mkpotion/index.html`: é a referência que diferencia os dois jogos (`atividadeDe` em `src/data/servidor.ts`). O `criar_demo` cria os dois jogos e pode ser executado novamente sem duplicá-los, inclusive se o MK Potion já tiver sido cadastrado pela API. O deploy do Render já executa esse comando.
+- No backend, a atividade é do tipo `JOGO` com `conteudo_ou_referencia = /jogos/mkpotion/index.html`: é a referência que diferencia os jogos (`atividadeDe` em `src/data/servidor.ts`). O `criar_demo` cria os três jogos e pode ser executado novamente sem duplicá-los, inclusive se o MK Potion já tiver sido cadastrado pela API. O deploy do Render já executa esse comando.
 - O progresso do jogo fica no navegador (localStorage), como a Ana fez.
 
 ## Indicadores em PHP e vídeo de respiração
@@ -155,3 +155,9 @@ Respire&Pause, jogos e vídeos não exibem duração ou cronômetro. Respire&Pau
 A sequência usa apenas marcações reais: ao menos um cuidado em cada dia útil, sem somar ou interromper a contagem no fim de semana. Um dia ainda em aberto não interrompe a sequência. Os registros são preservados por estudante no `localStorage` deste navegador (`mkpause:cuidados:v1:<id>`), atualizados entre abas e na virada do dia. Não há sincronização desses cuidados com o backend ou entre dispositivos.
 
 Foram removidos os cinco dias de exemplo gerados na inicialização. Na atualização de uma sessão antiga, somente as marcações existentes em `cuidadosHoje` são migradas: a lista antiga `diasComCuidado` misturava exemplos com dias reais e não permite recuperar com segurança um histórico completo.
+
+## Novas atividades
+
+MKconnection, Respiração em espiral e Respiração com a chinchila fazem parte do catálogo. O jogo é compilado com `npm run build:mkconnection`; as adaptações para navegador são feitas na cópia temporária. Os dois vídeos são renderizados com `npm run build:videos`, em loop e com controle central de play/pausa, sem cronômetro. Veja [como gerar os vídeos](../atividades/videos/README.md).
+
+Para acrescentar as atividades ao banco sem criar usuários ou alterar senhas, execute `php artisan mkpause:sincronizar-atividades` em `backend/`. O comando preserva nomes personalizados e atividades ocultadas pela administração.

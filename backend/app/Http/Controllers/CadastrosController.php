@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Mkpause\Cadastros;
-use App\Mkpause\Convites;
 use App\Mkpause\Entrada;
 use App\Mkpause\ErroApi;
 use App\Mkpause\Formato;
@@ -12,9 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Cadastros do administrador (RF27–RF30, RF34): GET / POST / PATCH / DELETE em
+ * Cadastros do administrador (RF27–RF30): GET / POST / PATCH / DELETE em
  * admin/estudantes, admin/professores, admin/psicologos-escolares, admin/psicologos-clinicos
- * e admin/responsaveis (?ativo=true|false filtra). DELETE não apaga: desativa e mantém o histórico.
+ * (?ativo=true|false filtra). DELETE não apaga: desativa e mantém o histórico.
  */
 class CadastrosController extends Controller
 {
@@ -22,8 +21,7 @@ class CadastrosController extends Controller
     private const MODELOS = ['estudante' => 'Estudante', 'professor' => 'Professor',
         'psicologo_escolar' => 'PsicologoEscolar', 'psicologo_clinico' => 'PsicologoClinico'];
     private const MODELOS_VINCULO = ['professores' => 'ProfessorEstudante',
-        'psicologos-escolares' => 'PsicologoEscolarEstudante', 'psicologos-clinicos' => 'PsicologoClinicoEstudante',
-        'responsaveis' => 'EstudanteResponsavel'];
+        'psicologos-escolares' => 'PsicologoEscolarEstudante', 'psicologos-clinicos' => 'PsicologoClinicoEstudante'];
 
     // ------------------------------------------------------------ perfis com login
 
@@ -80,81 +78,6 @@ class CadastrosController extends Controller
         }
     }
 
-    // ------------------------------------------------- responsáveis (contato, sem login)
-
-    public function listarResponsaveis(Request $request)
-    {
-        $q = DB::table('responsavel')->orderBy('nome_completo')->orderBy('id_responsavel');
-        $this->filtrarAtivo($request, $q, 'ativo');
-        return $this->json($q->get()->map(fn ($r) => self::responsavel($r))->all());
-    }
-
-    public function verResponsavel(Request $request, $id)
-    {
-        return $this->json(self::responsavel($this->responsavelOu404($request, $id)));
-    }
-
-    public function criarResponsavel(Request $request)
-    {
-        $dados = $this->validarResponsavel($this->entrada($request), parcial: false);
-        $agora = Formato::banco(Formato::agora());
-        $id = DB::table('responsavel')->insertGetId($dados + ['ativo' => true, 'criado_em' => $agora,
-            'atualizado_em' => $agora], 'id_responsavel');
-        return $this->json(self::responsavel(DB::table('responsavel')->where('id_responsavel', $id)->first()), 201);
-    }
-
-    public function atualizarResponsavel(Request $request, $id)
-    {
-        $r = $this->responsavelOu404($request, $id);
-        $dados = $this->validarResponsavel($this->entrada($request, parcial: true), parcial: true);
-        DB::table('responsavel')->where('id_responsavel', $r->id_responsavel)
-            ->update($dados + ['atualizado_em' => Formato::banco(Formato::agora())]);
-        return $this->json(self::responsavel(DB::table('responsavel')->where('id_responsavel', $r->id_responsavel)->first()));
-    }
-
-    public function desativarResponsavel(Request $request, $id)
-    {
-        $r = $this->responsavelOu404($request, $id);
-        DB::transaction(function () use ($r) {
-            DB::table('responsavel')->where('id_responsavel', $r->id_responsavel)
-                ->update(['ativo' => false, 'atualizado_em' => Formato::banco(Formato::agora())]);
-            $convites = DB::table('convite_responsavel')->where('id_responsavel', $r->id_responsavel)
-                ->whereIn('status', ['PENDENTE', 'ACEITO'])->lockForUpdate()->get();
-            foreach ($convites as $c) {
-                Convites::revogar($c);
-            }
-        });
-        return $this->json(['detail' => 'Cadastro desativado. O histórico foi mantido.']);
-    }
-
-    private function responsavelOu404(Request $request, $id): object
-    {
-        $q = DB::table('responsavel')->where('id_responsavel', self::id($id));
-        $this->filtrarAtivo($request, $q, 'ativo');
-        return $q->first() ?? throw ErroApi::semRegistro('Responsavel');
-    }
-
-    private function validarResponsavel(Entrada $e, bool $parcial): array
-    {
-        $dados = [];
-        $nome = $e->texto('nome_completo', max: 150);
-        $email = $e->email('email', obrigatorio: false, vazio: true, nulo: true);
-        $telefone = $e->texto('telefone', max: 30, obrigatorio: false, vazio: true, nulo: true);
-        $e->falharSeHouverErros();
-        foreach (['nome_completo' => $nome, 'email' => is_string($email) ? mb_strtolower($email) : $email, 'telefone' => $telefone] as $k => $v) {
-            if ($v !== Entrada::AUSENTE) {
-                $dados[$k] = $v;
-            }
-        }
-        return $dados;
-    }
-
-    public static function responsavel(object $r): array
-    {
-        return ['id_responsavel' => (int) $r->id_responsavel, 'nome_completo' => $r->nome_completo, 'email' => $r->email,
-            'ativo' => (bool) $r->ativo, 'criado_em' => Formato::local($r->criado_em), 'telefone' => $r->telefone];
-    }
-
     // ------------------------------------------------------------ vínculos (admin)
 
     /** tipo => [tabela, coluna do profissional, campo na API, tabela do profissional, chave, mensagem ao remover] */
@@ -167,8 +90,6 @@ class CadastrosController extends Controller
         'psicologos-clinicos' => ['psicologo_clinico_estudante', 'id_psicologo_clinico', 'psicologo_clinico',
             'psicologo_clinico', 'id_psicologo_clinico',
             'Vínculo desativado. O psicólogo clínico deixa de ver os registros deste estudante.'],
-        'responsaveis' => ['estudante_responsavel', 'id_responsavel', 'responsavel', 'responsavel', 'id_responsavel',
-            'Vínculo desativado.'],
     ];
 
     public function listarVinculos(Request $request, string $tipo)
@@ -188,23 +109,10 @@ class CadastrosController extends Controller
         $e = $this->entrada($request);
         $prof = $e->referencia($campo, $tabelaProf, $chaveProf);
         $estudante = $e->referencia('estudante', 'estudante', 'id_estudante');
-        $parentesco = $tipo === 'responsaveis'
-            ? $e->texto('grau_parentesco', max: 60, obrigatorio: false, vazio: true, nulo: true) : Entrada::AUSENTE;
         $e->falharSeHouverErros();
         $chave = [$coluna => $prof, 'id_estudante' => $estudante];
 
-        // Vínculo clínico e de responsável novos exigem o aceite do convite pelo responsável (RN24).
-        if (in_array($tipo, ['psicologos-clinicos', 'responsaveis'], true)
-            && !DB::table($tabela)->where($chave)->where('ativo', true)->exists()
-            && !DB::table('convite_responsavel as c')->join('responsavel as r', 'r.id_responsavel', '=', 'c.id_responsavel')
-                ->where('c.id_estudante', $estudante)->where("c.{$coluna}", $prof)->where('c.status', 'ACEITO')
-                ->where('r.ativo', true)->exists()) {
-            throw ErroApi::invalido($tipo === 'responsaveis'
-                ? 'Envie o convite e aguarde o aceite do responsável.'
-                : 'Envie o convite ao responsável e aguarde o aceite antes de criar o vínculo clínico.');
-        }
-
-        $extras = $parentesco === Entrada::AUSENTE ? [] : ['grau_parentesco' => $parentesco];
+        $extras = [];
         $existente = DB::table($tabela)->where($chave)->first();
         if ($existente) {
             DB::table($tabela)->where($chave)->update(['ativo' => true] + $extras);
@@ -232,9 +140,6 @@ class CadastrosController extends Controller
     {
         [, $coluna, $campo] = self::VINCULOS[$tipo];
         $saida = [$campo => (int) $v->$coluna, 'estudante' => (int) $v->id_estudante];
-        if ($tipo === 'responsaveis') {
-            $saida['grau_parentesco'] = $v->grau_parentesco;
-        }
         return $saida + ['ativo' => (bool) $v->ativo, 'criado_em' => Formato::local($v->criado_em)];
     }
 

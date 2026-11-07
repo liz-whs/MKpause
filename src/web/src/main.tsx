@@ -10,7 +10,7 @@ import { iniciarVLibrasSeLigado } from './preferencias/VLibras';
 iniciarVLibrasSeLigado();
 
 // Retoma a sessão do backend (cookie) e carrega os dados da conta.
-void api.sincronizar();
+void api.sincronizar().catch(() => undefined); // A raiz apresenta o erro e a opção de tentar novamente.
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

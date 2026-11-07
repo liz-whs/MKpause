@@ -12,7 +12,7 @@ Um ator em um diagrama de casos de uso representa um **papel desempenhado durant
 
 O **Estudante** é o principal usuário das funcionalidades de autorregulação do MKpause.
 
-Ele utiliza a plataforma para acessar recursos de apoio, registrar seu estado emocional e manter um histórico das sessões realizadas.
+Ele utiliza a plataforma para acessar recursos de apoio, registrar seu estado emocional e realizar atividades de autorregulação.
 
 ### Principais interações
 
@@ -25,7 +25,7 @@ O estudante pode:
 - registrar o humor após a atividade;
 - solicitar auxílio;
 - emitir alertas nas situações previstas;
-- consultar seu histórico.
+
 
 ### Papel no sistema
 
@@ -102,7 +102,6 @@ O psicólogo clínico pode:
 - consultar histórico;
 - consultar registros disponibilizados;
 - consultar ficha de acompanhamento;
-- receber alertas;
 - consultar avisos;
 - acessar informações necessárias ao acompanhamento conforme suas permissões.
 
@@ -134,22 +133,6 @@ O administrador pode:
 ### Papel no sistema
 
 O administrador possui responsabilidades relacionadas à gestão da plataforma e não ao processo de autorregulação realizado pelo estudante.
-
----
-
-## Responsável
-
-O **Responsável** está relacionado ao estudante e pode participar de processos específicos previstos pelo MKpause.
-
-Entretanto, sua existência no domínio do sistema não significa que ele necessariamente apareça como ator em todos os diagramas de casos de uso.
-
-### Cadastro e vínculo
-
-O responsável **não participa diretamente do cadastro inicial do estudante**.
-
-O vínculo é estabelecido posteriormente por meio de convite, e-mail ou outro mecanismo definido pela plataforma.
-
-Por esse motivo, o Responsável não deve ser conectado ao caso de uso de cadastro apenas para representar sua existência no banco de dados.
 
 ---
 
@@ -228,7 +211,6 @@ Da mesma forma, a presença de um ator indica interação com o sistema e não d
 | Psicólogo Escolar | Realizar acompanhamento no ambiente escolar |
 | Psicólogo Clínico | Consultar informações necessárias ao acompanhamento clínico |
 | Administrador | Gerenciar usuários, vínculos e recursos da plataforma |
-| Responsável | Participar de processos específicos após estabelecimento do vínculo |
 
 ---
 

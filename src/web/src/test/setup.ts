@@ -4,9 +4,11 @@ import { afterEach } from 'vitest';
 import { reiniciarPreferencias } from '../preferencias/preferencias';
 import { fecharPreferencias } from '../preferencias/PainelPreferencias';
 import { reiniciarSimulacao } from '../data/codigos';
+import { fecharFeedback } from '../state/acoes';
 
 afterEach(() => {
   cleanup();
+  fecharFeedback();
   for (const chave of Object.keys(localStorage)) {
     if (chave.startsWith('mkpause:cuidados:')) localStorage.removeItem(chave);
   }

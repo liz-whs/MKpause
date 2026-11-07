@@ -2,6 +2,9 @@
 
 # Logical Model
 
+> Guardian tables in earlier SQL migrations are retained for compatibility and preservation of legacy data; they do not represent active features.
+
+
 The **MKpause** logical model represents the transformation of the conceptual model into a structure compatible with relational databases.
 
 This stage defines:
@@ -24,7 +27,6 @@ Table and key names are kept in Portuguese, as they will appear in the database.
 | `PROFESSOR` | Teacher |
 | `PSICOLOGO_ESCOLAR` | School psychologist |
 | `PSICOLOGO_CLINICO` | Clinical psychologist |
-| `RESPONSAVEL` | Guardian |
 | `ADMINISTRADOR` | Administrator |
 | `SESSAO` | Session |
 | `REGISTRO_HUMOR` | Mood record |
@@ -77,7 +79,6 @@ A student may be related to:
 - follow-up record;
 - teachers;
 - psychologists;
-- guardians.
 
 ---
 
@@ -132,22 +133,6 @@ Stores data about clinical psychologists.
 - professional registration number
 - state of the professional registration
 - registration status
-
----
-
-### RESPONSAVEL
-
-Stores data about the guardians linked to students.
-
-#### General structure
-
-- `id_responsavel` — PK
-- name
-- contact data
-- data needed for the link
-- registration status
-
-The link between guardian and student may be established after the student's initial registration.
 
 ---
 
@@ -395,39 +380,6 @@ This link can be used by the authorization rules to determine which students the
 
 ---
 
-### ESTUDANTE_RESPONSAVEL
-
-Represents the relationship between students and guardians.
-
-#### Structure
-
-- `id_estudante` — PK/FK
-- `id_responsavel` — PK/FK
-- relationship or kinship, when needed
-- link status
-
-#### Transformation
-
-Conceptual model:
-
-```text
-ESTUDANTE N ───── N RESPONSAVEL
-```
-
-Logical model:
-
-```text
-ESTUDANTE
-    │
-    ▼
-ESTUDANTE_RESPONSAVEL
-    ▲
-    │
-RESPONSAVEL
-```
-
----
-
 ### SESSAO_ATIVIDADE
 
 Represents which activities were used in a given session.
@@ -473,7 +425,6 @@ ATIVIDADE
 | Teacher | N:N | Student | `PROFESSOR_ESTUDANTE` |
 | School Psychologist | N:N | Student | `PSICOLOGO_ESCOLAR_ESTUDANTE` |
 | Clinical Psychologist | N:N | Student | `PSICOLOGO_CLINICO_ESTUDANTE` |
-| Student | N:N | Guardian | `ESTUDANTE_RESPONSAVEL` |
 | Session | N:N | Activity | `SESSAO_ATIVIDADE` |
 
 \* Based on the current rule of one follow-up record per student.

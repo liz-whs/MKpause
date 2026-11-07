@@ -167,29 +167,6 @@ Under the project's current rules, situations classified at levels **2 and 3** m
 
 ---
 
-## UC06 — View History
-
-**Primary actor:** Student
-
-**Goal:**  
-Allow the student to view information about their previous sessions.
-
-**Precondition:**  
-The student must be authenticated.
-
-### Main flow
-
-1. The student opens their history.
-2. The system identifies the authenticated student.
-3. The system retrieves the authorized records.
-4. The system displays the previous sessions.
-5. The student can view the information available for each session.
-
-**Postcondition:**  
-No data is changed.
-
----
-
 ## UC07 — View Students
 
 **Actors:**  
@@ -254,7 +231,7 @@ Associating both with the same use case does not require them to take part at th
 ## UC09 — View Alerts
 
 **Actors:**  
-Teacher, School Psychologist and Clinical Psychologist, according to permissions.
+Teacher and School Psychologist, according to permissions.
 
 **Goal:**  
 Allow authorized professionals to view alerts about the students they follow.
@@ -362,14 +339,13 @@ The feature must take into account the different professional profiles in the sy
 **Primary actor:** Administrator
 
 **Goal:**  
-Allow the relationships between students and professionals or guardians to be managed.
+Allow the relationships between students and professionals to be managed.
 
 ### Links
 
 - student ↔ teacher;
 - student ↔ school psychologist;
 - student ↔ clinical psychologist;
-- student ↔ guardian.
 
 ### Main flow
 
@@ -474,7 +450,6 @@ The exact direction of the relationships must remain consistent with the final v
 | UC03 | Record Mood | Student |
 | UC04 | Evaluate State | System / session flow |
 | UC05 | Raise Alert | Student |
-| UC06 | View History | Student |
 | UC07 | View Students | Professionals |
 | UC08 | Record Note | Teacher / School Psychologist |
 | UC09 | View Alerts | Authorized professionals |

@@ -10,7 +10,7 @@ Entretanto, oferecer recursos isolados não é suficiente. Também é importante
 
 O **MKpause** surge nesse contexto como uma plataforma que integra recursos de autorregulação e acompanhamento.
 
-Por meio do sistema, estudantes podem realizar sessões de autorregulação, registrar seu estado emocional antes e depois das atividades, acessar conteúdos e consultar seu histórico.
+Por meio do sistema, estudantes podem realizar sessões de autorregulação, registrar seu estado emocional antes e depois das atividades e acessar conteúdos.
 
 Paralelamente, profissionais como professores, psicólogos escolares e psicólogos clínicos possuem funcionalidades específicas para acompanhar estudantes de acordo com seus vínculos e permissões.
 

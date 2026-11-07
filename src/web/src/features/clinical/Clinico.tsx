@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { agir } from '../../state/acoes';
+import { useRef, useState } from 'react';
 import { Link, Navigate, NavLink, useParams } from 'react-router';
 import { api } from '../../data/api';
 import { useDados } from '../../data/useDados';
@@ -8,13 +9,11 @@ import { PAPEL_LABEL, type Profissional } from '../../domain/tipos';
 import { profissionalLogado } from '../../state/ProContext';
 import { ProLayout } from '../../components/layout/Layouts';
 import {
-  AlertBadge, Avatar, BackLink, EmocaoAntesDepois, LockNote, PageHeader, SearchField, SuccessBanner,
+  Avatar, BackLink, EmocaoAntesDepois, LockNote, PageHeader, SearchField, SuccessBanner,
 } from '../../components/pro/Pro';
-import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Field } from '../../components/ui/Field';
-import { Icon } from '../../components/ui/Icon';
 import { cx } from '../../components/ui/cx';
 import { NOME_ATIVIDADE, ObservacoesLista } from '../school/Escola';
 import { t } from '../../i18n';
@@ -24,7 +23,6 @@ import { Dashboard, FiltroDashboard } from './Dashboard';
 
 export function ClinicoLayout() {
   const eu = profissionalLogado('clinico');
-  const pendentes = useDados(() => api.escola.alertas(eu.id).filter((a) => !a.vistoPor?.includes(eu.id)).length);
   return (
     <ProLayout
       perfil={PAPEL_LABEL[eu.papel]}
@@ -32,7 +30,6 @@ export function ClinicoLayout() {
       perfilTo="/clinico/perfil"
       items={[
         { to: '/clinico/acompanhados', label: 'Acompanhados', icon: 'pessoas' },
-        { to: '/clinico/alertas', label: 'Alertas e avisos', icon: 'alerta', count: pendentes },
       ]}
     />
   );
@@ -41,7 +38,6 @@ export function ClinicoLayout() {
 export function ClinicoAcompanhados() {
   const eu = profissionalLogado('clinico');
   const estudantes = useDados(() => api.escola.estudantes(eu.id));
-  const alertas = useDados(() => api.escola.alertas(eu.id));
   const [busca, setBusca] = useState('');
   const termo = busca.trim().toLowerCase();
   const lista = estudantes.filter((e) => !termo || e.nome.toLowerCase().includes(termo) || e.escola.toLowerCase().includes(termo));
@@ -56,7 +52,6 @@ export function ClinicoAcompanhados() {
         {lista.map((e) => {
           const sessoes = api.escola.sessoes(eu.id, e.id);
           const leves = sessoes.filter((s) => ehLeve(s.depois)).length;
-          const aberto = alertas.find((a) => a.estudanteId === e.id && !a.vistoPor?.includes(eu.id));
           return (
             <li key={e.id}>
               <Link
@@ -76,7 +71,6 @@ export function ClinicoAcompanhados() {
                   {sessoes.length === 1 ? t('{n} de {total} pausa terminou mais leve', { n: leves, total: sessoes.length }) : t('{n} de {total} pausas terminaram mais leves', { n: leves, total: sessoes.length })}
                 </span>
                 <span className="text-caption text-muted">{t('Última pausa:')} {sessoes[0] ? quando(sessoes[0].em) : t('nenhuma ainda')}</span>
-                {aberto && <AlertBadge alerta={aberto} />}
               </Link>
             </li>
           );
@@ -90,7 +84,6 @@ export function ClinicoAcompanhados() {
 function Cabecalho({ estudanteId, eu }: { estudanteId: string; eu: Profissional }) {
   const e = useDados(() => api.escola.estudante(eu.id, estudanteId));
   const ficha = useDados(() => api.clinico.ficha(eu.id, estudanteId));
-  const aberto = useDados(() => api.escola.alertas(eu.id).find((a) => a.estudanteId === estudanteId && !a.vistoPor?.includes(eu.id)));
   const aba = 'inline-flex min-h-12 items-center rounded-pill px-4.5 font-semibold no-underline';
 
   return (
@@ -105,7 +98,6 @@ function Cabecalho({ estudanteId, eu }: { estudanteId: string; eu: Profissional 
             {ficha?.inicio && ` · ${t('acompanhamento desde {data}', { data: ficha.inicio })}`}
           </span>
         </div>
-        {aberto && <AlertBadge alerta={aberto} />}
       </div>
       <nav aria-label={t('Seções do estudante')}>
         <ul className="flex flex-wrap gap-2">
@@ -205,11 +197,12 @@ export function ClinicoFicha() {
   const [texto, setTexto] = useState('');
   const [erro, setErro] = useState<string>();
   const [salvo, setSalvo] = useState(false);
+  const chave = useRef(crypto.randomUUID());
   if (!vinculado) return <Navigate to="/clinico/acompanhados" replace />;
 
   const dados: [string, string][] = ficha
     ? [
-        [t('Responsável'), `${ficha.responsavel} · ${t(ficha.parentesco)}${ficha.convite?.aceito ? ` · ${t('vínculo confirmado')}` : ''}`],
+        [t('Responsável'), `${ficha.responsavel} · ${t(ficha.parentesco)}`],
         [t('Contato do responsável'), ficha.contato],
         [t('Início do acompanhamento'), ficha.inicio || '—'],
         [t('Encaminhamento'), ficha.encaminhamento || '—'],
@@ -251,10 +244,12 @@ export function ClinicoFicha() {
                 setErro(t('Escreva o registro antes de salvar.'));
                 return;
               }
-              api.clinico.adicionarRegistro(eu.id, id, texto.trim());
-              setTexto('');
-              setErro(undefined);
-              setSalvo(true);
+              void agir(async () => {
+                await api.clinico.adicionarRegistro(eu.id, id, texto.trim(), chave.current);
+                setTexto('');
+                setErro(undefined);
+                setSalvo(true);
+              });
             }}
           >
             <Field
@@ -266,10 +261,11 @@ export function ClinicoFicha() {
               error={erro}
               onChange={(ev) => {
                 setTexto(ev.target.value);
+                chave.current = crypto.randomUUID();
                 setSalvo(false);
               }}
             />
-            <Button type="submit" size="md" className="self-start">
+            <Button type="submit" disabled={!ficha} size="md" className="self-start">
               {t('Salvar registro')}
             </Button>
           </form>
@@ -282,83 +278,6 @@ export function ClinicoFicha() {
             ))}
           </ul>
         </Card>
-      </div>
-    </>
-  );
-}
-
-export function ClinicoAlertas() {
-  const eu = profissionalLogado('clinico');
-  const estudantes = useDados(() => api.escola.estudantes(eu.id));
-  const alertas = useDados(() => api.escola.alertas(eu.id));
-  const avisos = useDados(() => api.escola.avisos(eu.id));
-  const nome = (id: string) => {
-    const e = estudantes.find((x) => x.id === id);
-    return e ? nomeCurto(e.nome) : '';
-  };
-  const turma = (id: string) => estudantes.find((x) => x.id === id)?.turma ?? '';
-  const fora = avisos.filter((a) => !a.voltouEm);
-  const voltaram = avisos.filter((a) => a.voltouEm).slice(0, 3);
-
-  return (
-    <>
-      <PageHeader titulo={t('Alertas e avisos')} descricao={t('Dos estudantes que você acompanha.')} />
-      <div className="flex flex-wrap items-start gap-6">
-        <section aria-labelledby="t-alertas" className="flex min-w-0 flex-[3_1_460px] flex-col gap-3">
-          <h2 id="t-alertas" className="text-section md:text-section-lg">
-            {t('Alertas')}
-          </h2>
-          {alertas.length === 0 && <p className="text-muted">{t('Nenhum alerta agora.')}</p>}
-          {alertas.map((a) => (
-            <Card as="article" key={a.id} className="flex flex-col gap-2.5">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <AlertBadge alerta={a} />
-                <strong className="text-button">{nome(a.estudanteId)}</strong>
-                <span className="ml-auto text-caption text-muted">{quando(a.criadoEm)}</span>
-              </div>
-              <p>{t('Tocou em “Não estou bem”. Alerta automático.')}</p>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Button size="md" to={`/clinico/estudantes/${a.estudanteId}`}>
-                  {t('Ver histórico')}
-                </Button>
-                {a.vistoPor?.includes(eu.id) ? (
-                  <Badge tone="leaf" icon="check">
-                    {t('Visto por você')}
-                  </Badge>
-                ) : (
-                  <Button size="md" variant="outline" onClick={() => api.escola.marcarVisto(eu.id, a.id)}>
-                    <Icon name="check" size={18} />
-                    {t('Marcar como visto')}
-                  </Button>
-                )}
-              </div>
-            </Card>
-          ))}
-        </section>
-        <section aria-labelledby="t-avisos" className="flex min-w-0 flex-[2_1_320px] flex-col gap-3">
-          <h2 id="t-avisos" className="text-section md:text-section-lg">
-            {t('Avisos de saída')}
-          </h2>
-          {fora.length === 0 && <p className="text-muted">{t('Ninguém fora da sala agora.')}</p>}
-          {fora.map((a) => (
-            <article key={a.id} className="flex flex-col gap-1.5 rounded-card-lg bg-sky p-5">
-              <Badge icon="porta">{t('Fora da sala agora')}</Badge>
-              <strong className="font-display text-section font-semibold">
-                {nome(a.estudanteId)} · {turma(a.estudanteId)}
-              </strong>
-              <span className="font-semibold">
-                {t('Desde {hora}', { hora: hora(a.desde) })}
-                {a.destino && ` · ${t(a.destino)}`}
-              </span>
-            </article>
-          ))}
-          {voltaram.map((a) => (
-            <div key={a.id} className="flex items-center gap-3 rounded-[20px] bg-surface px-4.5 py-4">
-              <Icon name="check" size={20} className="text-jungle" />
-              {t('{nome} voltou às {hora}', { nome: nome(a.estudanteId), hora: hora(a.voltouEm!) })}
-            </div>
-          ))}
-        </section>
       </div>
     </>
   );

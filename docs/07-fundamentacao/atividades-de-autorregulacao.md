@@ -38,7 +38,6 @@ Os autores também destacam que a qualidade metodológica da maior parte dos est
 
 **Sensação de controle.** O círculo que expande e contrai dá ao estudante uma referência visual para acompanhar a própria respiração, no seu ritmo e sem pontuação.
 
-**Prática repetida.** O histórico de sessões (RF09) permite que o estudante retome a prática ao longo do tempo, o que se aproxima da diretriz de várias sessões.
 
 **Orientação humana.** A plataforma não substitui os profissionais (RN36). O vínculo com professores e psicólogos e o sistema de alertas mantêm a presença humana no processo, que a revisão identificou como componente central.
 

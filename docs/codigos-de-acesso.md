@@ -4,7 +4,7 @@
 **De:** Giovanna (interface web)
 **Branch base:** `main`. O deploy no Render segue a branch configurada no Render.
 
-**Implementação local:** a migração V3 da Liz (`22dd578`) foi incorporada, e os models, helpers, endpoints, limites de tentativas e testes foram implementados conforme este contrato. A interface usa a API real; a simulação fica apenas nos testes. `aplicar_esquema` aplica V1 a V4 ausentes. A V2 foi concluída (seção 10), e a V4 implementa o [convite ao responsável e a fila de e-mail](convites-e-emails.md).
+**Implementação local:** a migração V3 da Liz (`22dd578`) foi incorporada, e os models, helpers, endpoints, limites de tentativas e testes foram implementados conforme este contrato. A interface usa a API real; a simulação fica apenas nos testes. `aplicar_esquema` aplica V1 a V4 ausentes. A V2 foi concluída (seção 10), e a V4 mantém a estrutura legada. O fluxo de convite foi retirado; permanece a [fila de e-mail de alertas escolares](convites-e-emails.md).
 
 Este documento descreve tudo o que o backend precisa ter para a nova forma de entrada no MKpause:
 
@@ -25,7 +25,7 @@ A interface web fica comigo e vai seguir exatamente o contrato da seção 5. Se 
 2. **Código de cadastro (gerado pelo admin).** Ninguém cria conta sozinho. O admin gera um código para um perfil (estudante, professor, psicólogo escolar ou psicólogo clínico), e a pessoa usa esse código para se cadastrar.
 3. **Código de vínculo (gerado pelo estudante).** O estudante gera um código curto e passa para o professor ou psicólogo escolar que vai acompanhá-lo. O profissional digita o código, o estudante confirma, e o vínculo é criado.
 4. **O admin continua no controle.** Ele vê e remove qualquer vínculo e ainda pode vincular direto pelas rotas atuais (`/api/admin/vinculos/...`). Isso mantém a RN28: os vínculos são gerenciados por quem tem permissão administrativa.
-5. **O psicólogo clínico não usa código de vínculo.** O vínculo dele continua pelo admin, com o convite ao responsável (RN24). Os dados clínicos são os mais sensíveis, e para um menor o responsável precisa consentir.
+5. **O psicólogo clínico não usa código de vínculo.** O vínculo dele é gerenciado diretamente pelo administrador, com acesso restrito aos estudantes vinculados.
 
 ## 2. Fluxos
 
@@ -308,9 +308,9 @@ Rodar também `python manage.py verificar_esquema` contra um banco com a V3.
 - `docs/04-modelagem-de-dados/`: as tabelas da V3.
 - `backend/README.md`: as rotas novas.
 
-## 10. Compatibilidade com a V2 (concluída localmente)
+## 10. Compatibilidade com esquemas anteriores
 
-O model `Responsavel`, o serializer e as views administrativas tratam o responsável como contato sem login: nome obrigatório, e-mail e telefone opcionais no cadastro. Para enviar convite é necessário um e-mail. Não há criação nem alteração de `usuario`. Os vínculos usam `id_responsavel` e preservam o histórico. O convite/aceite foi implementado na V4; `verificar_esquema` confere 24 tabelas no PostgreSQL local.
+As tabelas de responsáveis e convites da V2/V4 permanecem no banco para preservar registros legados. Cadastro, vínculo e aceite de responsável não fazem parte do escopo ativo, nem possuem rotas na API. Os vínculos clínicos são administrados diretamente pelo administrador. As migrações existentes não são reescritas.
 
 ## 11. O que eu (interface web) vou fazer em paralelo
 

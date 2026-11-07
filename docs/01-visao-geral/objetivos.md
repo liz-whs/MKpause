@@ -17,12 +17,11 @@ O MKpause possui como objetivos específicos:
 - disponibilizar atividades, jogos, vídeos e outros conteúdos de apoio à autorregulação;
 - registrar informações relacionadas às sessões realizadas;
 - manter um histórico das sessões e registros do estudante;
-- permitir que o estudante consulte seu próprio histórico;
 - possibilitar a emissão de alertas em situações previstas pelas regras do sistema;
 - encaminhar alertas aos profissionais responsáveis pelo acompanhamento;
 - permitir que professores e psicólogos escolares registrem observações relacionadas aos estudantes;
 - permitir que profissionais autorizados consultem informações relevantes para o acompanhamento;
-- organizar os vínculos entre estudantes, professores, psicólogos e responsáveis;
+- organizar os vínculos entre estudantes, professores e psicólogos;
 - permitir que administradores gerenciem usuários, fichas e vínculos;
 - centralizar informações relacionadas ao processo de autorregulação e acompanhamento em uma única plataforma.
 

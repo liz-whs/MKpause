@@ -30,7 +30,6 @@ The elements represented include:
 - students;
 - teachers;
 - psychologists;
-- guardians;
 - sessions;
 - mood records;
 - alerts;
@@ -91,7 +90,8 @@ Each stage adds more detail to the data structure.
 
 ## Diagrams
 
-The modeling diagrams are stored in:
+The following PDFs are historical artifacts from before the requirement removal. The Markdown models above describe the current scope:
+
 
 - [Conceptual Model (PDF)](./diagramas/modelo-conceitual.pdf)
 - [Logical Model (PDF)](./diagramas/modelo-logico.pdf)

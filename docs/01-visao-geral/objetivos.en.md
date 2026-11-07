@@ -17,12 +17,11 @@ MKpause's specific objectives are to:
 - offer activities, games, videos and other content that support self-regulation;
 - record information about the sessions completed;
 - keep a history of each student's sessions and records;
-- allow students to view their own history;
 - allow alerts to be raised in situations defined by the system's rules;
 - forward alerts to the professionals responsible for follow-up;
 - allow teachers and school psychologists to record notes about students;
 - allow authorized professionals to view information relevant to follow-up;
-- organize the links between students, teachers, psychologists and guardians;
+- organize the links between students, teachers and psychologists;
 - allow administrators to manage users, follow-up records and links;
 - bring information about self-regulation and follow-up together on a single platform.
 

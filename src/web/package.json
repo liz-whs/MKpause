@@ -13,7 +13,9 @@
     "build:pianopause": "node scripts/build-pianopause.mjs",
     "build:mkpotion": "node scripts/build-mkpotion.mjs",
     "indicadores": "node scripts/indicadores.mjs",
-    "test:indicadores": "node scripts/indicadores.mjs --test"
+    "test:indicadores": "node scripts/indicadores.mjs --test",
+    "build:mkconnection": "node scripts/build-mkconnection.mjs",
+    "build:videos": "node scripts/build-videos-respiracao.mjs"
   },
   "dependencies": {
     "@fontsource-variable/caveat": "^5.3.0",

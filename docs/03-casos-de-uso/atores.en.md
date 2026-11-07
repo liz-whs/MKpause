@@ -12,7 +12,7 @@ In a use case diagram, an actor represents a **role played while interacting wit
 
 The **Student** is the main user of MKpause's self-regulation features.
 
-Students use the platform to access support resources, record their emotional state and keep a history of their sessions.
+Students use the platform to access support resources, record their emotional state.
 
 ### Main interactions
 
@@ -25,7 +25,7 @@ The student can:
 - record their mood after the activity;
 - request help;
 - raise alerts in the situations defined;
-- view their history.
+
 
 ### Role in the system
 
@@ -102,7 +102,6 @@ The clinical psychologist can:
 - view history;
 - view the records made available;
 - view the follow-up record;
-- receive alerts;
 - view announcements;
 - access the information needed for follow-up, according to their permissions.
 
@@ -134,22 +133,6 @@ The administrator can:
 ### Role in the system
 
 The administrator's responsibilities concern managing the platform, not the student's self-regulation process.
-
----
-
-## Guardian
-
-The **Guardian** is related to the student and may take part in specific MKpause processes.
-
-However, being part of the system's domain does not mean they must appear as an actor in every use case diagram.
-
-### Registration and link
-
-The guardian **does not take part directly in the student's initial registration**.
-
-The link is established afterwards through an invitation, an email or another mechanism defined by the platform.
-
-For this reason, the Guardian should not be connected to the registration use case just to show that they exist in the database.
 
 ---
 
@@ -228,7 +211,6 @@ Likewise, the presence of an actor indicates interaction with the system and doe
 | School Psychologist | Provide follow-up within the school |
 | Clinical Psychologist | View the information needed for clinical follow-up |
 | Administrator | Manage users, links and platform resources |
-| Guardian | Take part in specific processes once the link is established |
 
 ---
 

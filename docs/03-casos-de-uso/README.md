@@ -21,7 +21,13 @@ Os casos de uso foram definidos a partir dos requisitos funcionais e das regras 
 
 O diagrama apresenta as principais interações entre os usuários e o MKpause.
 
-![Diagrama de Casos de Uso do MKpause](./diagramas/diagrama-casos-de-uso.jpeg)
+```mermaid
+flowchart LR
+  E[Estudante] --> S[Sessão de autorregulação]
+  P[Professor e psicólogo escolar] --> A[Alertas escolares]
+  C[Psicólogo clínico] --> H[Histórico e observações autorizados]
+  D[Administrador] --> V[Vínculos com profissionais]
+```
 
 ---
 
@@ -31,15 +37,12 @@ Os principais atores representados no sistema são:
 
 | Ator | Responsabilidade |
 |---|---|
-| Estudante | Utilizar os recursos de autorregulação e consultar seu histórico |
+| Estudante | Utilizar os recursos de autorregulação |
 | Professor | Acompanhar estudantes no ambiente escolar |
 | Psicólogo Escolar | Realizar acompanhamento dos estudantes no contexto escolar |
 | Psicólogo Clínico | Consultar informações necessárias ao acompanhamento clínico |
 | Administrador | Gerenciar usuários, fichas, conteúdos e vínculos |
 
-O **Responsável** faz parte do domínio do MKpause, mas sua participação no diagrama depende das funcionalidades com as quais interage diretamente.
-
-Sua existência como entidade ou vínculo no sistema não exige que ele seja representado como ator em casos de uso nos quais não possui interação direta.
 
 ---
 
@@ -90,7 +93,7 @@ Os alertas podem ser disponibilizados aos profissionais responsáveis pelo estud
 
 - Professor;
 - Psicólogo Escolar;
-- Psicólogo Clínico.
+
 
 O recebimento depende dos vínculos e permissões existentes no sistema.
 
@@ -174,8 +177,6 @@ Essa estrutura permite acompanhar como uma necessidade identificada durante a an
 
 ---
 
-## Arquivos
+## Diagrama legado
 
-O diagrama está disponível em [`diagramas/diagrama-casos-de-uso.jpeg`](./diagramas/diagrama-casos-de-uso.jpeg).
-
-Sempre que o diagrama for atualizado, sua versão disponibilizada no repositório também deve ser atualizada para manter a documentação consistente.
+O JPEG em `diagramas/` é um registro histórico. O diagrama acima e as especificações vinculadas descrevem o escopo atual.

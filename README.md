@@ -40,13 +40,12 @@ A análise completa está em [Fundamentação Científica](./docs/07-fundamentac
 
 | Perfil | Papel |
 |---|---|
-| Estudante | Realiza sessões de autorregulação, registra o humor antes e depois, acessa atividades, emite alertas e consulta seu histórico |
+| Estudante | Realiza sessões de autorregulação, registra o humor antes e depois, acessa atividades e emite alertas |
 | Professor | Acompanha os estudantes vinculados, recebe alertas e registra observações |
 | Psicólogo Escolar | Acompanha os estudantes no contexto da instituição, recebe alertas e registra observações |
 | Psicólogo Clínico | Consulta as informações necessárias ao acompanhamento clínico, conforme suas permissões |
 | Administrador | Gerencia usuários, vínculos, fichas de acompanhamento e conteúdos |
 
-O **Responsável** é vinculado ao estudante após o cadastro inicial, por meio de convite.
 
 ---
 
@@ -90,6 +89,9 @@ Conforme o estado identificado, o sistema pode gerar alertas para os profissiona
 |---|---|---|
 | PianoPause | Jogo de teclas musicais, sem pontuação, com pausa para respiração guiada | [README do PianoPause](./src/jogos/pianopause/README.md) |
 | MK Potion | Organização de líquidos, adaptado para celular e computador | [README do jogo](./src/MKpotion/mk_potion/README.md) |
+| MKconnection | Conectar pares de cores e símbolos, sem limite de tempo | [README do jogo](./src/MKconnection/README.md) |
+| Respiração em espiral | Vídeo em loop com um ponto guiando a respiração | [Geração dos vídeos](./src/atividades/videos/README.md) |
+| Respiração com a chinchila | Imagem restaurada com animação contínua, preservando cores e traços, a 60 fps | [Geração dos vídeos](./src/atividades/videos/README.md) |
 | MK Breath | Respiração guiada em vídeo, com versões vertical/horizontal e legendas | [Interface web](./src/web/README.md) |
 
 ---
@@ -154,7 +156,7 @@ Todos os documentos possuem versão em português (`arquivo.md`) e em inglês (`
 
 **Em desenvolvimento.**
 
-A interface e a API estão integradas aos fluxos de pausa, jogos, vínculos e convites. O backend é em PHP (Laravel), assim como o painel agregado da administração; o dashboard individual do psicólogo clínico faz parte da API. A hospedagem usa Docker com Nginx e PHP-FPM ([guia](./docs/hospedagem.md)). A entrega real de e-mails depende de configurar um provedor SMTP.
+A interface e a API estão integradas aos fluxos de pausa, jogos e vínculos com profissionais. O backend é em PHP (Laravel), assim como o painel agregado da administração; o dashboard individual do psicólogo clínico faz parte da API. A hospedagem usa Docker com Nginx e PHP-FPM ([guia](./docs/hospedagem.md)). A entrega real de e-mails depende de configurar um provedor SMTP.
 
 ---
 

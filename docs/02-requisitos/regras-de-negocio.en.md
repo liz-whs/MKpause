@@ -42,7 +42,7 @@ Access must depend on the links established between the professional and the stu
 
 ### RN04 — Access to own information
 
-Students may view only information about their own account, sessions and history.
+Students may view only information about their own account. Session history is restricted to authorized, linked professionals.
 
 ---
 
@@ -113,8 +113,7 @@ Alerts must be directed to the professionals responsible for the student's follo
 Possible recipients include:
 
 - Teacher;
-- School Psychologist;
-- Clinical Psychologist.
+- School Psychologist.
 
 ---
 
@@ -184,28 +183,6 @@ Access to it must respect the permissions defined for each professional profile.
 
 ---
 
-## Guardian
-
-### RN23 — Guardian linked later
-
-The guardian does not necessarily take part in the student's initial registration.
-
-Their link with the student must be established afterwards through the mechanism defined by the platform.
-
----
-
-### RN24 — Guardian invitation
-
-Where applicable, the system must allow an invitation, or an equivalent mechanism, to be sent so that the link between guardian and student can be established.
-
----
-
-### RN25 — Guardian-student link
-
-A guardian may be associated with a student only after the process for establishing the link has been completed.
-
----
-
 ## Links
 
 ### RN26 — Student-professional link
@@ -268,6 +245,8 @@ Information about students may be accessed only by authorized users.
 
 Having professional access to the system does not mean having unrestricted access to all of a student's data.
 
+Administrators must not query sessions, individual mood records or clinical notes. Session and mood history is restricted to school and clinical psychologists with active links. Teachers and school psychologists whose links are removed must not read or act on the student's previous alerts, even if they were recipients.
+
 The information made available must take into account:
 
 1. the user's profile;
@@ -311,7 +290,6 @@ The platform's alerts are internal communication and follow-up mechanisms and do
 | Alerts | RN11–RN15 |
 | Notes | RN16–RN19 |
 | Follow-up | RN20–RN22 |
-| Guardian | RN23–RN25 |
 | Links | RN26–RN28 |
 | Administration | RN29–RN30 |
 | Content | RN31–RN32 |

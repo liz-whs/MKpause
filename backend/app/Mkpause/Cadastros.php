@@ -48,19 +48,22 @@ class Cadastros
             }
         }
         $guardar($usuario, 'email', $email);
-        $senha = $e->texto('senha', min: config('mkpause.senha_tamanho_minimo'), obrigatorio: false, aparar: false);
+        $senha = $e->texto('senha', max: 128, min: config('mkpause.senha_tamanho_minimo'), obrigatorio: false, aparar: false);
 
         $opcional = fn (string $campo, int $max) => $e->texto($campo, max: $max, obrigatorio: false, vazio: true, nulo: true);
         foreach (self::TIPOS[$tipo][2] as $campo) {
             $valor = match ($campo) {
                 'data_nascimento' => $e->data($campo, obrigatorio: false, nulo: true),
-                'telefone' => $opcional($campo, 30),
+                'telefone' => self::telefone($e),
                 'instituicao_ensino' => $opcional($campo, 160),
                 'turma' => $opcional($campo, 80),
                 'cargo' => $opcional($campo, 120),
                 'registro_profissional' => $e->texto($campo, max: 40),
                 'estado_registro' => self::regexUf($e),
             };
+            if ($campo === 'data_nascimento' && is_string($valor) && $valor !== Entrada::AUSENTE && $valor > Formato::agora()->format('Y-m-d')) {
+                $e->erro($campo, 'A data de nascimento não pode estar no futuro.');
+            }
             $guardar($perfil, $campo, $valor);
         }
         $e->falharSeHouverErros();
@@ -86,6 +89,20 @@ class Cadastros
             return null;
         }
         return $valor;
+    }
+
+    private static function telefone(Entrada $e): mixed
+    {
+        $valor = $e->texto('telefone', max: 30, obrigatorio: false, vazio: true, nulo: true);
+        if ($valor === Entrada::AUSENTE || $valor === null || $valor === '') return $valor;
+        $digitos = preg_replace('/\D/', '', $valor);
+        if (in_array(strlen($digitos), [12, 13], true) && str_starts_with($digitos, '55')) $digitos = substr($digitos, 2);
+        if (!preg_match('/^[+\d\s().-]+$/', $valor) || !in_array(strlen($digitos), [10, 11], true)) {
+            $e->erro('telefone', 'Informe um telefone com DDD e 10 ou 11 dígitos.');
+            return null;
+        }
+        $corte = strlen($digitos) === 11 ? 5 : 4;
+        return '('.substr($digitos, 0, 2).') '.substr($digitos, 2, $corte).'-'.substr($digitos, 2 + $corte);
     }
 
     /** Cria usuario + perfil (transação). Devolve o id do perfil. */

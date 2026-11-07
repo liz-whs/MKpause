@@ -14,7 +14,7 @@ use App\Http\Controllers\AtividadesController as Atividades;
 use App\Http\Controllers\AutenticacaoController as Autenticacao;
 use App\Http\Controllers\CadastrosController as Cadastros;
 use App\Http\Controllers\CodigosController as Codigos;
-use App\Http\Controllers\ConvitesController as Convites;
+use App\Http\Controllers\EmailsController as Emails;
 use App\Http\Controllers\SessoesController as Sessoes;
 use Illuminate\Support\Facades\Route;
 
@@ -27,9 +27,6 @@ Route::get('auth/csrf', [Autenticacao::class, 'csrf']);
 Route::post('auth/login', [Autenticacao::class, 'login']);
 Route::post('auth/codigo-cadastro/verificar', [Codigos::class, 'verificar']);
 Route::post('auth/cadastro', [Codigos::class, 'cadastrar']);
-Route::post('convites-responsavel/verificar', [Convites::class, 'verificar']);
-Route::post('convites-responsavel/aceitar', [Convites::class, 'responder'])->defaults('resposta', 'aceitar');
-Route::post('convites-responsavel/recusar', [Convites::class, 'responder'])->defaults('resposta', 'recusar');
 
 // ---------------------------------------------------------------- conta
 Route::post('auth/logout', [Autenticacao::class, 'logout'])->middleware('conta');
@@ -44,17 +41,17 @@ Route::middleware($admin)->group(function () {
     Route::delete('atividades/{id}', [Atividades::class, 'desativar']);
 });
 
-// ---------------------------------------------------- sessões (RF04–RF09)
-Route::get('sessoes', [Sessoes::class, 'listar'])->middleware('conta');
+// ---------------------------------------------------- sessões (RF04–RF07, RF12, RF13)
+Route::get('sessoes', [Sessoes::class, 'listar'])->middleware('conta:psicologo_escolar,psicologo_clinico');
 Route::middleware($estudante)->group(function () {
     Route::post('sessoes/avaliar', [Sessoes::class, 'avaliar']);
     Route::post('sessoes', [Sessoes::class, 'iniciar']);
     Route::post('sessoes/{id}/concluir', [Sessoes::class, 'concluir']);
     Route::post('sessoes/{id}/cancelar', [Sessoes::class, 'cancelar']);
 });
-Route::get('sessoes/{id}', [Sessoes::class, 'ver'])->middleware('conta');
+Route::get('sessoes/{id}', [Sessoes::class, 'ver'])->middleware('conta:psicologo_escolar,psicologo_clinico');
 
-// ------------------------------------------------- alertas (RF08, RF14, RF15, RF21–RF23)
+// ------------------------------------------------- alertas (RF08, RF14, RF21–RF23)
 Route::middleware('conta')->group(function () {
     Route::get('alertas', [Alertas::class, 'listar']);
     Route::post('alertas', [Alertas::class, 'emitir']);
@@ -79,6 +76,7 @@ Route::middleware('conta')->group(function () {
     Route::get('estudantes/{id}/ficha', [Acompanhamento::class, 'verFicha']);
     Route::post('estudantes/{id}/ficha', [Acompanhamento::class, 'criarFicha']);
     Route::patch('estudantes/{id}/ficha', [Acompanhamento::class, 'editarFicha']);
+    Route::post('estudantes/{id}/registros', [Acompanhamento::class, 'registrarAcompanhamento']);
 });
 Route::get('estudantes/{id}/dashboard', [Acompanhamento::class, 'dashboard'])->middleware('conta:psicologo_clinico');
 Route::middleware('conta:professor,psicologo_escolar,psicologo_clinico,administrador')->group(function () {
@@ -111,13 +109,8 @@ Route::middleware($admin)->prefix('admin')->group(function () {
         Route::patch("{$rota}/{id}", [Cadastros::class, 'atualizar'])->defaults('tipo', $tipo);
         Route::delete("{$rota}/{id}", [Cadastros::class, 'desativar'])->defaults('tipo', $tipo);
     }
-    Route::get('responsaveis', [Cadastros::class, 'listarResponsaveis']);
-    Route::post('responsaveis', [Cadastros::class, 'criarResponsavel']);
-    Route::get('responsaveis/{id}', [Cadastros::class, 'verResponsavel']);
-    Route::patch('responsaveis/{id}', [Cadastros::class, 'atualizarResponsavel']);
-    Route::delete('responsaveis/{id}', [Cadastros::class, 'desativarResponsavel']);
 
-    foreach (['professores', 'psicologos-escolares', 'psicologos-clinicos', 'responsaveis'] as $tipo) {
+    foreach (['professores', 'psicologos-escolares', 'psicologos-clinicos'] as $tipo) {
         Route::get("vinculos/{$tipo}", [Cadastros::class, 'listarVinculos'])->defaults('tipo', $tipo);
         Route::post("vinculos/{$tipo}", [Cadastros::class, 'criarVinculo'])->defaults('tipo', $tipo);
         Route::delete("vinculos/{$tipo}", [Cadastros::class, 'removerVinculo'])->defaults('tipo', $tipo);
@@ -127,10 +120,10 @@ Route::middleware($admin)->prefix('admin')->group(function () {
     Route::post('codigos-cadastro', [Codigos::class, 'criarCadastro']);
     Route::post('codigos-cadastro/{id}/revogar', [Codigos::class, 'revogarCadastro']);
 
-    Route::get('estudantes/{id}/convites-responsavel', [Convites::class, 'listar']);
-    Route::post('estudantes/{id}/convites-responsavel', [Convites::class, 'criar']);
-    Route::post('convites-responsavel/{id}/revogar', [Convites::class, 'revogar']);
 
-    Route::get('emails', [Convites::class, 'emails']);
-    Route::post('emails', [Convites::class, 'processarEmails']);
+    Route::get('emails', [Emails::class, 'emails']);
+    Route::post('emails', [Emails::class, 'processarEmails']);
 });
+
+// Observações escolares agrupadas por estudante, sem expor alertas ao clínico.
+Route::get('estudantes/{id}/observacoes', [Alertas::class, 'observacoesDoEstudante'])->middleware('conta:professor,psicologo_escolar,psicologo_clinico');

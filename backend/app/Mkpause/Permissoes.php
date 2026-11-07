@@ -17,8 +17,8 @@ class Permissoes
     // o estudante só sobre si mesmo; o administrador sobre todos.
     public const ACESSO = [
         'ver_dados_basicos' => [Conta::ESTUDANTE, Conta::PROFESSOR, Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO, Conta::ADMINISTRADOR],
-        'ver_historico' => [Conta::ESTUDANTE, Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO, Conta::ADMINISTRADOR], // RF09, RF12, RF13
-        'ver_alertas' => [Conta::ESTUDANTE, Conta::PROFESSOR, Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO, Conta::ADMINISTRADOR],
+        'ver_historico' => [Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO], // RF12, RF13; administração sem acesso emocional
+        'ver_alertas' => [Conta::ESTUDANTE, Conta::PROFESSOR, Conta::PSICOLOGO_ESCOLAR, Conta::ADMINISTRADOR],
         'ver_observacoes' => [Conta::ESTUDANTE, Conta::PROFESSOR, Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO], // RF14
         // Gatilho trg_validar_autor_observacao: só estudante, professor e psi. escolar
         'registrar_observacao' => [Conta::ESTUDANTE, Conta::PROFESSOR, Conta::PSICOLOGO_ESCOLAR], // RF07, RF23

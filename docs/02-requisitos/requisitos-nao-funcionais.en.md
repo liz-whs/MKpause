@@ -54,11 +54,15 @@ The system must allow users to end their authenticated session securely.
 
 Students' personal and follow-up information must be accessible only to authorized users.
 
+**Acceptance criteria:** the backend must check authentication, role and active links on restricted queries. After a link is removed, the professional must not read, mark as read, change or add notes to the student's previous alerts. Local break state must be separated by student and cleared on logout or session expiry; unowned legacy state must not be assigned to another account.
+
 ---
 
 ### RNF08 — Minimal access
 
 Each profile must see only the information needed to perform its functions in the system.
+
+**Acceptance criteria:** administrators must not query sessions, individual mood records or clinical notes, including through direct API calls. Session and mood history is available only to linked school and clinical psychologists. Administration retains registration data, administrative records and institutional aggregates protected against individual identification.
 
 ---
 
@@ -101,12 +105,6 @@ Navigation must present text, buttons and actions in a way that is clear and und
 Important information must not be conveyed through color alone.
 
 Icons, text or other indicators must be used when needed to complement visual information.
-
----
-
-### RNF15 — Keyboard navigation
-
-The main features of the web application must be accessible using keyboard navigation.
 
 ---
 
@@ -235,6 +233,8 @@ MKpause's source code and documentation must be kept under a version control sys
 
 Records relevant to follow-up must contain information that identifies when they were created and which student they relate to.
 
+**Acceptance criteria:** sessions, alerts and follow-up records must retain student identification and creation date. Mood records and school notes may be related through the session and alert, respectively. New clinical notes must retain an identifier, author and date assigned by the server, linked to the student's record. Revoking access must not delete these records. This requirement does not mandate a complete audit trail of every field change.
+
 ---
 
 ### RNF34 — Consistency between documentation and system
@@ -249,7 +249,7 @@ Relevant changes to the system's features or rules must be reflected in the corr
 |---|---|
 | Security | RNF01–RNF06 |
 | Privacy | RNF07–RNF10 |
-| Accessibility | RNF11–RNF15 |
+| Accessibility | RNF11–RNF14 |
 | Usability | RNF16–RNF20 |
 | Compatibility | RNF21–RNF22 |
 | Performance | RNF23–RNF24 |

@@ -85,15 +85,6 @@ The alert may be forwarded to the professionals responsible for the student's fo
 
 ---
 
-### RF09 — View session history
-
-**Description:**  
-The system must allow students to view the history of their self-regulation sessions.
-
-**Actor:** Student
-
----
-
 ## Clinical Psychologist
 
 ### RF10 — Sign in
@@ -136,15 +127,6 @@ The system must allow clinical psychologists to view the mood records from the s
 
 **Description:**  
 The system must allow clinical psychologists to view notes about the students they follow, within their access permissions.
-
-**Actor:** Clinical Psychologist
-
----
-
-### RF15 — Receive alerts
-
-**Description:**  
-The system must allow clinical psychologists to receive alerts about the students linked to their follow-up.
 
 **Actor:** Clinical Psychologist
 
@@ -322,17 +304,6 @@ The system must allow administrators to establish and manage links between stude
 
 ---
 
-### RF34 — Manage guardian links
-
-**Description:**  
-The system must allow the links between students and their guardians to be managed.
-
-The guardian does not take part directly in the student's initial registration. The link is established afterwards through the process defined by the system, such as sending an invitation or an equivalent mechanism.
-
-**Primary actor:** Administrator
-
----
-
 ### RF35 — Manage self-regulation content
 
 **Description:**  
@@ -346,11 +317,11 @@ The system must allow the content offered to students during self-regulation ses
 
 | Range | Profile | Count |
 |---|---|---:|
-| RF01–RF09 | Student | 9 |
-| RF10–RF18 | Clinical Psychologist | 9 |
+| RF01–RF08 | Student | 8 |
+| RF10–RF14, RF16–RF18 | Clinical Psychologist | 8 |
 | RF19–RF25 | Teacher / School Psychologist | 7 |
-| RF26–RF35 | Administrator | 10 |
-| **Total** | | **35** |
+| RF26–RF33, RF35 | Administrator | 9 |
+| **Total** | | **32** |
 
 ---
 

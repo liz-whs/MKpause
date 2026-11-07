@@ -22,7 +22,7 @@ O sistema deve permitir ao estudante:
 - registrar seu humor após a sessão;
 - registrar informações relacionadas à experiência realizada;
 - emitir alertas nas situações previstas pelo sistema;
-- consultar seu histórico de sessões.
+
 
 ### Professor
 
@@ -50,7 +50,6 @@ O sistema deve permitir ao psicólogo clínico:
 - realizar autenticação;
 - acessar estudantes vinculados;
 - consultar informações disponibilizadas para acompanhamento;
-- receber alertas relacionados aos estudantes acompanhados;
 - acessar relatórios e registros permitidos pelo sistema.
 
 ### Administrador
@@ -64,14 +63,6 @@ O sistema deve permitir ao administrador:
 - gerenciar fichas de acompanhamento;
 - administrar os vínculos entre estudantes e profissionais;
 - manter os registros necessários para o funcionamento da plataforma.
-
-### Responsável
-
-O responsável participa do processo por meio do vínculo com o estudante.
-
-Seu acesso ou vínculo não é criado simultaneamente durante o cadastro inicial do estudante. O processo previsto envolve o envio posterior de um convite ou mecanismo equivalente para estabelecimento desse vínculo.
-
----
 
 ## Fora do Escopo
 

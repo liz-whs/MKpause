@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Mkpause\Formato;
+use App\Mkpause\CatalogoAtividades;
 use App\Mkpause\SenhaDjango;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -23,13 +24,6 @@ class CriarDemo extends Command
 
     private const ESCOLA = 'Escola Modelo';
 
-    private const ATIVIDADES = [
-        ['Respire&Pause', 'RESPIRACAO', 'respiracao'],
-        ['PianoPause', 'JOGO', '/jogos/pianopause/index.html'],
-        ['MK Potion', 'JOGO', '/jogos/mkpotion/index.html'],
-        ['MK Breath', 'VIDEO', 'video'],
-    ];
-
     public function handle(): int
     {
         Banco::exigir($this);
@@ -42,20 +36,7 @@ class CriarDemo extends Command
 
         DB::transaction(function () use ($senha) {
             $agora = Formato::banco(Formato::agora());
-            foreach (self::ATIVIDADES as [$nome, $tipo, $ref]) {
-                if (!DB::table('atividade')->where('tipo', $tipo)->where('conteudo_ou_referencia', $ref)->exists()) {
-                    DB::table('atividade')->insert(['nome' => $nome, 'tipo' => $tipo, 'conteudo_ou_referencia' => $ref,
-                        'disponivel' => true, 'criado_em' => $agora, 'atualizado_em' => $agora]);
-                }
-                // Atualiza apenas nomes antigos conhecidos, preservando nomes personalizados.
-                $antigos = $tipo === 'RESPIRACAO'
-                    ? ['Respiração da chinchila', 'Chinchila respirando', 'Respiração']
-                    : ($tipo === 'VIDEO' ? ['Vídeo: um minuto de calma', 'Respiração guiada em vídeo'] : []);
-                if ($antigos) {
-                    DB::table('atividade')->where('tipo', $tipo)->where('conteudo_ou_referencia', $ref)
-                        ->whereIn('nome', $antigos)->update(['nome' => $nome, 'atualizado_em' => $agora]);
-                }
-            }
+            CatalogoAtividades::sincronizar();
             $est = $this->perfil('estudante', 'id_estudante', $this->usuario('ana.demo@mkpause.dev', 'Ana Lima', $senha),
                 ['turma' => '8º A', 'instituicao_ensino' => self::ESCOLA]);
             $prof = $this->perfil('professor', 'id_professor', $this->usuario('professor.demo@mkpause.dev', 'Marcos Prado', $senha),

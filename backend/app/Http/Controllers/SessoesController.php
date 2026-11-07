@@ -10,14 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Sessão de autorregulação (RF04–RF07, RF09, RF12, RF13).
+ * Sessão de autorregulação (RF04–RF07, RF12, RF13).
  *
  * Fluxo:
  *   1. POST /api/sessoes/avaliar/            {"humor": 1-5}  -> nível sugerido e atividades (não grava)
  *   2. POST /api/sessoes/                    {"id_atividade", "humor_pre"} -> EM_ANDAMENTO + humor PRE
  *   3. POST /api/sessoes/<id>/concluir/      {"humor_pos", "observacoes_sessao"?} -> CONCLUIDA + humor POS
  *      ou POST /api/sessoes/<id>/cancelar/   -> CANCELADA ("tudo bem parar")
- *   GET /api/sessoes/[?estudante=ID]         histórico (estudante: o próprio; profissionais: vinculados)
+ *   GET /api/sessoes/[?estudante=ID]         histórico para profissionais autorizados e vinculados
  */
 class SessoesController extends Controller
 {
@@ -37,33 +37,28 @@ class SessoesController extends Controller
     public function listar(Request $request)
     {
         $conta = $this->conta($request);
+        if (!$conta->e(Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO)) throw ErroApi::proibido('O histórico é restrito aos psicólogos autorizados.');
         $q = DB::table('sessao')->orderByDesc('iniciada_em')->orderByDesc('id_sessao');
-        if ($conta->e(Conta::ESTUDANTE)) {
-            $q->where('id_estudante', $conta->idPerfil());
-        } else {
-            $id = $request->query('estudante');
-            if (!$id) {
-                throw ErroApi::campos(['estudante' => 'Informe o estudante (?estudante=ID).']);
-            }
-            $estudante = DB::table('estudante')->where('id_estudante', self::id($id))->first()
-                ?? throw ErroApi::semRegistro('Estudante');
-            if (!Permissoes::pode($conta, 'ver_historico', $estudante->id_estudante)) {
-                throw ErroApi::proibido('Seu perfil não tem acesso ao histórico deste estudante.');
-            }
-            $q->where('id_estudante', $estudante->id_estudante);
+        $id = $request->query('estudante');
+        if (!$id) {
+            throw ErroApi::campos(['estudante' => 'Informe o estudante (?estudante=ID).']);
         }
+        $estudante = DB::table('estudante')->where('id_estudante', self::id($id))->first()
+            ?? throw ErroApi::semRegistro('Estudante');
+        if (!Permissoes::pode($conta, 'ver_historico', $estudante->id_estudante)) {
+            throw ErroApi::proibido('Seu perfil não tem acesso ao histórico deste estudante.');
+        }
+        $q->where('id_estudante', $estudante->id_estudante);
         return $this->json(self::varias($q->get()));
     }
 
     public function ver(Request $request, $id)
     {
         $conta = $this->conta($request);
+        if (!$conta->e(Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO)) throw ErroApi::proibido('O histórico é restrito aos psicólogos autorizados.');
         $q = DB::table('sessao')->where('id_sessao', self::id($id));
-        if ($conta->e(Conta::ESTUDANTE)) {
-            $q->where('id_estudante', $conta->idPerfil());
-        }
         $sessao = $q->first() ?? throw ErroApi::semRegistro('Sessao');
-        if (!$conta->e(Conta::ESTUDANTE) && !Permissoes::pode($conta, 'ver_historico', $sessao->id_estudante)) {
+        if (!Permissoes::pode($conta, 'ver_historico', $sessao->id_estudante)) {
             throw ErroApi::proibido('Seu perfil não tem acesso ao histórico deste estudante.');
         }
         return $this->json(self::varias(collect([$sessao]))[0]);

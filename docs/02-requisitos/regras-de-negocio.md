@@ -42,7 +42,7 @@ O acesso deve considerar os vínculos estabelecidos entre o profissional e o est
 
 ### RN04 — Acesso às próprias informações
 
-O estudante deve consultar apenas informações relacionadas à sua própria conta, sessões e histórico.
+O estudante deve consultar apenas informações relacionadas à sua própria conta. A consulta ao histórico de sessões é restrita aos profissionais autorizados e vinculados.
 
 ---
 
@@ -113,8 +113,7 @@ Os alertas devem ser direcionados aos profissionais responsáveis pelo acompanha
 Entre os possíveis destinatários estão:
 
 - Professor;
-- Psicólogo Escolar;
-- Psicólogo Clínico.
+- Psicólogo Escolar.
 
 ---
 
@@ -184,28 +183,6 @@ Seu acesso deve respeitar as permissões definidas para cada perfil profissional
 
 ---
 
-## Responsável
-
-### RN23 — Vínculo posterior do responsável
-
-O responsável não participa obrigatoriamente do processo de cadastro inicial do estudante.
-
-Seu vínculo com o estudante deve ser estabelecido posteriormente por meio do mecanismo definido pela plataforma.
-
----
-
-### RN24 — Convite ao responsável
-
-Quando aplicável, o sistema deve permitir o envio de um convite ou mecanismo equivalente para que o vínculo entre responsável e estudante seja estabelecido.
-
----
-
-### RN25 — Vínculo responsável-estudante
-
-Um responsável somente deve ser associado ao estudante após a conclusão do processo previsto para estabelecimento do vínculo.
-
----
-
 ## Vínculos
 
 ### RN26 — Vínculo entre estudante e profissional
@@ -268,6 +245,8 @@ Informações relacionadas aos estudantes devem ser acessadas somente por usuár
 
 Possuir acesso ao sistema como profissional não implica possuir acesso irrestrito a todos os dados do estudante.
 
+O administrador não pode consultar sessões, humores individuais ou registros clínicos. O histórico de sessões e humores é restrito aos psicólogos escolares e clínicos com vínculo ativo. Professores e psicólogos escolares que deixem de estar vinculados não podem consultar nem atuar nos alertas antigos do estudante, mesmo que tenham sido destinatários.
+
 As informações disponibilizadas devem considerar:
 
 1. o perfil do usuário;
@@ -311,7 +290,6 @@ Os alertas da plataforma são mecanismos internos de comunicação e acompanhame
 | Alertas | RN11–RN15 |
 | Observações | RN16–RN19 |
 | Acompanhamento | RN20–RN22 |
-| Responsável | RN23–RN25 |
 | Vínculos | RN26–RN28 |
 | Administração | RN29–RN30 |
 | Conteúdos | RN31–RN32 |

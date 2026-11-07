@@ -83,7 +83,7 @@ export function JogoPianoPauseProvider({ children }: { children: ReactNode }) {
         <div
           aria-hidden={!visivel}
           inert={!visivel}
-          className={cx('overflow-hidden rounded-sheet bg-peony', !visivel && 'invisible')}
+          className={cx('overflow-hidden rounded-sheet bg-bg', !visivel && 'invisible')}
           style={
             visivel && caixa
               ? { position: 'absolute', ...caixa }
@@ -93,8 +93,8 @@ export function JogoPianoPauseProvider({ children }: { children: ReactNode }) {
         >
           <iframe
             key={computador ? 'computador' : 'celular'}
-            src={computador ? '/jogos/pianopause/index.html?modo=computador' : '/jogos/pianopause/index.html'}
-            title={t('Jogo PianoPause')}
+            src={computador ? '/jogos/pianopause/index.html?mkpause=1&modo=computador' : '/jogos/pianopause/index.html?mkpause=1'}
+            title={t('Jogo piano pause')}
             allow="autoplay; fullscreen"
             tabIndex={visivel ? 0 : -1}
             className="size-full border-0"
@@ -108,5 +108,5 @@ export function JogoPianoPauseProvider({ children }: { children: ReactNode }) {
 /** Espaço onde o jogo aparece (o iframe é posicionado por cima dele). */
 export function EspacoDoJogo({ className }: { className?: string }) {
   const registrar = useContext(EspacoCtx);
-  return <div ref={registrar} className={cx('rounded-sheet bg-peony', className)} />;
+  return <div ref={registrar} className={cx('rounded-sheet bg-bg', className)} />;
 }

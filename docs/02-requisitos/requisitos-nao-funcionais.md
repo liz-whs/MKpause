@@ -54,11 +54,15 @@ O sistema deve permitir que o usuário encerre sua sessão de autenticação de 
 
 As informações pessoais e de acompanhamento dos estudantes devem possuir acesso restrito aos usuários autorizados.
 
+**Critérios de aceitação:** o backend deve verificar autenticação, perfil e vínculo ativo nas consultas restritas. Após a remoção do vínculo, o profissional não pode consultar, marcar como lido, alterar ou registrar observações nos alertas antigos do estudante. O estado local da pausa deve ser separado por estudante e limpo na saída ou expiração da sessão; dados legados sem identificação não devem ser atribuídos a outra conta.
+
 ---
 
 ### RNF08 — Minimização de acesso
 
 Cada perfil deve visualizar somente as informações necessárias para executar suas respectivas funções no sistema.
+
+**Critérios de aceitação:** o administrador não pode consultar sessões, humores individuais ou registros clínicos, inclusive por chamada direta à API. Histórico de sessões e humores é acessível somente aos psicólogos escolares e clínicos vinculados. A administração mantém os dados cadastrais, as fichas administrativas e os indicadores institucionais agregados e protegidos contra identificação individual.
 
 ---
 
@@ -101,12 +105,6 @@ A navegação deve apresentar textos, botões e ações de forma clara e compree
 Informações importantes não devem ser comunicadas exclusivamente por meio de cores.
 
 Ícones, textos ou outros indicadores devem ser utilizados quando necessários para complementar a informação visual.
-
----
-
-### RNF15 — Navegação por teclado
-
-As principais funcionalidades da aplicação web devem ser acessíveis por meio de navegação utilizando teclado.
 
 ---
 
@@ -235,6 +233,8 @@ O código-fonte e a documentação do MKpause devem ser mantidos utilizando sist
 
 Registros relevantes ao acompanhamento devem possuir informações que permitam identificar quando foram criados e a qual estudante estão relacionados.
 
+**Critérios de aceitação:** sessões, alertas e fichas devem manter a identificação do estudante e a data de criação. Humores e observações podem manter essa relação por meio da sessão e do alerta, respectivamente. Novos registros clínicos devem manter identificador, autor e data definidos pelo servidor, vinculados à ficha do estudante. A revogação de acesso não deve apagar esses registros. Este requisito não exige uma trilha completa de todas as alterações de campos.
+
 ---
 
 ### RNF34 — Consistência entre documentação e sistema
@@ -249,7 +249,7 @@ Alterações relevantes nas funcionalidades ou regras do sistema devem ser refle
 |---|---|
 | Segurança | RNF01–RNF06 |
 | Privacidade | RNF07–RNF10 |
-| Acessibilidade | RNF11–RNF15 |
+| Acessibilidade | RNF11–RNF14 |
 | Usabilidade | RNF16–RNF20 |
 | Compatibilidade | RNF21–RNF22 |
 | Desempenho | RNF23–RNF24 |

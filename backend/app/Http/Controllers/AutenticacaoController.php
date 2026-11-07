@@ -6,6 +6,7 @@ use App\Http\Middleware\Autenticar;
 use App\Mkpause\Conta;
 use App\Mkpause\Csrf;
 use App\Mkpause\SenhaDjango;
+use App\Mkpause\Limite;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,10 +22,13 @@ class AutenticacaoController extends Controller
 
     public function login(Request $request)
     {
+        Limite::exigir($request, 'login-ip');
+        Csrf::exigir($request);
         $e = $this->entrada($request);
         $email = $e->email('email');
         $senha = $e->texto('senha', aparar: false);
         $e->falharSeHouverErros();
+        Limite::exigir($request, 'login');
 
         $usuario = DB::table('usuario')->whereRaw('UPPER(email) = UPPER(?)', [$email])->where('ativo', true)->first();
         $conta = $usuario && SenhaDjango::conferir($senha, $usuario->senha_hash) ? Conta::comPerfil($usuario) : null;

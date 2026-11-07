@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { LogoSymbol } from '../../components/brand/Logo';
 import { Button } from '../../components/ui/Button';
 import { Field } from '../../components/ui/Field';
@@ -234,6 +234,7 @@ function destinoDoLogin(usuario: string): string {
 }
 
 export function Entrar() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
@@ -275,6 +276,7 @@ export function Entrar() {
         <ScreenTitle>{t('Entrar')}</ScreenTitle>
       </div>
       <p className="text-muted">{t('Use a conta que a sua escola cadastrou.')}</p>
+      {(location.state as { aviso?: string } | null)?.aviso && <p role="status">{t((location.state as { aviso: string }).aviso)}</p>}
 
       <form noValidate onSubmit={enviar} className="flex flex-col gap-4.5">
         <Field

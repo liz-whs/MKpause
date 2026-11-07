@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { Link, type LinkProps } from 'react-router';
 import { cx } from './cx';
+import { useAcaoAtual } from '../../state/acoes';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text' | 'help';
 export type ButtonSize = 'lg' | 'md';
@@ -60,6 +61,7 @@ export function buttonClasses({
  * O rótulo sempre diz o que acontece ("Fazer uma pausa"), nunca "OK".
  */
 export function Button(props: ButtonProps) {
+  const { ocupado } = useAcaoAtual();
   const { variant, size, block, className, children } = props;
 
   if (props.to !== undefined) {
@@ -73,7 +75,7 @@ export function Button(props: ButtonProps) {
 
   const { variant: _v, size: _s, block: _b, className: _c, children: _ch, type = 'button', ...rest } = props;
   return (
-    <button {...rest} type={type} className={buttonClasses({ variant, size, block, disabled: rest.disabled, className })}>
+    <button {...rest} disabled={rest.disabled || ocupado} aria-busy={ocupado || undefined} type={type} className={buttonClasses({ variant, size, block, disabled: rest.disabled || ocupado, className })}>
       {children}
     </button>
   );

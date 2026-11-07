@@ -15,7 +15,7 @@ async function abrir() {
   const resultado = render(<RouterProvider router={router} />);
   await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
   await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-  await userEvent.click(screen.getByRole('link', { name: /MK Breath/ }));
+  await userEvent.click(screen.getByRole('link', { name: /mk breath/ }));
   return { ...resultado, router, video: resultado.container.querySelector('video')! };
 }
 

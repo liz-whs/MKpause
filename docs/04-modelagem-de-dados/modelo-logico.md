@@ -2,6 +2,9 @@
 
 # Modelo Lógico
 
+> As tabelas de responsáveis das migrações SQL antigas são mantidas apenas para compatibilidade e preservação dos dados legados; não representam funcionalidades ativas.
+
+
 O modelo lógico do **MKpause** representa a transformação do modelo conceitual para uma estrutura compatível com bancos de dados relacionais.
 
 Nesta etapa são definidos:
@@ -59,7 +62,6 @@ O estudante pode estar relacionado a:
 - ficha de acompanhamento;
 - professores;
 - psicólogos;
-- responsáveis.
 
 ---
 
@@ -114,22 +116,6 @@ Armazena os dados dos psicólogos clínicos.
 - número do registro profissional
 - estado do registro profissional
 - situação do cadastro
-
----
-
-### RESPONSAVEL
-
-Armazena os dados dos responsáveis vinculados aos estudantes.
-
-#### Estrutura geral
-
-- `id_responsavel` — PK
-- nome
-- dados de contato
-- dados necessários ao vínculo
-- situação do cadastro
-
-O vínculo entre responsável e estudante pode ser estabelecido após o cadastro inicial do estudante.
 
 ---
 
@@ -377,39 +363,6 @@ Esse vínculo pode ser utilizado pelas regras de autorização para determinar q
 
 ---
 
-### ESTUDANTE_RESPONSAVEL
-
-Representa o relacionamento entre estudantes e responsáveis.
-
-#### Estrutura
-
-- `id_estudante` — PK/FK
-- `id_responsavel` — PK/FK
-- relação ou grau de vínculo, quando necessário
-- situação do vínculo
-
-#### Transformação
-
-Modelo conceitual:
-
-```text
-ESTUDANTE N ───── N RESPONSAVEL
-```
-
-Modelo lógico:
-
-```text
-ESTUDANTE
-    │
-    ▼
-ESTUDANTE_RESPONSAVEL
-    ▲
-    │
-RESPONSAVEL
-```
-
----
-
 ### SESSAO_ATIVIDADE
 
 Representa quais atividades foram utilizadas em determinada sessão.
@@ -455,7 +408,6 @@ ATIVIDADE
 | Professor | N:N | Estudante | `PROFESSOR_ESTUDANTE` |
 | Psicólogo Escolar | N:N | Estudante | `PSICOLOGO_ESCOLAR_ESTUDANTE` |
 | Psicólogo Clínico | N:N | Estudante | `PSICOLOGO_CLINICO_ESTUDANTE` |
-| Estudante | N:N | Responsável | `ESTUDANTE_RESPONSAVEL` |
 | Sessão | N:N | Atividade | `SESSAO_ATIVIDADE` |
 
 \* Considerando a regra atualmente prevista de uma ficha de acompanhamento por estudante.

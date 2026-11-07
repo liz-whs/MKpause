@@ -1,3 +1,4 @@
+import { dataParaISO, nascimentoValido, telefoneValido } from '../../domain/formularios';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { cadastro, type CodigoVerificado, type DadosCadastro, type PerfilCodigo } from '../../data/codigos';
@@ -39,6 +40,8 @@ function validar(c: Campos, perfil: PerfilCodigo): Partial<Record<keyof Campos, 
     if (!c.registro_profissional?.trim()) e.registro_profissional = t('Escreva o número do registro no CRP.');
     if (!/^[A-Za-z]{2}$/.test(c.estado_registro?.trim() ?? '')) e.estado_registro = t('Use a sigla do estado, como PR.');
   }
+  if (c.data_nascimento && !nascimentoValido(c.data_nascimento)) e.data_nascimento = t('Informe uma data válida, sem estar no futuro.');
+  if (!telefoneValido(c.telefone ?? '')) e.telefone = t('Informe um telefone com DDD e 10 ou 11 dígitos.');
   return e;
 }
 
@@ -51,7 +54,7 @@ function corpo(codigo: string, c: Campos, perfil: PerfilCodigo, info: CodigoVeri
       ...base,
       turma: info.turma ?? opcional(c.turma),
       instituicao_ensino: info.instituicao_ensino ?? opcional(c.instituicao_ensino),
-      data_nascimento: opcional(c.data_nascimento),
+      data_nascimento: c.data_nascimento ? dataParaISO(c.data_nascimento)! : undefined,
     };
   }
   if (perfil === 'PROFESSOR') {
@@ -208,21 +211,21 @@ export function CadastroComCodigo() {
                 {info.turma ? (
                   <Field label={t('Turma')} value={info.turma} readOnly hint={t('Definida pela escola.')} />
                 ) : (
-                  <Field label={t('Turma')} optional {...muda('turma')} />
+                  <Field label={t('Turma')} maxLength={80} optional {...muda('turma')} />
                 )}
                 {info.instituicao_ensino ? (
-                  <Field label={t('Escola')} value={info.instituicao_ensino} readOnly hint={t('Definida pela escola.')} />
+                  <Field label={t('Escola')} maxLength={160} value={info.instituicao_ensino} readOnly hint={t('Definida pela escola.')} />
                 ) : (
-                  <Field label={t('Escola')} optional {...muda('instituicao_ensino')} />
+                  <Field label={t('Escola')} maxLength={160} optional {...muda('instituicao_ensino')} />
                 )}
-                <Field label={t('Data de nascimento')} type="date" optional {...muda('data_nascimento')} />
+                <Field label={t('Data de nascimento')} mask="data" placeholder={t('DD/MM/AAAA')} optional {...muda('data_nascimento')} />
               </>
             )}
 
             {info.perfil === 'PROFESSOR' && (
               <>
-                <Field label={t('Disciplina ou cargo')} optional placeholder={t('Ex.: Matemática')} {...muda('cargo')} />
-                <Field label={t('Escola')} optional {...muda('instituicao_ensino')} />
+                <Field label={t('Disciplina ou cargo')} maxLength={120} optional placeholder={t('Ex.: Matemática')} {...muda('cargo')} />
+                <Field label={t('Escola')} maxLength={160} optional {...muda('instituicao_ensino')} />
                 <Field label={t('Telefone de contato')} type="tel" optional {...muda('telefone')} />
               </>
             )}
@@ -230,10 +233,10 @@ export function CadastroComCodigo() {
             {(info.perfil === 'PSICOLOGO_ESCOLAR' || info.perfil === 'PSICOLOGO_CLINICO') && (
               <>
                 <div className="grid grid-cols-[1fr_7rem] gap-3">
-                  <Field label={t('Registro no CRP')} inputMode="numeric" placeholder="08/12345" {...muda('registro_profissional')} />
+                  <Field label={t('Registro no CRP')} maxLength={40} inputMode="numeric" placeholder="08/12345" {...muda('registro_profissional')} />
                   <Field label={t('Estado (UF)')} maxLength={2} autoCapitalize="characters" placeholder="PR" {...muda('estado_registro')} />
                 </div>
-                {info.perfil === 'PSICOLOGO_ESCOLAR' && <Field label={t('Escola')} optional {...muda('instituicao_ensino')} />}
+                {info.perfil === 'PSICOLOGO_ESCOLAR' && <Field label={t('Escola')} maxLength={160} optional {...muda('instituicao_ensino')} />}
                 <Field label={t('Telefone de contato')} type="tel" optional {...muda('telefone')} />
               </>
             )}

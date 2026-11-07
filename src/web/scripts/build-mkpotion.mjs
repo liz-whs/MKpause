@@ -4,7 +4,8 @@
  *
  * O jogo não é alterado: o código, os dados e os assets são copiados para uma pasta
  * temporária (sem testes, ferramentas, builds antigos nem progresso local).
- * Só a página que envolve o jogo (index.html do pygbag) ganha português e as cores do MKpause.
+ * A cópia web recebe entrada direta na fase e controles integrados ao MKpause;
+ * a página do pygbag recebe português e as cores do site.
  *
  * Requer Python com pygbag 0.9.3:  python -m pip install pygbag==0.9.3
  * Uso:  npm run build:mkpotion      (ou PYTHON=/caminho/python npm run build:mkpotion)
@@ -14,6 +15,7 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync,
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { integrarPotion } from './integrar-jogos.mjs';
 
 const web = join(dirname(fileURLToPath(import.meta.url)), '..');
 const origem = join(web, '..', 'MKpotion', 'mk_potion');
@@ -40,6 +42,7 @@ if (!/^import pygame\b/m.test(codigo)) {
   writeFileSync(principal, `import pygame  # pygbag: carrega o pygame no navegador\n${codigo}`);
 }
 
+integrarPotion(projeto);
 console.log(`Compilando ${origem} com pygbag…`);
 // PYTHONUTF8: no Windows o pygbag leria o código como cp1252 e quebraria nos acentos.
 execFileSync(python, ['-m', 'pygbag', '--build', projeto], {
@@ -59,7 +62,7 @@ for (const arquivo of readdirSync(build)) {
 const trocas = [
   ['<html lang="en-us">', '<html lang="pt-BR">'],
   ['platform.document.body.style.background = "#7f7f7f"', 'platform.document.body.style.background = "#F6EFE4"'],
-  ['<title>mkpotion</title>', '<title>MK Potion</title>'],
+  ['<title>mkpotion</title>', '<title>mk potion</title>'],
   ['background: green;', 'background: #FFFAF7; border-radius: 999px; padding: 8px 16px; font: 600 16px system-ui, sans-serif;'],
   ['color: blue;', 'color: #594131;'],
   ['Loading, please wait ...', 'Carregando…'],

@@ -1,5 +1,8 @@
 import { Fragment } from 'react';
-import { createBrowserRouter, Navigate, Outlet, ScrollRestoration, type RouteObject } from 'react-router';
+import { createBrowserRouter, Navigate, Outlet, ScrollRestoration, useLocation, type RouteObject } from 'react-router';
+import { FeedbackAcoes } from './components/ui/FeedbackAcoes';
+import { Button } from './components/ui/Button';
+import { agir } from './state/acoes';
 import { StudentFocusLayout, StudentLayout } from './components/layout/Layouts';
 import { EstudanteProvider, useEstudante } from './state/EstudanteContext';
 import { SkipLink, useTituloEFoco } from './components/layout/Navegacao';
@@ -13,21 +16,22 @@ import { CadastroComCodigo } from './features/onboarding/Cadastro';
 import { AdminCodigos } from './features/admin/Codigos';
 import { AdminEmails } from './features/admin/Emails';
 import { AdminIndicadores } from './features/admin/Indicadores';
-import { AceitarConviteResponsavel } from './features/onboarding/Convite';
 import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, PrimeiroAcesso } from './features/onboarding/Onboarding';
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
 import { ComoFicou, EscolherAtividade, Humor, MKPotion, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
 import { JogoPianoPauseProvider } from './features/session/JogoPianoPause';
 import { AgoraRespira, AvisoSaida, VoceSeCuidou } from './features/levels/Niveis';
 import { EscolaAlertas, EscolaAvisos, EscolaEstudante, EscolaEstudantes, EscolaLayout } from './features/school/Escola';
-import { ClinicoAcompanhados, ClinicoAlertas, ClinicoEstudante, ClinicoFicha, ClinicoLayout } from './features/clinical/Clinico';
+import { ClinicoAcompanhados, ClinicoEstudante, ClinicoFicha, ClinicoLayout } from './features/clinical/Clinico';
 import { PerfilProfissional } from './features/pro/PerfilProfissional';
 import { AdminCadastro, AdminConteudos, AdminFichas, AdminLayout, AdminUsuarios, AdminVinculos } from './features/admin/Admin';
+import { CadastroProfissional } from './features/admin/CadastroProfissional';
 
 function Raiz() {
   const { idioma } = usePreferencias();
   // Telas que leem a api sem useDados redesenham quando a conta do backend termina de carregar.
   const conta = useDados(() => (api.carregado() ? api.conta()?.id_usuario ?? 'anonimo' : 'carregando'));
+  const erroCarga = useDados(() => api.erroCarga());
   useTituloEFoco();
   return (
     <EstudanteProvider>
@@ -35,19 +39,40 @@ function Raiz() {
       <Fragment key={`${idioma}-${conta}`}>
         <SkipLink />
         {/* Antes dos dados chegarem, as telas que conferem vínculo mandariam de volta para a lista. */}
-        {conta === 'carregando' ? (
+        {erroCarga ? <main id="conteudo" className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6">
+          <p role="alert">{t(erroCarga)}</p>
+          <Button onClick={() => { void agir(() => api.sincronizar(), 'Dados atualizados.'); }}>{t('Tentar novamente')}</Button>
+        </main> : conta === 'carregando' ? (
           <main id="conteudo" role="status" className="flex min-h-dvh items-center justify-center font-semibold text-muted">
             {t('Carregando…')}
           </main>
         ) : (
-          <Outlet />
+          <AcessoRestrito />
         )}
       </Fragment>
       <ScrollRestoration />
       <PainelPreferencias />
       <VLibras />
+      <FeedbackAcoes />
     </EstudanteProvider>
   );
+}
+
+export function AcessoRestrito() {
+  const { pathname } = useLocation();
+  const conta = useDados(() => api.conta());
+  const area = pathname.split('/')[1];
+  const permitidos: Record<string, string[]> = {
+    estudante: ['estudante'], escola: ['professor', 'psicologo_escolar'],
+    clinico: ['psicologo_clinico'], admin: ['administrador'],
+  };
+  if (!permitidos[area] || (import.meta.env.MODE === 'test' && !conta)) return <Outlet />;
+  if (!conta) return <Navigate to="/entrar" replace state={{ aviso: 'Entre com sua conta para continuar.' }} />;
+  if (!permitidos[area].includes(conta.perfil)) {
+    const destinos = { estudante: '/estudante', professor: '/escola', psicologo_escolar: '/escola', psicologo_clinico: '/clinico', administrador: '/admin' };
+    return <Navigate to={destinos[conta.perfil]} replace />;
+  }
+  return <Outlet />;
 }
 
 function LayoutEstudante() {
@@ -67,7 +92,6 @@ export const rotas: RouteObject[] = [
       { path: '/entrar', element: <Entrar />, handle: { titulo: 'Entrar' } },
       { path: '/primeiro-acesso', element: <PrimeiroAcesso />, handle: { titulo: 'Primeiro acesso' } },
       { path: '/cadastro', element: <CadastroComCodigo />, handle: { titulo: 'Código de cadastro' } },
-      { path: '/convite-responsavel', element: <AceitarConviteResponsavel />, handle: { titulo: 'Convite ao responsável' } },
 
       // Estudante: páginas com cabeçalho
       {
@@ -92,10 +116,13 @@ export const rotas: RouteObject[] = [
         children: [
           { path: 'pausa', element: <Humor />, handle: { titulo: 'Como você está' } },
           { path: 'pausa/atividade', element: <EscolherAtividade />, handle: { titulo: 'Escolha uma atividade' } },
-          { path: 'pausa/respiracao', element: <Respiracao />, handle: { titulo: 'Respire&Pause' } },
-          { path: 'pausa/pianopause', element: <PianoPause />, handle: { titulo: 'PianoPause' } },
-          { path: 'pausa/mkpotion', element: <MKPotion />, handle: { titulo: 'MK Potion' } },
-          { path: 'pausa/video', element: <Video />, handle: { titulo: 'MK Breath' } },
+          { path: 'pausa/respiracao', element: <Respiracao />, handle: { titulo: 'respire & pause' } },
+          { path: 'pausa/pianopause', element: <PianoPause />, handle: { titulo: 'piano pause' } },
+          { path: 'pausa/mkpotion', element: <MKPotion />, handle: { titulo: 'mk potion' } },
+          { path: 'pausa/mkconnection', element: <MKPotion jogo="mkconnection" />, handle: { titulo: 'mk connection' } },
+          { path: 'pausa/espiral', element: <Video atividade="espiral" />, handle: { titulo: 'spiral pause' } },
+          { path: 'pausa/chinchila', element: <Video atividade="chinchila" />, handle: { titulo: 'chinchilla pause' } },
+          { path: 'pausa/video', element: <Video />, handle: { titulo: 'mk breath' } },
           { path: 'pausa/fim', element: <ComoFicou />, handle: { titulo: 'E agora?' } },
           { path: 'pausa/concluida', element: <PausaFeita />, handle: { titulo: 'Pausa feita' } },
           { path: 'aviso-de-saida', element: <AvisoSaida />, handle: { titulo: 'Sair da sala' } },
@@ -128,7 +155,7 @@ export const rotas: RouteObject[] = [
           { path: 'acompanhados', element: <ClinicoAcompanhados />, handle: { titulo: 'Acompanhados' } },
           { path: 'estudantes/:id', element: <ClinicoEstudante />, handle: { titulo: 'Estudante' } },
           { path: 'estudantes/:id/ficha', element: <ClinicoFicha />, handle: { titulo: 'Ficha de acompanhamento' } },
-          { path: 'alertas', element: <ClinicoAlertas />, handle: { titulo: 'Alertas' } },
+          { path: 'alertas', element: <Navigate to="/clinico/acompanhados" replace /> },
           { path: 'perfil', element: <PerfilProfissional area="clinico" />, handle: { titulo: 'Perfil' } },
         ],
       },
@@ -141,6 +168,7 @@ export const rotas: RouteObject[] = [
           { index: true, element: <Navigate to="usuarios" replace /> },
           { path: 'usuarios', element: <AdminUsuarios />, handle: { titulo: 'Usuários' } },
           { path: 'usuarios/novo', element: <AdminCadastro />, handle: { titulo: 'Cadastrar estudante' } },
+          { path: 'profissionais/novo/:papel', element: <CadastroProfissional />, handle: { titulo: 'Cadastrar profissional' } },
           { path: 'usuarios/:id', element: <AdminCadastro />, handle: { titulo: 'Editar estudante' } },
           { path: 'vinculos', element: <AdminVinculos />, handle: { titulo: 'Vínculos' } },
           { path: 'fichas', element: <AdminFichas />, handle: { titulo: 'Fichas' } },

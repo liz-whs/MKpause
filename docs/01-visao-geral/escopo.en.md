@@ -22,7 +22,7 @@ The system must allow students to:
 - record their mood after the session;
 - record information about the experience;
 - raise alerts in the situations defined by the system;
-- view their session history.
+
 
 ### Teacher
 
@@ -50,7 +50,6 @@ The system must allow clinical psychologists to:
 - sign in;
 - access linked students;
 - view the information made available for follow-up;
-- receive alerts about the students they follow;
 - access the reports and records permitted by the system.
 
 ### Administrator
@@ -64,14 +63,6 @@ The system must allow administrators to:
 - manage follow-up records;
 - manage the links between students and professionals;
 - maintain the records needed for the platform to operate.
-
-### Guardian
-
-The guardian takes part in the process through their link with the student.
-
-Their access or link is not created at the same time as the student's initial registration. The intended process involves sending an invitation, or an equivalent mechanism, afterwards to establish the link.
-
----
 
 ## Out of Scope
 

@@ -36,7 +36,6 @@ O estudante poderá estar relacionado a:
 - professores;
 - psicólogo escolar;
 - psicólogo clínico;
-- responsáveis.
 
 ---
 
@@ -109,29 +108,7 @@ O psicólogo clínico poderá estar relacionado a:
 - estudantes acompanhados;
 - fichas de acompanhamento;
 - histórico dos estudantes;
-- alertas;
 - registros disponibilizados para acompanhamento.
-
----
-
-## Responsável
-
-O sistema deve manter os dados necessários para identificar e estabelecer o vínculo entre um responsável e um estudante.
-
-### Dados necessários
-
-- identificador do responsável;
-- nome;
-- informações de contato;
-- relação com o estudante;
-- informações necessárias para estabelecimento do vínculo;
-- situação do vínculo ou cadastro.
-
-### Relacionamentos
-
-O responsável poderá estar relacionado a um ou mais estudantes conforme as regras definidas pelo sistema.
-
-O vínculo do responsável não é criado obrigatoriamente durante o cadastro inicial do estudante. O processo poderá ocorrer posteriormente por meio de convite ou mecanismo equivalente.
 
 ---
 
@@ -248,8 +225,7 @@ Um alerta poderá estar relacionado a:
 - estudante;
 - sessão;
 - professor;
-- psicólogo escolar;
-- psicólogo clínico.
+- psicólogo escolar.
 
 Os destinatários dependem dos vínculos existentes e das regras de negócio definidas para cada tipo de alerta.
 
@@ -322,7 +298,6 @@ Entre os vínculos previstos estão:
 - estudante ↔ professor;
 - estudante ↔ psicólogo escolar;
 - estudante ↔ psicólogo clínico;
-- estudante ↔ responsável.
 
 Esses vínculos são utilizados para determinar quais profissionais podem consultar informações ou receber alertas relacionados a determinado estudante.
 
@@ -346,7 +321,6 @@ Por exemplo, profissionais que acompanham estudantes devem visualizar apenas as 
 | Professor | Representar professores vinculados aos estudantes |
 | Psicólogo Escolar | Representar o acompanhamento psicológico escolar |
 | Psicólogo Clínico | Representar profissionais de acompanhamento clínico |
-| Responsável | Representar responsáveis vinculados ao estudante |
 | Administrador | Representar usuários administrativos |
 | Sessão | Registrar sessões de autorregulação |
 | Registro de Humor | Armazenar estados emocionais registrados |
@@ -355,7 +329,7 @@ Por exemplo, profissionais que acompanham estudantes devem visualizar apenas as 
 | Observação | Armazenar observações de acompanhamento |
 | Ficha de Acompanhamento | Centralizar informações de acompanhamento |
 | Aviso | Armazenar comunicados disponibilizados na plataforma |
-| Vínculo | Representar relações entre estudantes e seus responsáveis/profissionais |
+| Vínculo | Representar relações entre estudantes e seus profissionais |
 
 ---
 

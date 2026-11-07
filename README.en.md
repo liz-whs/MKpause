@@ -40,13 +40,12 @@ The full analysis is in [Scientific Rationale](./docs/07-fundamentacao/README.en
 
 | Profile | Role |
 |---|---|
-| Student | Completes self-regulation sessions, records mood before and after, accesses activities, raises alerts and views their history |
+| Student | Completes self-regulation sessions, records mood before and after, accesses activities, raises alerts |
 | Teacher | Follows linked students, receives alerts and records notes |
 | School Psychologist | Follows students within the school, receives alerts and records notes |
 | Clinical Psychologist | Views the information needed for clinical follow-up, according to their permissions |
 | Administrator | Manages users, links, follow-up records and content |
 
-The **Guardian** is linked to the student after the initial registration, through an invitation.
 
 ---
 
@@ -90,6 +89,9 @@ Depending on the state identified, the system may alert the professionals respon
 |---|---|---|
 | PianoPause | A musical-keys game with no score and a guided-breathing pause | [PianoPause README](./src/jogos/pianopause/README.en.md) |
 | MK Potion | Liquid sorting game adapted for phones and desktops | [Game README](./src/MKpotion/mk_potion/README.md) |
+| MKconnection | Connect matching colors and symbols without a time limit | [Game README](./src/MKconnection/README.md) |
+| Spiral breathing | Looping video with a breathing guide point | [Video generation](./src/atividades/videos/README.md) |
+| Breathing with the chinchilla | Restored image with continuous animation preserving its colors and details at 60 fps | [Video generation](./src/atividades/videos/README.md) |
 | MK Breath | Guided breathing video with portrait/landscape versions and captions | [Web interface](./src/web/README.md) |
 
 ---
@@ -154,7 +156,7 @@ Every document is available in Portuguese (`file.md`) and English (`file.en.md`)
 
 **In development.**
 
-The interface and API integrate breaks, games, links and guardian invitations. Administrative aggregate indicators use PHP; the individual clinical dashboard has a separate Django API. The PHP module runs locally, with a [Docker hosting option](./docs/indicadores-php.md) prepared for validation before deployment. Real email delivery requires an SMTP provider.
+The interface and API integrate breaks, games and professional links. Administrative aggregate indicators use PHP; the individual clinical dashboard has a separate Django API. The PHP module runs locally, with a [Docker hosting option](./docs/indicadores-php.md) prepared for validation before deployment. Real email delivery requires an SMTP provider.
 
 ---
 

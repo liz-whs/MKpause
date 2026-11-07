@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { chaveDia, CUIDADOS_DO_DIA, type CuidadoId } from '../domain/cuidados';
 
 type Registros = Record<string, CuidadoId[]>;
@@ -22,15 +22,8 @@ function ler(raw: string | null): Registros {
   try { return validar(JSON.parse(raw ?? '{}')); } catch { return {}; }
 }
 
-/** Só migra marcações comprovadas: diasComCuidado continha os cinco dias fictícios. */
-export function cuidadosLegados(): Registros {
-  try { return validar(JSON.parse(sessionStorage.getItem('mkpause:estudante') ?? '{}').cuidadosHoje); }
-  catch { return {}; }
-}
-
 export function useCuidados(estudanteId: string) {
   const chave = estudanteId && estudanteId !== 'est-0' ? `mkpause:cuidados:v1:${estudanteId}` : null;
-  const legado = useRef<Registros | null>(cuidadosLegados());
   const [hoje, setHoje] = useState(() => chaveDia(new Date()));
   const assinar = useCallback((avisar: () => void) => {
     const mudou = (evento: StorageEvent) => { if (!evento.key || evento.key === chave) avisar(); };
@@ -41,19 +34,6 @@ export function useCuidados(estudanteId: string) {
   const snapshot = useCallback(() => chave ? localStorage.getItem(chave) ?? '{}' : '{}', [chave]);
   const raw = useSyncExternalStore(assinar, snapshot, () => '{}');
   const registros = useMemo(() => ler(raw), [raw]);
-
-  useEffect(() => {
-    if (!chave || !legado.current) return;
-    const existentes = ler(localStorage.getItem(chave));
-    for (const [dia, cuidados] of Object.entries(legado.current)) {
-      existentes[dia] = [...new Set([...(existentes[dia] ?? []), ...cuidados])];
-    }
-    legado.current = null;
-    if (Object.keys(existentes).length) {
-      localStorage.setItem(chave, JSON.stringify(existentes));
-      window.dispatchEvent(new Event(EVENTO));
-    }
-  }, [chave]);
 
   useEffect(() => {
     let timer: number;

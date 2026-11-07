@@ -21,7 +21,13 @@ The use cases were derived from the system's functional requirements and busines
 
 The diagram shows the main interactions between users and MKpause. Labels in the diagram are in Portuguese.
 
-![MKpause Use Case Diagram](./diagramas/diagrama-casos-de-uso.jpeg)
+```mermaid
+flowchart LR
+  E[Student] --> S[Self-regulation session]
+  P[Teacher and school psychologist] --> A[School alerts]
+  C[Clinical psychologist] --> H[Authorized history and notes]
+  D[Administrator] --> V[Professional links]
+```
 
 ---
 
@@ -31,15 +37,12 @@ The main actors represented in the system are:
 
 | Actor | Responsibility |
 |---|---|
-| Student | Use the self-regulation resources and view their history |
+| Student | Use the self-regulation resources |
 | Teacher | Follow students in the school environment |
 | School Psychologist | Follow students within the school context |
 | Clinical Psychologist | View the information needed for clinical follow-up |
 | Administrator | Manage users, follow-up records, content and links |
 
-The **Guardian** is part of the MKpause domain, but whether they appear in the diagram depends on the features they interact with directly.
-
-Their existence as an entity or link in the system does not require them to be represented as an actor in use cases in which they have no direct interaction.
 
 ---
 
@@ -90,7 +93,7 @@ Alerts may be made available to the professionals responsible for the student, i
 
 - Teacher;
 - School Psychologist;
-- Clinical Psychologist.
+
 
 Who receives them depends on the links and permissions in the system.
 
@@ -174,8 +177,6 @@ This structure shows how a need identified while analyzing the problem becomes a
 
 ---
 
-## Files
+## Legacy diagram
 
-The diagram is available at [`diagramas/diagrama-casos-de-uso.jpeg`](./diagramas/diagrama-casos-de-uso.jpeg).
-
-Whenever the diagram is updated, the version in the repository must also be updated to keep the documentation consistent.
+The JPEG in `diagramas/` is a historical artifact. The diagram above and the linked specifications describe the current scope.
