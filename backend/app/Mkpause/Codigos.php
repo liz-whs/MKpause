@@ -2,14 +2,8 @@
 
 namespace App\Mkpause;
 
-/**
- * Códigos de cadastro (admin) e de vínculo (estudante). O texto nunca vai para o banco:
- * só o HMAC-SHA256 com a DJANGO_SECRET_KEY, igual ao backend anterior (os códigos
- * já gerados continuam valendo).
- */
 class Codigos
 {
-    // Sem 0/O e 1/I/L, que se confundem.
     public const ALFABETO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
     public static function gerar(int $tamanho): string

@@ -1,13 +1,5 @@
 <?php
 
-/*
- * Rotas da API do MKpause. Tudo responde JSON em /api/ (o prefixo vem do bootstrap/app.php).
- * São as mesmas rotas e os mesmos formatos do backend Django anterior: a interface web não muda.
- * A lista com exemplos está em backend/README.md.
- *
- * 'conta' exige login; 'conta:perfil1,perfil2' exige também um dos perfis.
- */
-
 use App\Http\Controllers\AcompanhamentoController as Acompanhamento;
 use App\Http\Controllers\AlertasController as Alertas;
 use App\Http\Controllers\AtividadesController as Atividades;
@@ -22,17 +14,14 @@ $admin = 'conta:administrador';
 $estudante = 'conta:estudante';
 $escolares = 'conta:professor,psicologo_escolar';
 
-// ------------------------------------------------------- públicas (sem login)
 Route::get('auth/csrf', [Autenticacao::class, 'csrf']);
 Route::post('auth/login', [Autenticacao::class, 'login']);
 Route::post('auth/codigo-cadastro/verificar', [Codigos::class, 'verificar']);
 Route::post('auth/cadastro', [Codigos::class, 'cadastrar']);
 
-// ---------------------------------------------------------------- conta
 Route::post('auth/logout', [Autenticacao::class, 'logout'])->middleware('conta');
 Route::get('auth/eu', [Autenticacao::class, 'eu'])->middleware('conta');
 
-// ----------------------------------------------------- atividades (RF02, RF35)
 Route::get('atividades', [Atividades::class, 'listar'])->middleware('conta');
 Route::get('atividades/{id}', [Atividades::class, 'ver'])->middleware('conta');
 Route::middleware($admin)->group(function () {
@@ -62,7 +51,6 @@ Route::middleware('conta')->group(function () {
 });
 Route::post('alertas/{id}/lido', [Alertas::class, 'lido'])->middleware($escolares);
 
-// ----------------------------------------------------------- avisos (RF18, RF25)
 Route::get('avisos', [Acompanhamento::class, 'listarAvisos'])->middleware('conta');
 Route::get('avisos/{id}', [Acompanhamento::class, 'verAviso'])->middleware('conta');
 Route::middleware($admin)->group(function () {
@@ -71,7 +59,6 @@ Route::middleware($admin)->group(function () {
     Route::delete('avisos/{id}', [Acompanhamento::class, 'desativarAviso']);
 });
 
-// ------------------------------------- estudantes, ficha e painel clínico (RF11, RF16, RF17, RF20)
 Route::middleware('conta')->group(function () {
     Route::get('estudantes/{id}/ficha', [Acompanhamento::class, 'verFicha']);
     Route::post('estudantes/{id}/ficha', [Acompanhamento::class, 'criarFicha']);
@@ -84,7 +71,6 @@ Route::middleware('conta:professor,psicologo_escolar,psicologo_clinico,administr
     Route::get('estudantes/{id}', [Cadastros::class, 'meuEstudante']);
 });
 
-// -------------------------------------------------- códigos de vínculo
 Route::middleware($estudante)->group(function () {
     Route::post('vinculos/codigos', [Codigos::class, 'gerarVinculo']);
     Route::get('vinculos/codigos/atual', [Codigos::class, 'vinculoAtual']);
@@ -98,7 +84,6 @@ Route::middleware($escolares)->group(function () {
     Route::get('vinculos/enviados', [Codigos::class, 'enviados']);
 });
 
-// ------------------------------------------------------- administração (RF27–RF35)
 Route::middleware($admin)->prefix('admin')->group(function () {
     $perfis = ['estudantes' => 'estudante', 'professores' => 'professor',
         'psicologos-escolares' => 'psicologo_escolar', 'psicologos-clinicos' => 'psicologo_clinico'];

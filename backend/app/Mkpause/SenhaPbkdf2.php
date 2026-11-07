@@ -2,15 +2,8 @@
 
 namespace App\Mkpause;
 
-/**
- * Senhas no formato do Django: pbkdf2_sha256$iteracoes$sal$hash_base64.
- *
- * As contas foram criadas pelo backend Django; manter o formato faz todas continuarem
- * entrando sem trocar a senha. Um hash que começa com "!" é inutilizável (conta sem login).
- */
-class SenhaDjango
+class SenhaPbkdf2
 {
-    // Mesmo número de iterações do Django 6.0.
     public const ITERACOES = 1200000;
 
     public static function criar(?string $senha): string

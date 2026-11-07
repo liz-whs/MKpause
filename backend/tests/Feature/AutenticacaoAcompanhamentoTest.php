@@ -6,7 +6,7 @@ use App\Http\Controllers\AcompanhamentoController;
 use App\Http\Controllers\SessoesController;
 use App\Mkpause\Conta;
 use App\Mkpause\ErroApi;
-use App\Mkpause\SenhaDjango;
+use App\Mkpause\SenhaPbkdf2;
 use App\Mkpause\Permissoes;
 use App\Mkpause\Cadastros;
 use Illuminate\Http\Request;
@@ -31,7 +31,7 @@ class AutenticacaoAcompanhamentoTest extends TestCase
         DB::statement('CREATE TABLE psicologo_escolar_estudante (id_psicologo_escolar INTEGER, id_estudante INTEGER, ativo BOOLEAN)');
         DB::statement('CREATE TABLE ficha_acompanhamento (id_ficha INTEGER PRIMARY KEY, id_estudante INTEGER, informacoes_acompanhamento TEXT, ativo BOOLEAN, criada_em TEXT, atualizada_em TEXT)');
         static $hash;
-        $hash ??= SenhaDjango::criar('Senha teste 123!');
+        $hash ??= SenhaPbkdf2::criar('Senha teste 123!');
         foreach ([1 => 'estudante', 2 => 'psicologo_clinico', 3 => 'administrador', 4 => 'professor', 5 => 'psicologo_escolar', 6 => 'psicologo_clinico'] as $id => $perfil) {
             DB::table('usuario')->insert(['id_usuario' => $id, 'nome_completo' => 'Conta '.$id, 'email' => "conta{$id}@teste.br", 'senha_hash' => $hash, 'ativo' => true]);
             DB::table($perfil)->insert(['id_'.$perfil => $id, 'id_usuario' => $id, 'ativo' => true]);
@@ -179,11 +179,11 @@ class AutenticacaoAcompanhamentoTest extends TestCase
     {
         DB::statement('CREATE TABLE atividade (id_atividade INTEGER PRIMARY KEY, nome TEXT, descricao TEXT, tipo TEXT, conteudo_ou_referencia TEXT, disponivel BOOLEAN, criado_em TEXT, atualizado_em TEXT)');
         DB::statement('CREATE TABLE sessao (id_sessao INTEGER PRIMARY KEY, id_estudante INTEGER, id_atividade INTEGER, iniciada_em TEXT, terminada_em TEXT, nivel_avaliado INTEGER, duracao_segundos INTEGER, observacoes_sessao TEXT, status TEXT)');
-        DB::statement('CREATE TABLE registro_humor (id_registro_humor INTEGER PRIMARY KEY, id_sessao INTEGER, estado INTEGER, momento TEXT, registrado_em TEXT)');
+        DB::statement('CREATE TABLE registro_humor (id_registro_humor INTEGER PRIMARY KEY, id_sessao INTEGER, estado INTEGER, emocao TEXT, momento TEXT, registrado_em TEXT)');
         DB::table('atividade')->insert(['id_atividade' => 1, 'nome' => 'Respire&Pause', 'tipo' => 'RESPIRACAO', 'disponivel' => true]);
         $c = new SessoesController;
-        $inicio = $c->iniciar($this->pedido(1, ['id_atividade' => 1, 'humor_pre' => 2]))->getData(true)['sessao'];
-        $fim = $c->concluir($this->pedido(1, ['humor_pos' => 4]), $inicio['id_sessao'])->getData(true)['sessao'];
+        $inicio = $c->iniciar($this->pedido(1, ['id_atividade' => 1, 'humor_pre' => 'ansioso']))->getData(true)['sessao'];
+        $fim = $c->concluir($this->pedido(1, ['humor_pos' => 'calmo']), $inicio['id_sessao'])->getData(true)['sessao'];
         $this->assertSame(1, $fim['estudante']);
         $this->assertNotEmpty($fim['iniciada_em']);
         $this->assertNotEmpty($fim['terminada_em']);

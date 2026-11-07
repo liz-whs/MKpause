@@ -56,7 +56,6 @@ class AlertasController extends Controller
 
         $sessao = null;
         if (is_int($idSessao) && $idSessao !== 0) {
-            // Espelha a FK composta (id_sessao, id_estudante) do banco.
             $sessao = DB::table('sessao')->where('id_sessao', $idSessao)->where('id_estudante', $estudante)->value('id_sessao');
             if ($sessao === null) {
                 throw ErroApi::campos(['id_sessao' => 'Sessão não encontrada.']);
@@ -97,7 +96,6 @@ class AlertasController extends Controller
         ], 201);
     }
 
-    /** Lista de [usuario, tipo_destinatario], sem repetir usuário. */
     public static function destinatariosPara(int $estudante, int $nivel): array
     {
         $escolhidos = [];
@@ -196,8 +194,6 @@ class AlertasController extends Controller
             ->where('o.id_observacao', $idObs)->select('o.*', 'u.nome_completo as nome_autor')->first();
         return $this->json(self::observacao($o) + ['mensagem' => 'Observação salva.'], 201);
     }
-
-    // ------------------------------------------------------------------ apoio
 
     private function consulta(Request $request)
     {

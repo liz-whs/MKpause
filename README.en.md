@@ -156,7 +156,7 @@ Every document is available in Portuguese (`file.md`) and English (`file.en.md`)
 
 **In development.**
 
-The interface and API integrate breaks, games and professional links. Administrative aggregate indicators use PHP; the individual clinical dashboard has a separate Django API. The PHP module runs locally, with a [Docker hosting option](./docs/indicadores-php.md) prepared for validation before deployment. Real email delivery requires an SMTP provider.
+The interface and API integrate breaks, games and professional links. Administrative aggregate indicators use PHP; the individual clinical dashboard uses the Laravel API. The PHP module runs locally, with a [Docker hosting option](./docs/indicadores-php.md) prepared for validation before deployment. Real email delivery requires an SMTP provider.
 
 ---
 

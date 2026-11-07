@@ -3,16 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Mkpause\Formato;
-use App\Mkpause\SenhaDjango;
+use App\Mkpause\SenhaPbkdf2;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-/**
- * php artisan mkpause:criar-admin --email=admin@escola.br --nome="Administração"
- *
- * Cria um administrador (usuario + administrador). Sem cadastro público de admin,
- * é a forma de entrar no sistema pela primeira vez. A senha é pedida no terminal.
- */
 class CriarAdmin extends Command
 {
     protected $signature = 'mkpause:criar-admin {--email= : E-mail do administrador} {--nome= : Nome}
@@ -27,7 +21,7 @@ class CriarAdmin extends Command
             $this->error('Informe --email e --nome.');
             return self::FAILURE;
         }
-        Banco::exigir($this); // antes de pedir a senha, para não parecer travado
+        Banco::exigir($this);
         if (DB::table('usuario')->whereRaw('UPPER(email) = UPPER(?)', [$email])->exists()) {
             $this->error('Já existe uma conta com este e-mail.');
             return self::FAILURE;
@@ -41,7 +35,7 @@ class CriarAdmin extends Command
         DB::transaction(function () use ($email, $nome, $senha) {
             $agora = Formato::banco(Formato::agora());
             $id = DB::table('usuario')->insertGetId(['nome_completo' => $nome, 'email' => $email,
-                'senha_hash' => SenhaDjango::criar($senha), 'ativo' => true, 'criado_em' => $agora,
+                'senha_hash' => SenhaPbkdf2::criar($senha), 'ativo' => true, 'criado_em' => $agora,
                 'atualizado_em' => $agora], 'id_usuario');
             DB::table('administrador')->insert(['id_usuario' => $id, 'ativo' => true, 'criado_em' => $agora,
                 'atualizado_em' => $agora]);

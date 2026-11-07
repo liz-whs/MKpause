@@ -7,13 +7,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
-/**
- * Fila durável de e-mails (tabela notificacao_email). O sucesso do SMTP indica aceitação
- * pelo servidor, não leitura ou entrega final.
- *
- * Com EMAIL_ENVIO_AUTOMATICO=1 a fila é processada logo depois da resposta; senão, pelo
- * comando `php artisan mkpause:processar-emails` ou pelo botão da tela de e-mails do admin.
- */
 class Emails
 {
     public static function agendar(): void
@@ -23,7 +16,6 @@ class Emails
                 try {
                     self::processar();
                 } catch (Throwable $erro) {
-                    // Não registra corpos de e-mail, tokens nem endereços pessoais.
                     Log::error('Falha ao processar fila de e-mail: '.class_basename($erro));
                 }
             });
@@ -39,7 +31,6 @@ class Emails
     {
         $enviados = 0;
         $agora = Formato::agora();
-        // Recupera trabalho interrompido por reinício do processo. SMTP não oferece exactly-once.
         DB::table('notificacao_email')->where('status', 'PROCESSANDO')
             ->where('processando_em', '<', Formato::banco($agora->subMinutes(5)))
             ->update(['status' => 'FALHA', 'disponivel_em' => Formato::banco($agora), 'erro' => 'Processamento interrompido']);
@@ -91,12 +82,10 @@ class Emails
         return $enviados;
     }
 
-    /** [assunto, corpo], ou null quando o e-mail não deve mais sair. */
     private static function mensagem(object $item): ?array
     {
         if ($item->id_convite || !$item->id_destinatario_alerta) return null;
 
-        // Confere o vínculo de novo antes de enviar uma notificação pendente.
         $d = DB::table('destinatario_alerta as d')->join('alerta as a', 'a.id_alerta', '=', 'd.id_alerta')
             ->join('usuario as u', 'u.id_usuario', '=', 'd.id_usuario')
             ->where('d.id_destinatario_alerta', $item->id_destinatario_alerta)
@@ -117,7 +106,6 @@ class Emails
     {
         $cfg = config('mkpause.email');
         if (self::caixaLocal()) {
-            // Desenvolvimento: cada mensagem vira um arquivo em backend/.emails.
             if (!is_dir($cfg['pasta'])) {
                 mkdir($cfg['pasta'], 0775, true);
             }
@@ -138,7 +126,6 @@ class Emails
         });
     }
 
-    /** "MKpause <nao-responda@x>" -> [nome, endereço]. */
     private static function remetente(string $texto): array
     {
         return preg_match('/^\s*(.*?)\s*<([^>]+)>\s*$/', $texto, $m) ? [$m[1] ?: null, $m[2]] : [null, trim($texto)];

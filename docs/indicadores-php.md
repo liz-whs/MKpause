@@ -6,7 +6,7 @@ O módulo de indicadores roda no mesmo container do backend, descrito em
 - Nginx atende a porta pública definida por `PORT`.
 - `/api/` vai para o backend Laravel e `/indicadores/` para o módulo de indicadores, ambos no PHP-FPM.
 - As demais rotas entregam a interface compilada.
-- O módulo confirma a sessão chamando `/api/auth/eu/` no próprio serviço (`DJANGO_API`, definido pelo `deploy/start.sh`) e usa a conexão PostgreSQL só para leitura.
+- O módulo confirma a sessão chamando `/api/auth/eu/` no próprio serviço (`MKPAUSE_API_URL`, definido pelo `deploy/start.sh`) e usa a conexão PostgreSQL só para leitura.
 - Pacotes `.tar.gz` dos jogos são servidos sem `Content-Encoding`, pois o pygbag os descompacta no navegador.
 - O `deploy/start.sh` aplica o esquema e cria as contas demo antes de iniciar PHP-FPM e Nginx. Se um deles parar, o container termina para a hospedagem reiniciar.
 

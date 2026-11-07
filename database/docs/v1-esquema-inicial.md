@@ -21,7 +21,7 @@ Esta documentação descreve o SQL da V1. Ela não significa que todas as funcio
 - Muitos registros possuem `ativo` ou `disponivel` para permitir desativação lógica.
 - As chaves estrangeiras usam `ON DELETE RESTRICT`, impedindo exclusões que deixariam referências inválidas.
 - A tabela `usuario` centraliza nome, e-mail, hash de senha e estado da conta.
-- A estratégia de integração entre `usuario` e a autenticação do Django ainda precisa ser definida no backend.
+- A integração entre `usuario` e a autenticação é implementada pelo backend.
 - A V1 foi aplicada pelo Flyway. **Não editar esta migração depois de aplicada**; mudanças devem ser representadas por novas migrações versionadas.
 
 ## 3. Tabelas criadas
@@ -179,9 +179,9 @@ O psicólogo clínico não é aceito como autor por essa regra da V1. Se essa de
 
 ## 7. O que o backend deve implementar
 
-A existência de uma tabela, FK ou gatilho não significa que uma API já exista. O backend Django/DRF deve, no mínimo:
+A existência de uma tabela, FK ou gatilho não significa que uma API já exista. O backend deve, no mínimo:
 
-1. **Autenticação:** definir como a autenticação do Django será integrada à tabela `usuario`. A V1 contém `senha_hash`, mas a estratégia de armazenamento/verificação de senha e o relacionamento com `django.contrib.auth` ainda precisam ser definidos. Não armazenar senhas em texto puro.
+1. **Autenticação:** integrar a identidade à tabela `usuario`. A V1 contém `senha_hash`; não armazenar senhas em texto puro.
 2. **Autorização:** validar, em cada endpoint, se o usuário autenticado pode consultar ou modificar o estudante, a sessão, o alerta, a observação ou a ficha solicitados.
 3. **Privacidade:** limitar dados emocionais e pessoais ao escopo autorizado e evitar exposição em respostas, logs e mensagens de erro.
 4. **Fluxo de sessão:** validar o humor PRE, iniciar a atividade, registrar o humor POS ao fim e calcular/registrar duração e status de forma consistente com as regras aprovadas.
@@ -200,7 +200,7 @@ A V1 **não** implementa sozinha as regras de autorização por relacionamento, 
 |---|---|
 | Responsável sem login | Decisão aprovada; V1 ainda contém `responsavel.id_usuario`. Corrigir em nova migração. |
 | Público `RESPONSAVEIS` em `aviso` | Revisar após decidir se contatos receberão comunicados por algum canal externo. |
-| Autenticação Django e `usuario` | Definir integração sem criar duas fontes inconsistentes de identidade. |
+| Autenticação e `usuario` | Integrar sem criar duas fontes inconsistentes de identidade. |
 | Exclusividade de perfil | O projeto prevê perfil exclusivo, mas a V1 não impede o mesmo `id_usuario` em tabelas de perfil diferentes. |
 | Humores PRE/POS obrigatórios | A V1 garante no máximo um de cada por sessão, não a obrigatoriedade de ambos. |
 | Regras de acesso | Implementar e testar no backend; as FKs não garantem autorização. |

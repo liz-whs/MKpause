@@ -5,15 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * php artisan mkpause:verificar-esquema
- *
- * Compara as colunas que o backend usa com o banco real (criado pelo Flyway) e mostra o
- * que está diferente. Rode sempre depois de aplicar uma migração nova. Não altera o banco.
- * Termina com código 1 quando há algo que quebra o backend.
- *
- * Quando uma migração mudar uma tabela, atualize a lista COLUNAS abaixo junto com o código.
- */
 class VerificarEsquema extends Command
 {
     protected $signature = 'mkpause:verificar-esquema';
@@ -21,7 +12,6 @@ class VerificarEsquema extends Command
 
     private const IGNORADAS = ['flyway_schema_history'];
 
-    /** tabela => colunas que o backend lê ou grava */
     public const COLUNAS = [
         'usuario' => ['id_usuario', 'nome_completo', 'email', 'senha_hash', 'ativo', 'criado_em', 'atualizado_em'],
         'estudante' => ['id_estudante', 'id_usuario', 'data_nascimento', 'telefone', 'instituicao_ensino', 'turma', 'ativo', 'criado_em', 'atualizado_em'],

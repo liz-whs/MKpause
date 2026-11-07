@@ -34,7 +34,7 @@ final class Indicadores
             $horas=Anonimizacao::proteger($grupos('','EXTRACT(HOUR FROM s.iniciada_em AT TIME ZONE :fuso)::int','',['fuso'=>$this->fuso]));
             $humor=Anonimizacao::proteger($grupos("JOIN registro_humor pre ON pre.id_sessao=s.id_sessao AND pre.momento='PRE'
                 JOIN registro_humor pos ON pos.id_sessao=s.id_sessao AND pos.momento='POS'",
-                "CASE WHEN pos.estado>pre.estado THEN 'melhor' WHEN pos.estado=pre.estado THEN 'igual' ELSE 'pior' END","AND s.status='CONCLUIDA'"));
+                "CASE WHEN pos.estado>pre.estado THEN 'melhor' WHEN pos.estado=pre.estado THEN 'igual' ELSE 'pior' END","AND s.status='CONCLUIDA' AND pre.estado BETWEEN 1 AND 5 AND pos.estado BETWEEN 1 AND 5"));
             $niveis=Anonimizacao::proteger($this->consultar("SELECT nivel AS rotulo,COUNT(*) AS pausas,COUNT(DISTINCT id_estudante) AS estudantes
                 FROM alerta WHERE status <> 'CANCELADO' AND criado_em>=:inicio AND criado_em<:fim GROUP BY nivel ORDER BY nivel",$p));
             $porDia=[];

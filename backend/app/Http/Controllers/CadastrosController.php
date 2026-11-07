@@ -17,13 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 class CadastrosController extends Controller
 {
-    // Nomes dos modelos do backend anterior, usados na mensagem do 404.
     private const MODELOS = ['estudante' => 'Estudante', 'professor' => 'Professor',
         'psicologo_escolar' => 'PsicologoEscolar', 'psicologo_clinico' => 'PsicologoClinico'];
     private const MODELOS_VINCULO = ['professores' => 'ProfessorEstudante',
         'psicologos-escolares' => 'PsicologoEscolarEstudante', 'psicologos-clinicos' => 'PsicologoClinicoEstudante'];
-
-    // ------------------------------------------------------------ perfis com login
 
     public function listar(Request $request, string $tipo)
     {
@@ -142,8 +139,6 @@ class CadastrosController extends Controller
         $saida = [$campo => (int) $v->$coluna, 'estudante' => (int) $v->id_estudante];
         return $saida + ['ativo' => (bool) $v->ativo, 'criado_em' => Formato::local($v->criado_em)];
     }
-
-    // ------------------------------------------ estudantes vinculados (RF11, RF20)
 
     public function meusEstudantes(Request $request)
     {

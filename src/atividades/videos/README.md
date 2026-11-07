@@ -47,4 +47,3 @@ Os testes verificam também a preservação das cores RGB da PNG e a estabilidad
 ```powershell
 python -m unittest discover -s src/atividades/videos -p test_chinchila.py
 ```
-

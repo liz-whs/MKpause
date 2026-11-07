@@ -60,6 +60,7 @@ export function AdminIndicadores() {
         <Distribuicao titulo={t('Pausas por turma')} linhas={dados?.turmas??[]} oculto={dados?.ocultos?.turmas} />
         <Card as="section" aria-label={t('Humor após a pausa')} className="flex flex-col gap-3">
           <h2 className="text-section">{t('Humor após a pausa')}</h2>
+          <p className="text-caption text-muted">{t('Comparação disponível apenas para registros anteriores com escala numérica de humor.')}</p>
           {dados?.humor ? <ul><li>{t('Mais leve')}: {dados.humor.melhor}%</li><li>{t('Igual')}: {dados.humor.igual}%</li><li>{t('Mais pesado')}: {dados.humor.pior}%</li></ul>
             : <p>{t('Sem dados suficientes para mostrar esta distribuição com segurança.')}</p>}
         </Card>

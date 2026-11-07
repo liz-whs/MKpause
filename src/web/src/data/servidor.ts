@@ -7,7 +7,7 @@ import type {
 import { iniciais } from '../domain/formatos';
 
 /**
- * Conversa com o backend Django (/api/, ver backend/README.md).
+ * Conversa com a API Laravel (/api/, ver backend/README.md).
  * Em desenvolvimento o Vite repassa /api para 127.0.0.1:8000 (vite.config.ts),
  * então o cookie de sessão e o CSRF funcionam sem CORS.
  *
@@ -71,15 +71,15 @@ export async function chamar<T = unknown>(metodo: string, rota: string, corpo?: 
   return dados as T;
 }
 
-/** Contrato da entrega V5: valores ordinais 1–5, sem convertê-los nas seis emoções da interface. */
+/** Contrato categórico V5 SQL: seis emoções, sem intensidade nem ordenação. */
 export type PeriodoDashboard = 7 | 14 | 30 | 90;
 export interface DashboardClinico {
   estudante: { id_estudante: number; nome: string };
   periodo: { dias: PeriodoDashboard; inicio: string; fim: string };
-  resumo: { sessoes_concluidas: number; humor_aumentou: number; humor_manteve: number;
-    humor_diminuiu: number; percentual_aumento: number | null };
-  evolucao: { id_sessao: number; data: string; iniciada_em: string; humor_antes: number; humor_depois: number }[];
-  distribuicao_humor: { estado: number; antes: number; depois: number }[];
+  resumo: { sessoes_concluidas: number; mesma_emocao: number; terminou_leve: number;
+    percentual_terminou_leve: number | null };
+  evolucao: { id_sessao: number; data: string; iniciada_em: string; humor_antes: EmocaoId; humor_depois: EmocaoId }[];
+  distribuicao_humor: { emocao: EmocaoId; antes: number; depois: number }[];
   atividades: { tipo: string; quantidade: number }[];
   aviso: string;
 }
@@ -103,7 +103,7 @@ export const contaAtual = () => chamar<Conta>('GET', 'auth/eu/').catch((erro) =>
 
 export async function entrar(email: string, senha: string) {
   const conta = await chamar<Conta>('POST', 'auth/login/', { email: email.trim(), senha });
-  // O Django troca o token de CSRF no login.
+  // A API troca o token de CSRF no login.
   await fetch('/api/auth/csrf/', { credentials: 'same-origin' });
   return conta;
 }
@@ -114,9 +114,7 @@ export const sair = () => chamar('POST', 'auth/logout/');
 
 export const idDe = (texto: string) => Number(texto.split('-').pop());
 
-/** Emoção ↔ humor 1–5 do banco (1 = pior). A emoção exata vai junto na observação da sessão. */
-const HUMOR: Record<EmocaoId, number> = { feliz: 5, calmo: 4, cansado: 3, ansioso: 2, irritado: 2, triste: 1 };
-const EMOCAO_DO_HUMOR: EmocaoId[] = ['triste', 'triste', 'ansioso', 'cansado', 'calmo', 'feliz'];
+/** Os registros legados só têm emoção exata quando a marca antiga a preservou. */
 const MARCA = /^\[mkpause antes=(\w+) depois=(\w+)\]\n?/;
 
 const TIPO_PARA_ATIVIDADE: Record<string, AtividadeId> = { RESPIRACAO: 'respiracao', JOGO: 'pianopause', VIDEO: 'video' };
@@ -138,7 +136,7 @@ function atividadeDe(a: { tipo: string; conteudo_ou_referencia?: string | null }
 interface AtividadeApi { id_atividade: number; nome: string; tipo: string; conteudo_ou_referencia?: string | null; disponivel: boolean }
 interface SessaoApi {
   id_sessao: number; estudante: number; atividade: AtividadeApi; iniciada_em: string; status: string;
-  observacoes_sessao: string | null; registros_humor: { estado: number; momento: 'PRE' | 'POS' }[];
+  observacoes_sessao: string | null; registros_humor: { estado: number | null; emocao: EmocaoId | null; momento: 'PRE' | 'POS' }[];
 }
 interface AlertaApi {
   id_alerta: number; estudante: number; nome_estudante: string; nivel: number; criado_em: string; status: string;
@@ -187,12 +185,15 @@ function converterSessao(s: SessaoApi): SessaoRegistrada | null {
   const obs = s.observacoes_sessao ?? '';
   const marca = obs.match(MARCA);
   const relato = obs.replace(MARCA, '').trim();
+  const antes = pre.emocao ?? (marca?.[1] as EmocaoId | undefined);
+  const depois = pos.emocao ?? (marca?.[2] as EmocaoId | undefined);
+  if (!antes || !depois) return null;
   return {
     id: `sessao-${s.id_sessao}`,
     estudanteId: `est-${s.estudante}`,
     em: s.iniciada_em,
-    antes: (marca?.[1] as EmocaoId) ?? EMOCAO_DO_HUMOR[pre.estado],
-    depois: (marca?.[2] as EmocaoId) ?? EMOCAO_DO_HUMOR[pos.estado],
+    antes,
+    depois,
     atividade,
     relato: relato || undefined,
   };
@@ -393,10 +394,10 @@ async function carregarAdmin(carga: Carga): Promise<Carga> {
 export async function registrarSessao(s: Omit<SessaoRegistrada, 'id' | 'em' | 'estudanteId'>) {
   const id_atividade = idsAtividade.get(s.atividade);
   if (!id_atividade) throw new Error(`Atividade "${s.atividade}" não cadastrada no backend (rode criar_demo).`);
-  const { sessao } = await chamar<{ sessao: SessaoApi }>('POST', 'sessoes/', { id_atividade, humor_pre: HUMOR[s.antes] });
+  const { sessao } = await chamar<{ sessao: SessaoApi }>('POST', 'sessoes/', { id_atividade, humor_pre: s.antes });
   await chamar('POST', `sessoes/${sessao.id_sessao}/concluir/`, {
-    humor_pos: HUMOR[s.depois],
-    observacoes_sessao: `[mkpause antes=${s.antes} depois=${s.depois}]\n${s.relato ?? ''}`,
+    humor_pos: s.depois,
+    observacoes_sessao: s.relato ?? '',
   });
 }
 

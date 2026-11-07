@@ -1,6 +1,6 @@
 # Indicadores agregados em PHP
 
-Módulo PHP 8.2+ com PDO PostgreSQL. A administração acessa **Indicadores da escola** no menu do site. O PHP calcula os agregados diretamente no mesmo banco; o Django continua responsável por contas, sessão e permissões individuais. Não há outra senha ou login para o painel.
+Módulo PHP 8.2+ com PDO PostgreSQL. A administração acessa **Indicadores da escola** no menu do site. O PHP calcula os agregados diretamente no mesmo banco; a API Laravel continua responsável por contas, sessão e permissões individuais. Não há outra senha ou login para o painel.
 
 ## Rodar localmente
 
@@ -15,11 +15,11 @@ npm run dev
 
 O PHP fica em `127.0.0.1:8081`; o Vite repassa `/indicadores` para ele e `/api` para o backend Laravel. Entre como administrador no site e abra `/admin/indicadores`. O script Node usa a extensão `pdo_pgsql` instalada ao lado do PHP no Windows sem editar o `php.ini` global. Em Linux, instale/ative o módulo `php-pgsql` na distribuição.
 
-Por padrão, o PHP lê `backend/.env` e depois `.env.local` na raiz sem sobrescrever valores anteriores, como o backend. Variáveis do processo prevalecem. `INDICADORES_DATABASE_URL` permite indicar uma conta PostgreSQL separada com apenas SELECT; na ausência dela, usa `DATABASE_URL` ou `DB_*`. `DJANGO_API` é o endereço interno do backend (nome mantido do backend anterior), por padrão `http://127.0.0.1:8000`; `INDICADORES_TIMEZONE` usa `America/Sao_Paulo`.
+Por padrão, o PHP lê `backend/.env` e depois `.env.local` na raiz sem sobrescrever valores anteriores. Variáveis do processo prevalecem. `INDICADORES_DATABASE_URL` permite indicar uma conta PostgreSQL separada com apenas SELECT; na ausência dela, usa `DATABASE_URL` ou `DB_*`. `MKPAUSE_API_URL` é o endereço interno da API, por padrão `http://127.0.0.1:8000`; `INDICADORES_TIMEZONE` usa `America/Sao_Paulo`.
 
 ## API e proteção
 
-- `GET /indicadores/api/resumo?dias=7|30|90`: exige cookie de sessão válido e perfil administrador, confirmado via HTTP pelo Django a cada pedido. Outros métodos retornam 405.
+- `GET /indicadores/api/resumo?dias=7|30|90`: exige cookie de sessão válido e perfil administrador, confirmado via HTTP pela API a cada pedido. Outros métodos retornam 405.
 - `GET /indicadores/api/saude`: verifica PHP e conexão ao banco, sem dados pessoais.
 - São considerados apenas dias completos até ontem. Sessões canceladas e datas fora do intervalo não entram.
 - O período inteiro exige cinco estudantes distintos. Cada distribuição por dia, horário, turma, atividade, nível de alerta e resultado de humor também verifica participantes distintos.
@@ -37,6 +37,6 @@ npm run test:indicadores
 npm test
 ```
 
-Os testes de integração ficavam no backend Django (`backend/nucleo/test_indicadores_php.py`) e saíram junto com ele; precisam ser refeitos para o backend Laravel. Os testes do próprio módulo (`npm run test:indicadores`) continuam.
+Os testes de integração precisam ser refeitos para o backend Laravel. Os testes do próprio módulo (`npm run test:indicadores`) continuam.
 
 Não foi criada migração de banco: o módulo só lê tabelas existentes. Para hospedagem, veja [o guia](../../docs/hospedagem.md).

@@ -5,16 +5,8 @@ namespace App\Mkpause;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Quem pode fazer o quê (RN02, RN03, RN04, RN20, RN33, RN34).
- *
- * Toda regra de acesso está aqui. Para mudar uma permissão, edite ACESSO:
- * as rotas só perguntam Permissoes::pode($conta, $acao, $idEstudante).
- */
 class Permissoes
 {
-    // ação => perfis que podem. Profissionais só sobre estudantes vinculados;
-    // o estudante só sobre si mesmo; o administrador sobre todos.
     public const ACESSO = [
         'ver_dados_basicos' => [Conta::ESTUDANTE, Conta::PROFESSOR, Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO, Conta::ADMINISTRADOR],
         'ver_historico' => [Conta::PSICOLOGO_ESCOLAR, Conta::PSICOLOGO_CLINICO], // RF12, RF13; administração sem acesso emocional
@@ -26,7 +18,6 @@ class Permissoes
         'editar_ficha' => [Conta::PSICOLOGO_CLINICO, Conta::ADMINISTRADOR], // RF17, RF31
     ];
 
-    /** Consulta dos estudantes (tabela `estudante`, apelido e) que a conta pode acessar. */
     public static function estudantesVinculados(Conta $conta): Builder
     {
         $q = DB::table('estudante as e')->select('e.id_estudante');
