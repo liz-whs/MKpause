@@ -1,26 +1,30 @@
 import { agir } from '../../state/acoes';
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { api } from '../../data/api';
-import { DESTINOS_SAIDA, type Alerta } from '../../domain/tipos';
+import { DESTINOS_SAIDA } from '../../domain/tipos';
 import type { EmocaoId } from '../../domain/emocoes';
 import { useEstudante } from '../../state/EstudanteContext';
-import { BackButton, FocusTopBar } from '../../components/student/FocusTopBar';
+import { BackButton, FocusTopBar, TerminarExercicio, NomeAtividade } from '../../components/student/FocusTopBar';
 import { EmergencyLine, PeopleList, ScreenTitle, SectionTitle } from '../../components/student/Bits';
-import { BreathingCircle, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
+import { BreathingCircle, BreathingStage, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
 import { EmotionGrid } from '../../components/student/EmotionGrid';
 import { ChoiceChips } from '../../components/ui/ChoiceChips';
 import { Button } from '../../components/ui/Button';
+import { Field } from '../../components/ui/Field';
 import { Icon } from '../../components/ui/Icon';
 import { emocaoPorId } from '../../domain/emocoes';
 import { t } from '../../i18n';
 
 /* ───────────── Nível 2 ───────────── */
 
-/** Aviso de saída: destino opcional, quem vai saber, "Avisar e sair". */
+/** Aviso de saída com destino opcional e campo para um local personalizado. */
 export function AvisoSaida() {
   const { avisoSaida, avisarSaida } = useEstudante();
   const [destino, setDestino] = useState<string | null>(null);
+  const [outroLugar, setOutroLugar] = useState('');
+  const outroSelecionado = destino === 'Outro lugar';
+  const destinoInformado = outroSelecionado ? outroLugar.trim() : destino ?? undefined;
   if (avisoSaida) return <Navigate to="/estudante/pausa" replace />;
 
   return (
@@ -35,17 +39,23 @@ export function AvisoSaida() {
           <span id="titulo-destino">{t('Para onde?')}</span>
         </SectionTitle>
         <ChoiceChips label={t('Destino')} options={DESTINOS_SAIDA} value={destino} onChange={setDestino} allowDeselect />
+        {outroSelecionado && <Field
+          label={t('Qual é o outro lugar?')}
+          placeholder={t('Informe o local')}
+          value={outroLugar}
+          onChange={(evento) => setOutroLugar(evento.target.value)}
+          maxLength={160}
+          required
+          autoFocus
+        />}
       </section>
-      <section aria-labelledby="titulo-quem" className="flex flex-col gap-2">
-        <SectionTitle>
-          <span id="titulo-quem">{t('Quem vai saber')}</span>
-        </SectionTitle>
-        <PeopleList pessoas={api.estudante.quemAcompanha()} />
-      </section>
+      <PeopleList pessoas={api.estudante.quemAcompanha()} />
       <Button
         block
+        disabled={outroSelecionado && !destinoInformado}
         onClick={() => {
-          void agir(() => avisarSaida(destino ?? undefined), 'Aviso enviado à escola.');
+          if (outroSelecionado && !destinoInformado) return;
+          void agir(() => avisarSaida(destinoInformado), 'Aviso enviado à escola.');
         }}
       >
         <Icon name="porta" size={22} />
@@ -58,25 +68,28 @@ export function AvisoSaida() {
 /* ───────────── Nível 3 ───────────── */
 
 /**
- * Um toque: a respiração começa na hora, sem perguntas, e o alerta
- * vai para a escola automaticamente. "Respirar mais" e "Respirar enquanto isso"
- * chegam com { semAviso: true } para não repetir o alerta.
+ * O alerta é automático ao entrar. A respiração exige a avaliação inicial;
+ * retornar para respirar mais mantém a sessão e não repete o alerta.
  */
 export function AgoraRespira() {
-  const { perfil } = useEstudante();
+  const { perfil, sessao, iniciarNivel3, atualizarSessao } = useEstudante();
+  const [inicial, setInicial] = useState<EmocaoId | null>(null);
+  const pronta = Boolean(sessao.nivel3 && sessao.antes && !sessao.concluida);
   const location = useLocation();
   const semAviso = Boolean((location.state as { semAviso?: boolean } | null)?.semAviso);
   const reduzir = usePrefersReducedMotion();
-  const { t: tempo } = useBreathClock(true, reduzir);
+  const { t: tempo } = useBreathClock(pronta, reduzir);
 
-  const [alerta, setAlerta] = useState<Alerta | null>(null);
-  const [cancelado, setCancelado] = useState(false);
+  const [mostrarAviso, setMostrarAviso] = useState(false);
   const [falhou, setFalhou] = useState(false);
   const enviou = useRef(false);
 
   const enviarAviso = () => {
     setFalhou(false);
-    return agir(async () => { setAlerta(await api.estudante.enviarAlertaNivel3(perfil.id)); }, 'Aviso enviado à escola.')
+    return agir(async () => {
+      await api.estudante.enviarAlertaNivel3(perfil.id);
+      setMostrarAviso(true);
+    }, '')
       .then((ok) => { if (!ok) { enviou.current = false; setFalhou(true); } });
   };
 
@@ -86,71 +99,75 @@ export function AgoraRespira() {
     void enviarAviso();
   }, [semAviso, perfil.id]);
 
+  useEffect(() => {
+    if (!mostrarAviso) return;
+    const timer = window.setTimeout(() => setMostrarAviso(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [mostrarAviso]);
+
   return (
-    <div className="flex min-h-[calc(100dvh-2rem)] flex-col gap-4">
-      <FocusTopBar />
+    <div className={`flex min-h-[calc(100dvh-2rem)] flex-col gap-4 ${pronta ? '' : 'mx-auto w-full max-w-2xl'}`}>
+      <FocusTopBar back={pronta ? <NomeAtividade titulo="respire & pause" /> : undefined}>
+        {pronta && <TerminarExercicio to="/estudante/agora/fim" onClick={() => atualizarSessao({ etapaNivel3: 'avaliacao' })} />}
+      </FocusTopBar>
       {falhou && <div role="alert" className="rounded-card bg-surface p-4">
         <p>{t('O aviso ainda não foi enviado. Você pode continuar respirando e tentar novamente.')}</p>
         <Button onClick={() => { void enviarAviso(); }}>{t('Tentar enviar o aviso novamente')}</Button>
       </div>}
-      {alerta && !cancelado && (
-        <div role="status" className="flex flex-col gap-1.5 rounded-card bg-surface px-4 py-3.5">
-          <span className="flex items-center gap-2.5 font-semibold">
-            <span className="flex size-7 flex-none items-center justify-center rounded-full bg-leaf">
-              <Icon name="check" size={16} strokeWidth={3} />
-            </span>
-            {t('Aviso enviado à escola')}
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              void agir(async () => { await api.estudante.cancelarAlerta(alerta.id); setCancelado(true); }, '');
-            }}
-            className="min-h-12 self-start font-semibold underline underline-offset-4"
-          >
-            {t('Cancelar aviso')}
-          </button>
-        </div>
-      )}
-      {cancelado && (
+      {mostrarAviso && (
         <div role="status" className="flex items-center gap-2.5 rounded-card bg-surface px-4 py-3.5 font-semibold">
-          <Icon name="info" size={22} />
-          {t('Aviso cancelado.')}
+          <span className="flex size-7 flex-none items-center justify-center rounded-full bg-leaf">
+            <Icon name="check" size={16} strokeWidth={3} />
+          </span>
+          {t('Aviso enviado aos profissionais vinculados que podem receber alertas.')}
         </div>
       )}
-      <div className="mt-2 flex justify-center">
-        <BreathingCircle t={tempo} reduzir={reduzir} tamanho={320} />
-      </div>
-      <div className="mt-auto flex flex-col gap-2.5">
-        <Button to="/estudante/agora/fim" block>
-          {t('Terminei')}
+      {pronta ? <>
+        <BreathingStage>
+          <BreathingCircle t={tempo} reduzir={reduzir} tamanho={320} fluido />
+        </BreathingStage>
+      </> : <>
+        <ScreenTitle>{t('Como você está?')}</ScreenTitle>
+        <EmotionGrid value={inicial} onChange={setInicial} />
+        <Button block disabled={!inicial} onClick={() => { if (inicial) iniciarNivel3(inicial); }}>
+          {t('Começar respiração')}
         </Button>
-      </div>
+      </>}
     </div>
   );
 }
 
-/** Você se cuidou (fim do nível 3): emoção opcional e a linha de emergência. */
+/** Avaliação final obrigatória da respiração de nível 3; observação opcional. */
 export function VoceSeCuidou() {
+  const navigate = useNavigate();
+  const { sessao, atualizarSessao, concluirSessao } = useEstudante();
   const [emocao, setEmocao] = useState<EmocaoId | null>(null);
+  const [relato, setRelato] = useState('');
+  if (!sessao.nivel3 || !sessao.antes) return <Navigate to="/estudante/agora" replace />;
+  if (sessao.concluida) return <Navigate to="/estudante/pausa/concluida" replace />;
+  if (sessao.etapaNivel3 !== 'avaliacao') return <Navigate to="/estudante/agora" state={{ semAviso: true }} replace />;
   return (
     <div className="flex min-h-[calc(100dvh-2rem)] flex-col gap-4">
       <FocusTopBar />
       <div className="flex flex-col items-center gap-2.5 text-center">
         <img src={emocaoPorId('calmo').imagem} alt="" className="size-30 object-contain" />
-        <ScreenTitle>{t('Você se cuidou')}</ScreenTitle>
+        <ScreenTitle>{t('Como está agora?')}</ScreenTitle>
       </div>
-      <section aria-labelledby="titulo-agora" className="flex flex-col gap-2.5">
-        <SectionTitle extra={t('(opcional)')}>
-          <span id="titulo-agora">{t('Como está agora?')}</span>
-        </SectionTitle>
-        <EmotionGrid value={emocao} onChange={(e) => setEmocao((atual) => (atual === e ? null : e))} />
-      </section>
+      <EmotionGrid value={emocao} onChange={setEmocao} />
+      <Field label={t('Quer contar algo?')} optional multiline placeholder={t('Escreva aqui')}
+        value={relato} onChange={(evento) => setRelato(evento.target.value)} />
       <div className="mt-auto flex flex-col gap-2.5">
-        <Button to="/estudante" block>
-          {t('Início')}
-        </Button>
-        <Button to="/estudante/agora" state={{ semAviso: true }} variant="outline" block>
+        <Button block disabled={!emocao} onClick={() => {
+          if (!emocao) return;
+          void agir(async () => {
+            await concluirSessao(relato, emocao);
+            navigate('/estudante/pausa/concluida');
+          }, 'Sessão concluída.');
+        }}>{t('Enviar resposta')}</Button>
+        <Button onClick={() => {
+          atualizarSessao({ etapaNivel3: 'respiracao' });
+          navigate('/estudante/agora', { state: { semAviso: true } });
+        }} variant="outline" block>
           <Icon name="respiracao" size={22} />
           {t('Respirar mais')}
         </Button>
@@ -159,4 +176,3 @@ export function VoceSeCuidou() {
     </div>
   );
 }
-

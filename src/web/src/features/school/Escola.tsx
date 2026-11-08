@@ -41,7 +41,7 @@ export function EscolaLayout() {
   return (
     <ProLayout
       perfil={PAPEL_LABEL[eu.papel]}
-      usuario={{ nome: eu.nome, iniciais: eu.iniciais }}
+      usuario={{ id: eu.id, nome: eu.nome, iniciais: eu.iniciais }}
       perfilTo="/escola/perfil"
       items={[
         { to: '/escola/alertas', label: 'Alertas', icon: 'alerta', count: novos },
@@ -192,9 +192,11 @@ export function EscolaAvisos() {
                 </span>
               </div>
               {temAlerta && (
-                <Badge tone="rose" icon="alerta">
-                  {t('Alerta aberto')}
-                </Badge>
+                <span className="flex shrink-0 items-center self-center">
+                  <Badge tone="rose" icon="alerta">
+                    {t('Alerta aberto')}
+                  </Badge>
+                </span>
               )}
               <Button size="md" to={`/escola/estudantes/${e.id}`}>
                 {t('Ver estudante')}
@@ -280,9 +282,11 @@ export function EscolaEstudantes() {
                   {t('Última pausa:')} {ultima ? quando(ultima.em) : t('nenhuma ainda')}
                 </span>
                 {aberto && (
-                  <Badge tone="rose" icon="alerta">
-                    {t('Alerta aberto')}
-                  </Badge>
+                  <span className="flex shrink-0 items-center self-center">
+                    <Badge tone="rose" icon="alerta">
+                      {t('Alerta aberto')}
+                    </Badge>
+                  </span>
                 )}
                 <Icon name="seguir" size={22} />
               </Link>

@@ -1,4 +1,5 @@
 /**
+ * A geração dos efeitos sonoros requer ffmpeg no PATH, além de Python/pygbag.
  * Compila o MK Potion (src/MKpotion/mk_potion, em pygame, da Ana) para o navegador
  * com o pygbag e grava o resultado em public/jogos/mkpotion.
  *
@@ -43,6 +44,21 @@ if (!/^import pygame\b/m.test(codigo)) {
 }
 
 integrarPotion(projeto);
+// A geração fica fora do pacote web; o navegador carrega apenas os Ogg prontos.
+copyFileSync(join(web, 'scripts', 'mkpotion-audio-web.py'), join(projeto, 'game', 'sounds.py'));
+execFileSync(python, [join(web, 'scripts', 'mkpotion-audio.py'), projeto], { stdio: 'inherit' });
+for (const nome of ['select', 'pour', 'undo', 'win']) {
+  const wav = join(projeto, 'assets', 'audio', `${nome}.wav`);
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', wav, '-c:a', 'libvorbis', '-q:a', '8', join(projeto, 'assets', 'audio', `${nome}.ogg`)], { stdio: 'inherit' });
+  rmSync(wav);
+}
+execFileSync(python, ['-c', `import pygame
+from pathlib import Path
+origem, destino = Path(__import__('sys').argv[1]), Path(__import__('sys').argv[2])
+for nome, emocao in [('mascot_front','calmo'),('mascot_sit','calmo'),('mascot_think','calmo'),('mascot_happy','feliz')]:
+    pygame.image.save(pygame.image.load(str(origem / (emocao+'.svg'))), str(destino / (nome+'.png')))
+`, join(web, 'src', 'assets', 'chinchila'), join(projeto, 'assets', 'images')], {stdio:'inherit'});
+
 console.log(`Compilando ${origem} com pygbag…`);
 // PYTHONUTF8: no Windows o pygbag leria o código como cp1252 e quebraria nos acentos.
 execFileSync(python, ['-m', 'pygbag', '--build', projeto], {
@@ -80,5 +96,6 @@ for (const [de, para] of trocas) {
 writeFileSync(join(destino, 'index.html'), html);
 
 if (!existsSync(join(destino, 'mkpotion.apk'))) console.warn('Aviso: mkpotion.apk não foi gerado.');
+if (dirname(trabalho) !== tmpdir() || !basename(trabalho).startsWith('mkpause-mkpotion-')) throw new Error('Pasta temporária inesperada.');
 rmSync(trabalho, { recursive: true, force: true });
 console.log(`Pronto: ${destino}`);

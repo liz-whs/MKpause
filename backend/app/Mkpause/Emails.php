@@ -27,17 +27,17 @@ class Emails
         return config('mkpause.email.modo') === 'arquivo';
     }
 
-    public static function processar(int $limite = 50): int
+    public static function processar(int $limite = 50, ?int $escola = null): int
     {
         $enviados = 0;
         $agora = Formato::agora();
-        DB::table('notificacao_email')->where('status', 'PROCESSANDO')
+        self::fila($escola)->where('status', 'PROCESSANDO')
             ->where('processando_em', '<', Formato::banco($agora->subMinutes(5)))
             ->update(['status' => 'FALHA', 'disponivel_em' => Formato::banco($agora), 'erro' => 'Processamento interrompido']);
 
         for ($i = 0; $i < $limite; $i++) {
-            $item = DB::transaction(function () {
-                $item = DB::table('notificacao_email')->whereIn('status', ['PENDENTE', 'FALHA'])->where('tentativas', '<', 5)
+            $item = DB::transaction(function () use ($escola) {
+                $item = self::fila($escola)->whereIn('status', ['PENDENTE', 'FALHA'])->where('tentativas', '<', 5)
                     ->where('disponivel_em', '<=', Formato::banco(Formato::agora()))
                     ->orderBy('criado_em')->orderBy('id_notificacao')->lock('FOR UPDATE SKIP LOCKED')->first();
                 if ($item) {
@@ -80,6 +80,13 @@ class Emails
             $enviados++;
         }
         return $enviados;
+    }
+
+    private static function fila(?int $escola)
+    {
+        $q = DB::table('notificacao_email');
+        if ($escola !== null) $q->whereIn('id_destinatario_alerta', DB::table('destinatario_alerta as d')->join('alerta as a', 'a.id_alerta', '=', 'd.id_alerta')->join('estudante as e', 'e.id_estudante', '=', 'a.id_estudante')->join('usuario as u', 'u.id_usuario', '=', 'e.id_usuario')->where('u.id_escola', $escola)->select('d.id_destinatario_alerta'));
+        return $q;
     }
 
     private static function mensagem(object $item): ?array

@@ -24,12 +24,14 @@ class AutenticacaoController extends Controller
         Csrf::exigir($request);
         $e = $this->entrada($request);
         $email = $e->email('email');
-        $senha = $e->texto('senha', aparar: false);
+        $senha = $e->texto('senha', max: 128, aparar: false);
         $e->falharSeHouverErros();
         Limite::exigir($request, 'login');
 
         $usuario = DB::table('usuario')->whereRaw('UPPER(email) = UPPER(?)', [$email])->where('ativo', true)->first();
-        $conta = $usuario && SenhaPbkdf2::conferir($senha, $usuario->senha_hash) ? Conta::comPerfil($usuario) : null;
+        $hash = $usuario->senha_hash ?? 'pbkdf2_sha256$1200000$mkpauseDummySalt2026$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+        $valida = SenhaPbkdf2::conferir($senha, $hash);
+        $conta = $usuario && $valida ? Conta::comPerfil($usuario) : null;
         if ($conta === null) {
             return $this->json(['detail' => 'E-mail ou senha não conferem. Confira e tente de novo.'], 401)
                 ->header('WWW-Authenticate', 'Session');
@@ -40,9 +42,18 @@ class AutenticacaoController extends Controller
 
     public function logout(Request $request)
     {
-        $request->session()->flush();
-        $request->session()->regenerate(true);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return $this->json(['detail' => 'Você saiu da sua conta.']);
+    }
+
+    public function concluirPrimeiroAcesso(Request $request)
+    {
+        $conta = $this->conta($request);
+        // O perfil é limitado pelo middleware e a conta-alvo vem da sessão autenticada.
+        DB::table('estudante')->where('id_estudante', $conta->idPerfil())
+            ->where('id_usuario', $conta->id())->update(['primeiro_acesso_concluido' => true]);
+        return $this->json(Conta::carregar($conta->id())->dados());
     }
 
     public function eu(Request $request)

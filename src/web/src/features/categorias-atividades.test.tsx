@@ -15,7 +15,7 @@ function abrir(url = '/estudante/atividades') {
 }
 const lista = () => within(screen.getByRole('list', { name: 'Atividades' }));
 
-it('mostra um card de filtros sem ícones e os sete nomes novos, sem títulos de grupos', async () => {
+it('mostra filtros separados sem ícones e os sete nomes novos, sem títulos de grupos', async () => {
   const { container } = abrir();
   const filtros = screen.getByRole('group', { name: 'Filtrar por tipo' });
   expect(within(filtros).getAllByRole('button')).toHaveLength(4);
@@ -85,7 +85,7 @@ it.each([
   definirPreferencias({ idioma });
   abrir();
   await userEvent.click(screen.getByRole('button', { name: videos }));
-  expect(screen.getAllByRole('link').filter((l) => l.getAttribute('href') === '/estudante/pausa')).toHaveLength(3);
+  expect(screen.getAllByRole('link').filter((l) => l.getAttribute('href')?.startsWith('/estudante/atividades/'))).toHaveLength(3);
   await userEvent.click(screen.getByRole('button', { name: jogos }));
   expect(screen.getByRole('link', { name: /mk connection/ })).toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: exercicios }));

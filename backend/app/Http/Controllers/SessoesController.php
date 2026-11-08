@@ -76,7 +76,7 @@ class SessoesController extends Controller
         $humor = $e->escolha('humor', self::EMOCOES);
         $e->falharSeHouverErros();
         $nivel = self::avaliarHumor($humor);
-        $atividades = DB::table('atividade')->where('disponivel', true)->orderBy('nome')->orderBy('id_atividade')->get();
+        $atividades = DB::table('atividade')->where('id_escola', \App\Mkpause\Escola::id($this->conta($request)))->where('disponivel', true)->orderBy('nome')->orderBy('id_atividade')->get();
         return $this->json([
             'nivel' => $nivel,
             'mensagem' => self::MENSAGEM_POR_NIVEL[$nivel],
@@ -91,7 +91,7 @@ class SessoesController extends Controller
         $idAtividade = $e->inteiro('id_atividade');
         $humor = $e->escolha('humor_pre', self::EMOCOES);
         $e->falharSeHouverErros();
-        $atividade = DB::table('atividade')->where('id_atividade', $idAtividade)->where('disponivel', true)->first();
+        $atividade = DB::table('atividade')->where('id_escola', \App\Mkpause\Escola::id($this->conta($request)))->where('id_atividade', $idAtividade)->where('disponivel', true)->first();
         if ($atividade === null) {
             throw ErroApi::campos(['id_atividade' => 'Esta atividade não está disponível. Escolha outra.']);
         }

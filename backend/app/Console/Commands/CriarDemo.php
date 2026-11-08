@@ -17,6 +17,10 @@ class CriarDemo extends Command
 
     public function handle(): int
     {
+        if (!config('mkpause.demo_habilitada')) {
+            $this->error('Contas de demonstração desabilitadas. Use MKPAUSE_DEMO=true apenas em ambiente isolado.');
+            return self::FAILURE;
+        }
         Banco::exigir($this);
         $senha = $this->option('senha') ?: config('mkpause.demo_senha');
         $minimo = config('mkpause.senha_tamanho_minimo');
@@ -27,7 +31,8 @@ class CriarDemo extends Command
 
         DB::transaction(function () use ($senha) {
             $agora = Formato::banco(Formato::agora());
-            CatalogoAtividades::sincronizar();
+            DB::table('escola')->insertOrIgnore(['nome' => self::ESCOLA]);
+            CatalogoAtividades::sincronizar((int) DB::table('escola')->where('nome', self::ESCOLA)->value('id_escola'));
             $est = $this->perfil('estudante', 'id_estudante', $this->usuario('ana.demo@mkpause.dev', 'Ana Lima', $senha),
                 ['turma' => '8º A', 'instituicao_ensino' => self::ESCOLA]);
             $prof = $this->perfil('professor', 'id_professor', $this->usuario('professor.demo@mkpause.dev', 'Marcos Prado', $senha),
@@ -62,6 +67,7 @@ class CriarDemo extends Command
                 'id_usuario');
             $this->line("  conta {$email} criada");
         }
+        DB::table('usuario')->where('id_usuario', $id)->update(['id_escola' => DB::table('escola')->where('nome', self::ESCOLA)->value('id_escola')]);
         return $id;
     }
 

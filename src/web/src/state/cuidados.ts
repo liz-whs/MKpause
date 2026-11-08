@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { chaveDia, CUIDADOS_DO_DIA, type CuidadoId } from '../domain/cuidados';
+import { t } from '../i18n';
+import { chamar } from '../data/servidor';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { chaveDia, CUIDADOS, cuidadosDoDia, type CuidadoId } from '../domain/cuidados';
 
 type Registros = Record<string, CuidadoId[]>;
 const EVENTO = 'mkpause:cuidados-atualizados';
-const ids = new Set<string>(CUIDADOS_DO_DIA.map((c) => c.id));
+const ids = new Set<string>(CUIDADOS.map((c) => c.id));
 
 function validar(valor: unknown): Registros {
   if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return {};
@@ -23,6 +25,9 @@ function ler(raw: string | null): Registros {
 }
 
 export function useCuidados(estudanteId: string) {
+  const [erroCuidados, setErroCuidados] = useState('');
+  const fila = useRef(Promise.resolve());
+  const remoto = import.meta.env.MODE !== 'test';
   const chave = estudanteId && estudanteId !== 'est-0' ? `mkpause:cuidados:v1:${estudanteId}` : null;
   const [hoje, setHoje] = useState(() => chaveDia(new Date()));
   const assinar = useCallback((avisar: () => void) => {
@@ -34,6 +39,18 @@ export function useCuidados(estudanteId: string) {
   const snapshot = useCallback(() => chave ? localStorage.getItem(chave) ?? '{}' : '{}', [chave]);
   const raw = useSyncExternalStore(assinar, snapshot, () => '{}');
   const registros = useMemo(() => ler(raw), [raw]);
+  const [pronto, setPronto] = useState(!remoto);
+  useEffect(() => {
+    if (!remoto || !chave) return;
+    const controle = new AbortController();
+    setPronto(false); setErroCuidados('');
+    chamar<Registros>('GET', 'cuidados/', undefined, controle.signal).then((dados) => {
+      if (controle.signal.aborted) return;
+      localStorage.setItem(chave, JSON.stringify(validar(dados)));
+      window.dispatchEvent(new Event(EVENTO)); setPronto(true);
+    }).catch(() => { if (!controle.signal.aborted) setErroCuidados(t('Não foi possível carregar seus cuidados. Recarregue a página.')); });
+    return () => controle.abort();
+  }, [chave, remoto]);
 
   useEffect(() => {
     let timer: number;
@@ -55,19 +72,28 @@ export function useCuidados(estudanteId: string) {
     };
   }, []);
 
-  const alternarCuidado = useCallback((id: CuidadoId) => {
-    if (!chave || !ids.has(id)) return;
+  const concluirCuidado = useCallback((id: CuidadoId) => {
+    if (!chave || !ids.has(id) || !pronto) return;
     const dia = chaveDia(new Date());
     const dados = ler(localStorage.getItem(chave));
     const feitos = dados[dia] ?? [];
-    const proximos = feitos.includes(id) ? feitos.filter((c) => c !== id) : [...feitos, id];
-    if (proximos.length) dados[dia] = proximos;
-    else delete dados[dia];
+    if (feitos.includes(id)) return;
+    dados[dia] = [...feitos, id];
     localStorage.setItem(chave, JSON.stringify(dados));
     setHoje(dia);
     window.dispatchEvent(new Event(EVENTO));
-  }, [chave]);
+    if (remoto) fila.current = fila.current.then(async () => {
+      try {
+        await chamar('POST', 'cuidados/', { cuidado: id, feito: true, id_estudante: Number(estudanteId.replace('est-', '')) });
+        setErroCuidados('');
+      } catch {
+        setErroCuidados(t('Não foi possível salvar seus cuidados. Recarregue a página para conferir.'));
+      }
+    });
+  }, [chave, pronto, remoto, estudanteId]);
 
-  return { diasComCuidado: useMemo(() => new Set(Object.keys(registros)), [registros]),
-    feitosHoje: registros[hoje] ?? [], alternarCuidado };
+  const sugestoesHoje = useMemo(() => cuidadosDoDia(hoje, estudanteId), [hoje, estudanteId]);
+  const outrosCuidados = useMemo(() => CUIDADOS.filter((c) => !sugestoesHoje.some((s) => s.id === c.id)), [sugestoesHoje]);
+  return { sugestoesHoje, outrosCuidados, erroCuidados, diasComCuidado: useMemo(() => new Set(Object.keys(registros)), [registros]),
+    feitosHoje: registros[hoje] ?? [], concluirCuidado };
 }

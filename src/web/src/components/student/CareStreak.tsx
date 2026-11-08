@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { CUIDADOS_DO_DIA, calcularSequencia, semanaAtual } from '../../domain/cuidados';
+import { META_DIARIA_CUIDADOS, calcularSequencia, semanaAtual } from '../../domain/cuidados';
 import { useEstudante } from '../../state/EstudanteContext';
 import { Icon } from '../ui/Icon';
 import { cx } from '../ui/cx';
@@ -67,9 +67,10 @@ function Semana({ largo = false }: { largo?: boolean }) {
 
 /** Card da sequência na tela inicial: dias seguidos, semana e o próximo cuidado do dia. */
 export function CareStreakCard() {
-  const { diasComCuidado, feitosHoje, alternarCuidado } = useEstudante();
+  const { diasComCuidado, feitosHoje, concluirCuidado, sugestoesHoje } = useEstudante();
   const dias = calcularSequencia(diasComCuidado, new Date());
-  const proximo = CUIDADOS_DO_DIA.find((c) => !feitosHoje.includes(c.id));
+  const progresso = Math.min(feitosHoje.length, META_DIARIA_CUIDADOS);
+  const proximo = progresso < META_DIARIA_CUIDADOS ? sugestoesHoje.find((c) => !feitosHoje.includes(c.id)) : undefined;
 
   return (
     <section aria-label={t('Sua sequência de cuidados')} className="flex flex-col gap-3.5 rounded-[26px] bg-surface p-4">
@@ -84,13 +85,13 @@ export function CareStreakCard() {
             </span>
             <span className="flex flex-1 flex-col">
               <span className="text-label font-bold text-muted">
-                {t('Hoje · {feitos} de {total}', { feitos: feitosHoje.length, total: CUIDADOS_DO_DIA.length })}
+                {t('Hoje · {feitos} de {total}', { feitos: progresso, total: META_DIARIA_CUIDADOS })}
               </span>
               <strong>{proximo.label}</strong>
             </span>
             <button
               type="button"
-              onClick={() => alternarCuidado(proximo.id)}
+              onClick={() => concluirCuidado(proximo.id)}
               aria-label={t('Feito: {cuidado}', { cuidado: proximo.label })}
               className="min-h-12 rounded-pill bg-ink px-4 font-semibold text-surface hover:bg-muted"
             >
@@ -102,7 +103,7 @@ export function CareStreakCard() {
             <span className="flex size-8 items-center justify-center rounded-full bg-leaf">
               <Icon name="check" size={17} strokeWidth={3} />
             </span>
-            {t('Tudo feito hoje!')}
+            {t('Meta de cuidados de hoje concluída!')}
           </p>
         )}
       </div>

@@ -12,11 +12,11 @@ PostgreSQL (local ou Neon).
 
 ```powershell
 cd backend
+copy .env.example .env                    # preencha banco e uma MKPAUSE_SECRET_KEY aleatória
 composer install
-copy .env.example .env                    # e preencha a senha do banco
-php artisan mkpause:aplicar-esquema       # cria/atualiza as tabelas (V1 a V4) sem Flyway
+php artisan mkpause:aplicar-esquema       # cria/atualiza as tabelas (V1 a V11) sem Flyway
 php artisan mkpause:verificar-esquema     # confere se o backend e o banco batem
-php artisan mkpause:criar-admin --email=admin@escola.br --nome="Administração"
+php artisan mkpause:criar-admin --email=admin@escola.br --nome="Administração" --escola="Nome da escola"
 ```
 
 Para subir a API em `127.0.0.1:8000` (para onde o Vite repassa `/api`):
@@ -38,9 +38,9 @@ O `npm run backend` liga as extensões do PHP que faltarem (no XAMPP, por exempl
 
 | Comando | O que faz |
 |---|---|
-| `php artisan mkpause:aplicar-esquema` | Aplica V1 a V4 que faltam. Usa transação e bloqueio; não reaplica o que existe; para em esquema parcial. A V2 exige `responsavel` vazia. |
+| `php artisan mkpause:aplicar-esquema` | Aplica V1 a V11 que faltam. Usa transação e bloqueio; não reaplica o que existe; para em esquema parcial. A V2 exige `responsavel` vazia. |
 | `php artisan mkpause:verificar-esquema` | Compara as colunas que o backend usa com o banco. `ERRO` quebra o backend; `AVISO` não. |
-| `php artisan mkpause:criar-demo` | Contas, vínculos e atividades de demonstração (senha: `DEMO_SENHA` ou `--senha`). |
+| `php artisan mkpause:criar-demo` | Requer `MKPAUSE_DEMO=true` em ambiente isolado. Contas, vínculos e atividades de demonstração (senha: `DEMO_SENHA` ou `--senha`). |
 | `php artisan mkpause:sincronizar-atividades` | Acrescenta as sete atividades do catálogo, sem criar contas ou alterar senhas. Preserva atividades ocultadas e nomes personalizados. |
 | `php artisan mkpause:criar-admin` | Cria um administrador (pede a senha no terminal). |
 | `php artisan mkpause:processar-emails` | Processa a fila de e-mail (até 5 tentativas por mensagem). |
@@ -159,3 +159,6 @@ Num vínculo, o DELETE recebe o par no corpo, por exemplo `{"professor": 1, "est
 - **Entrega externa de e-mail:** falta configurar um provedor SMTP; o padrão é a caixa local.
 - **Perfil exclusivo:** o banco não impede um usuário em duas tabelas de perfil; o login escolhe pela ordem em `app/Mkpause/Conta.php`.
 - Antes de publicar: `APP_DEBUG=false`, uma `MKPAUSE_SECRET_KEY` de verdade e HTTPS.
+
+
+Antes de atualizar uma instalação existente, siga [Segurança e separação por escola](../docs/seguranca.md). Contas sem escola definida não acessam dados institucionais.

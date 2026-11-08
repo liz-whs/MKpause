@@ -12,6 +12,8 @@ if ($renderHost) {
 return [
     'segredo' => $segredo,
 
+    'demo_habilitada' => filter_var(env('MKPAUSE_DEMO', false), FILTER_VALIDATE_BOOLEAN),
+
     'debug' => filter_var(env('APP_DEBUG', env('DJANGO_DEBUG', false)), FILTER_VALIDATE_BOOLEAN),
 
     'senha_tamanho_minimo' => 8,

@@ -43,7 +43,7 @@ class AcompanhamentoController extends Controller
         if (!$this->conta($request)->e(Conta::ADMINISTRADOR)) {
             throw ErroApi::proibido('Só a administração cria fichas de acompanhamento.');
         }
-        $estudante = DB::table('estudante')->where('id_estudante', self::id($id))->first() ?? throw ErroApi::semRegistro('Estudante');
+        $estudante = DB::table('estudante')->whereIn('id_estudante', Permissoes::estudantesVinculados($this->conta($request)))->where('id_estudante', self::id($id))->first() ?? throw ErroApi::semRegistro('Estudante');
         if (DB::table('ficha_acompanhamento')->where('id_estudante', $estudante->id_estudante)->exists()) {
             throw ErroApi::conflito('Este estudante já tem uma ficha.');
         }
@@ -203,6 +203,7 @@ class AcompanhamentoController extends Controller
     private function avisos(Request $request)
     {
         $q = DB::table('aviso as a')->join('usuario as u', 'u.id_usuario', '=', 'a.id_autor')
+            ->where('u.id_escola', \App\Mkpause\Escola::id($this->conta($request)))
             ->select('a.*', 'u.nome_completo as nome_autor')->orderByDesc('a.publicado_em')->orderByDesc('a.id_aviso');
         $conta = $this->conta($request);
         if (!$conta->e(Conta::ADMINISTRADOR)) {
@@ -259,11 +260,11 @@ class AcompanhamentoController extends Controller
         $sessoes = DB::table('sessao as s')->join('atividade as a', 'a.id_atividade', '=', 's.id_atividade')
             ->where('s.id_estudante', $estudante->id_estudante)->where('s.status', 'CONCLUIDA')
             ->where('s.iniciada_em', '>=', Formato::banco($inicio))->where('s.iniciada_em', '<', Formato::banco($fim))
-            ->orderBy('s.iniciada_em')->orderBy('s.id_sessao')->select('s.id_sessao', 's.iniciada_em', 'a.tipo')->get();
-        // Somente registros novos categóricos: não inferir emoção a partir da escala histórica 1–5.
+            ->orderBy('s.iniciada_em')->orderBy('s.id_sessao')->select('s.id_sessao', 's.iniciada_em', 's.observacoes_sessao', 'a.tipo')->get();
+        // Emoções explícitas atuais ou na marca de compatibilidade; nunca converter a escala histórica 1–5.
         $emocoes = SessoesController::EMOCOES;
         $humores = DB::table('registro_humor')->whereIn('id_sessao', $sessoes->pluck('id_sessao'))
-            ->whereIn('momento', ['PRE', 'POS'])->whereIn('emocao', $emocoes)
+            ->whereIn('momento', ['PRE', 'POS'])
             ->orderBy('id_registro_humor')->get()->groupBy('id_sessao');
 
         $antes = array_fill_keys($emocoes, 0);
@@ -276,10 +277,17 @@ class AcompanhamentoController extends Controller
             foreach ($humores[$s->id_sessao] ?? [] as $h) {
                 $porMomento[$h->momento] = $h->emocao;
             }
-            if (!isset($porMomento['PRE'], $porMomento['POS'])) {
+            if (!array_key_exists('PRE', $porMomento) || !array_key_exists('POS', $porMomento)) {
                 continue;
             }
-            [$pre, $pos] = [$porMomento['PRE'], $porMomento['POS']];
+            // Mesma marca legada reconhecida pelo histórico da interface. Os campos
+            // categóricos têm prioridade; a marca só supre campos nulos, sem gravar dados.
+            preg_match('/^\[mkpause antes=(\w+) depois=(\w+)\]/', $s->observacoes_sessao ?? '', $marca);
+            $pre = $porMomento['PRE'] ?? $marca[1] ?? null;
+            $pos = $porMomento['POS'] ?? $marca[2] ?? null;
+            if (!in_array($pre, $emocoes, true) || !in_array($pos, $emocoes, true)) {
+                continue;
+            }
             $antes[$pre]++;
             $depois[$pos]++;
             if (array_key_exists($s->tipo, $atividades)) {

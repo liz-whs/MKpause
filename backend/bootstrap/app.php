@@ -22,7 +22,7 @@ foreach ([dirname(__DIR__), dirname(__DIR__, 2)] as $i => $pasta) {
 }
 
 $json = fn (int $status, array $corpo, array $cabecalhos = []) => response()->json(
-    $corpo, $status, $cabecalhos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $corpo, $status, $cabecalhos + ['Cache-Control' => 'no-store', 'X-Content-Type-Options' => 'nosniff'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -39,10 +39,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
         ]);
         $middleware->alias(['conta' => Autenticar::class]);
-        $middleware->trustProxies(at: '*');
+        $proxies = array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '')))));
+        $middleware->trustProxies(at: $proxies);
     })
     ->withExceptions(function (Exceptions $exceptions) use ($json): void {
-        $exceptions->dontReport([ErroApi::class]);
+        $exceptions->dontReport([ErroApi::class, QueryException::class]);
         $exceptions->render(fn (ErroApi $e) => $json($e->status, $e->corpo, $e->cabecalhos));
 
         $exceptions->render(function (MethodNotAllowedHttpException $e, Request $request) use ($json) {
@@ -56,11 +57,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (QueryException $e) use ($json) {
             $estado = (string) ($e->errorInfo[0] ?? $e->getCode());
             if (str_starts_with($estado, '23')) {
-                Log::warning('IntegrityError: '.$e->getMessage());
+                Log::warning('Database integrity failure', ['sqlstate' => $estado]);
                 return $json(409, ['detail' => 'Não conseguimos salvar: os dados conflitam com um registro existente '
                     .'ou com uma regra do banco. Confira os campos e tente de novo.']);
             }
-            Log::error('DatabaseError: '.$e->getMessage());
+            Log::error('Database operation failed', ['sqlstate' => $estado]);
             return $json(400, ['detail' => 'Não conseguimos salvar agora. Tente de novo em instantes.']);
         });
     })->create();

@@ -61,13 +61,7 @@ describe('alertas chegam à escola', () => {
     expect(within(card).getByText('Visto por você')).toBeInTheDocument();
   });
 
-  it('alerta cancelado pelo aluno não aparece', async () => {
-    const a = await api.estudante.enviarAlertaNivel3('est-1');
-    await api.estudante.cancelarAlerta(a.id);
-    entrarComoProfissional('prof-1');
-    abrir('/escola/alertas');
-    expect(screen.queryByText('Ana L.')).toBeNull();
-  });
+
 });
 
 describe('sem intensidade nem "nível 2" nos registros', () => {

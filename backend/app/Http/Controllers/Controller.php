@@ -40,7 +40,7 @@ abstract class Controller
 
     protected function json(mixed $dados, int $status = 200): JsonResponse
     {
-        return response()->json($dados, $status, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return response()->json($dados, $status, ['Cache-Control' => 'no-store', 'X-Content-Type-Options' => 'nosniff'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     protected function vazio(): Response

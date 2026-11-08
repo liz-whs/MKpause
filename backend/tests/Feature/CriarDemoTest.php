@@ -13,19 +13,22 @@ class CriarDemoTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['mkpause.demo_habilitada' => true]);
         config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:',
             'database.connections.sqlite.url' => null, 'database.connections.sqlite.host' => 'teste-local',
             'database.connections.sqlite.port' => 0, 'database.connections.sqlite.username' => 'teste']);
         DB::purge('sqlite');
+        Schema::create('escola', function (Blueprint $t) { $t->increments('id_escola'); $t->string('nome')->unique(); });
+        DB::table('escola')->insert(['id_escola' => 1, 'nome' => 'Escola Modelo']);
         Schema::create('atividade', function (Blueprint $t) {
-            $t->increments('id_atividade');
+            $t->increments('id_atividade'); $t->integer('id_escola')->default(1);
             foreach (['nome', 'tipo', 'conteudo_ou_referencia'] as $campo) $t->string($campo);
             $t->boolean('disponivel')->default(true);
             $t->dateTime('criado_em')->nullable();
             $t->dateTime('atualizado_em')->nullable();
         });
         Schema::create('usuario', function (Blueprint $t) {
-            $t->increments('id_usuario');
+            $t->increments('id_usuario'); $t->integer('id_escola')->nullable();
             foreach (['nome_completo', 'email', 'senha_hash'] as $campo) $t->string($campo);
             $t->boolean('ativo');
             $t->dateTime('criado_em');

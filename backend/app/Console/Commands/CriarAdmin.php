@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class CriarAdmin extends Command
 {
-    protected $signature = 'mkpause:criar-admin {--email= : E-mail do administrador} {--nome= : Nome}
+    protected $signature = 'mkpause:criar-admin {--email= : E-mail do administrador} {--nome= : Nome} {--escola= : Nome da escola independente}
                             {--senha= : Evite em produção: fica no histórico do terminal}';
     protected $description = 'Cria um usuário administrador.';
 
@@ -17,8 +17,9 @@ class CriarAdmin extends Command
     {
         $email = mb_strtolower((string) $this->option('email'));
         $nome = (string) $this->option('nome');
-        if ($email === '' || $nome === '') {
-            $this->error('Informe --email e --nome.');
+        $escola = trim((string) $this->option('escola'));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $nome === '' || $escola === '' || mb_strlen($escola) > 160) {
+            $this->error('Informe --email válido, --nome e --escola.');
             return self::FAILURE;
         }
         Banco::exigir($this);
@@ -32,9 +33,12 @@ class CriarAdmin extends Command
             $this->error("A senha precisa de pelo menos {$minimo} caracteres.");
             return self::FAILURE;
         }
-        DB::transaction(function () use ($email, $nome, $senha) {
+        DB::transaction(function () use ($email, $nome, $senha, $escola) {
             $agora = Formato::banco(Formato::agora());
-            $id = DB::table('usuario')->insertGetId(['nome_completo' => $nome, 'email' => $email,
+            DB::table('escola')->insertOrIgnore(['nome' => $escola]);
+            $idEscola = (int) DB::table('escola')->where('nome', $escola)->value('id_escola');
+            \App\Mkpause\CatalogoAtividades::sincronizar($idEscola);
+            $id = DB::table('usuario')->insertGetId(['id_escola' => $idEscola, 'nome_completo' => $nome, 'email' => $email,
                 'senha_hash' => SenhaPbkdf2::criar($senha), 'ativo' => true, 'criado_em' => $agora,
                 'atualizado_em' => $agora], 'id_usuario');
             DB::table('administrador')->insert(['id_usuario' => $id, 'ativo' => true, 'criado_em' => $agora,

@@ -1,0 +1,74 @@
+/* Uma moldura de viewport para as boas-vindas e as três etapas. */
+.onboarding-tela { height: 100dvh; }
+.onboarding-tela > header { flex: none; }
+.onboarding-tela > main { min-height: 0; }
+.onboarding-etapas > main {
+  display: grid; grid-template-rows: auto minmax(0,1fr) auto;
+  max-width: 72rem; gap: clamp(8px,1.8dvh,18px); padding: 12px 24px 16px;
+}
+.apresentacao-corpo {
+  display: grid; grid-template-columns: minmax(0,1fr); align-content: start;
+  gap: clamp(8px,1.2dvh,16px); min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+}
+.apresentacao-intro { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.apresentacao-intro h1 { font-size: clamp(1.5rem,3vw,2.5rem); line-height: 1.12; }
+.apresentacao-descricao { font-size: .875rem; line-height: 1.45; }
+.apresentacao-extra > p { padding: 12px; font-size: .8125rem; line-height: 1.4; }
+.apresentacao-ilustracao { position: absolute; left: 0; top: 0; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--cor-ilustracao, var(--color-sky)); }
+.apresentacao-ilustracao svg { width: 20px; height: 20px; }
+.apresentacao-ilustracao + span { display: flex; align-items: center; min-height: 32px; padding-left: 44px; }
+.apresentacao-paineis { min-width: 0; }
+.apresentacao-paineis > :is(ul,ol) { gap: 8px; }
+.apresentacao-paineis > :is(ul,ol) > li { padding: 10px 12px; gap: 10px; }
+.apresentacao-paineis strong { font-size: .9375rem; line-height: 1.3; }
+.apresentacao-paineis .text-caption { font-size: .8125rem; line-height: 1.4; }
+.apresentacao-paineis svg { flex: none; }
+.apresentacao-paineis li > span.flex-1 { min-width: 0; }
+.apresentacao-rodape { display: flex; flex-direction: column; gap: 10px; width: min(100%,32rem); justify-self: center; }
+.onboarding-boas-vindas > main {
+  display: flex; flex-direction: column; justify-content: safe center; align-items: center;
+  gap: clamp(8px,1.8dvh,18px); padding-top: 12px; padding-bottom: 16px;
+  overflow-y: auto;
+}
+.onboarding-boas-vindas main > :not(.boas-vindas-mascote) { flex: none; }
+.onboarding-boas-vindas .boas-vindas-mascote {
+  width: auto; height: min(40dvh,380px,calc(100vw - 48px)); max-width: 100%; max-height: none;
+  flex: 0 1 auto; min-height: 48px; margin: 0; aspect-ratio: 1;
+}
+.boas-vindas-mascote img { width: 85%; height: 85%; }
+.onboarding-boas-vindas h1 { margin: 0; font-size: clamp(1.5rem,3vw,2.5rem); line-height: 1.12; }
+.onboarding-boas-vindas main > p { font-size: .875rem; line-height: 1.45; }
+.onboarding-boas-vindas main > div:last-child { margin-top: 8px; }
+@media (min-width: 900px) {
+  .onboarding-etapas > main { padding: 16px 32px 16px; }
+  .apresentacao-corpo { grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); align-items: start; padding-top: clamp(0px,calc((100dvh - 640px) / 4),100px); column-gap: clamp(24px,5vw,72px); }
+  .apresentacao-intro { gap: 16px; }
+  .apresentacao-descricao { font-size: 1rem; }
+  .apresentacao-paineis > :is(ul,ol) { gap: 12px; }
+  .apresentacao-paineis > :is(ul,ol) > li { padding: 16px; gap: 12px; }
+  .apresentacao-paineis strong { font-size: 1rem; }
+  .apresentacao-paineis .text-caption { font-size: .875rem; }
+  .apresentacao-ilustracao svg { width: 36px; height: 36px; }
+  .apresentacao-ilustracao + span { display: block; min-height: 0; padding-left: 0; }
+  .apresentacao-ilustracao { position: static; display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--cor-ilustracao, var(--color-sky)); }
+}
+@media (max-height: 700px) and (max-width: 899px) {
+  .onboarding-etapas > header { padding-top: 8px; }
+  .onboarding-etapas > main { padding-top: 4px; padding-bottom: 16px; gap: 6px; }
+  .apresentacao-corpo { gap: 8px; }
+  .apresentacao-intro { gap: 6px; }
+  .apresentacao-paineis > :is(ul,ol) { gap: 6px; }
+  .apresentacao-paineis > :is(ul,ol) > li { padding: 8px 10px; }
+}
+
+@media (max-width: 899px) {
+  .apresentacao-paineis > ol > li { position: relative; align-items: flex-start; }
+  .apresentacao-paineis > ol > li > span:first-child { width: 36px; height: 36px; }
+  .apresentacao-paineis > ol > li > span:last-child { position: absolute; left: 32px; top: 30px; width: 20px; height: 20px; font-size: .75rem; }
+}
+@media (max-width: 360px) {
+  .apresentacao-intro h1 { font-size: 1.375rem; }
+}
+
+.apresentacao-ilustracao[data-etapa="1"] { --cor-ilustracao: var(--color-lavender); }
+.apresentacao-ilustracao[data-etapa="2"] { --cor-ilustracao: var(--color-rose); }

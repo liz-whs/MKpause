@@ -80,7 +80,7 @@ describe('painel V5 integrado à área clínica', () => {
     expect(screen.getByText(/Não existe escala de intensidade entre emoções/)).toBeInTheDocument();
     const tabela = screen.getByRole('table', { name: 'Registros individuais do período selecionado' });
     expect(within(tabela).getAllByRole('row')).toHaveLength(3);
-    expect(within(tabela).getAllByText(/2026-11-05/)).toHaveLength(2);
+    expect(within(tabela).getAllByText(/05\/11\/2026/)).toHaveLength(2);
     expect(await violacoes(container)).toEqual([]);
   });
 
@@ -116,7 +116,7 @@ describe('painel V5 integrado à área clínica', () => {
       .mockRejectedValue(new servidor.ErroApi(403, 'Vínculo revogado.'));
     abrir();
     await screen.findByText('50%');
-    fireEvent.focus(window);
+    await userEvent.click(screen.getByRole('button', { name: 'Atualizar gráficos' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Vínculo revogado.');
     expect(screen.queryByText('50%')).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Ana L.' })).toBeNull();
@@ -131,6 +131,43 @@ describe('painel V5 integrado à área clínica', () => {
     expect(screen.queryByText('50%')).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Atualizar gráficos' }));
     expect(await screen.findByText('50%')).toBeInTheDocument();
+  });
+
+  it('mantém os gráficos e o histórico visíveis durante uma atualização lenta', async () => {
+    let resolver!: (valor: servidor.DashboardClinico) => void;
+    const consultar = vi.spyOn(servidor, 'dashboardClinico').mockResolvedValueOnce(dados())
+      .mockReturnValueOnce(new Promise((r) => { resolver = r; }));
+    abrir();
+    await screen.findByText('50%');
+    await userEvent.click(screen.getByRole('button', { name: 'Atualizar gráficos' }));
+    expect(consultar).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('50%')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Sessões e registros de humor' })).toBeInTheDocument();
+    expect(screen.queryByText('Carregando gráficos do estudante…')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Atualizar gráficos' })).toBeDisabled();
+    await act(async () => resolver(dados()));
+    expect(screen.getByRole('button', { name: 'Atualizar gráficos' })).toBeEnabled();
+  });
+
+  it('não consulta repetidamente ao alternar abas nem por ficar na tela', async () => {
+    const consultar = vi.spyOn(servidor, 'dashboardClinico').mockResolvedValue(dados());
+    abrir();
+    await screen.findByText('50%');
+    vi.useFakeTimers();
+    try {
+      fireEvent.focus(window);
+      fireEvent(document, new Event('visibilitychange'));
+      await act(async () => { vi.advanceTimersByTime(120_000); });
+      expect(consultar).toHaveBeenCalledOnce();
+      await act(async () => {
+        fireEvent.focus(window);
+        fireEvent(document, new Event('visibilitychange'));
+      });
+      expect(consultar).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('50%')).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('não consulta estudante sem vínculo local', () => {
@@ -152,5 +189,36 @@ describe('painel V5 integrado à área clínica', () => {
     rerender(<Dashboard dados={zero} />);
     expect(screen.getByText('0%')).toBeInTheDocument();
     expect(screen.queryByText('—')).toBeNull();
+  });
+});
+
+
+describe('comparação visual e listas recolhíveis', () => {
+  it('filtra antes/depois sem modificar os dados e usa a mesma escala', async () => {
+    const { container } = render(<Dashboard dados={dados()} />);
+    const grafico = screen.getByRole('region', { name: 'Distribuição das emoções' });
+    expect(within(grafico).getAllByText('Diferença:', { exact: false })).toHaveLength(6);
+    await userEvent.click(within(grafico).getByRole('button', { name: 'Depois' }));
+    expect(within(grafico).getByRole('button', { name: 'Depois' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(grafico).queryByText('Antes', { selector: 'span', exact: true })).toBeNull();
+    expect(within(grafico).getAllByText('Depois', { selector: 'span', exact: true })).toHaveLength(6);
+    await userEvent.click(within(grafico).getByRole('button', { name: 'Comparar' }));
+    expect(within(grafico).getAllByText('Antes', { selector: 'span', exact: true })).toHaveLength(6);
+    expect(await violacoes(container)).toEqual([]);
+  });
+  it('recolhe o histórico e a evolução sem excluir os registros', async () => {
+    vi.spyOn(servidor, 'dashboardClinico').mockResolvedValue(dados());
+    abrir();
+    const titulo = await screen.findByRole('heading', { name: 'Sessões e registros de humor' });
+    const detalhe = titulo.closest('details')!;
+    expect(detalhe.open).toBe(true);
+    await userEvent.click(titulo.closest('summary')!);
+    expect(detalhe.open).toBe(false);
+    await userEvent.click(titulo.closest('summary')!);
+    expect(detalhe.open).toBe(true);
+    const evolucao = screen.getByRole('heading', { name: 'Evolução por sessão' });
+    await userEvent.click(evolucao.closest('summary')!);
+    expect(evolucao.closest('details')!.open).toBe(false);
+    expect(screen.getByText('De 23/10/2026 a 05/11/2026')).toBeInTheDocument();
   });
 });

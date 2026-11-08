@@ -38,6 +38,7 @@ class Conta
 
     public static function comPerfil(object $usuario): ?self
     {
+        if (self::demonstracao($usuario->email ?? '') && !config('mkpause.demo_habilitada')) return null;
         foreach (self::TABELAS as $perfil => [$tabela]) {
             $dados = DB::table($tabela)->where('id_usuario', $usuario->id_usuario)->where('ativo', true)
                 ->orderBy(self::TABELAS[$perfil][1])->first();
@@ -46,6 +47,11 @@ class Conta
             }
         }
         return null;
+    }
+
+    public static function demonstracao(string $email): bool
+    {
+        return (bool) preg_match('/\.demo@mkpause\.dev$/i', $email);
     }
 
     public function id(): int
@@ -71,6 +77,9 @@ class Conta
             'email' => $this->usuario->email,
             'perfil' => $this->perfil,
             'id_perfil' => $this->idPerfil(),
+            'primeiro_acesso_pendente' => $this->e(self::ESTUDANTE)
+                && in_array($this->dadosPerfil->primeiro_acesso_concluido ?? true, [false, 0, '0', 'f', 'false'], true),
+            'id_escola' => isset($this->usuario->id_escola) ? (int) $this->usuario->id_escola : null,
         ];
     }
 }

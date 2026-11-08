@@ -12,10 +12,14 @@ nginx -e stderr -t -c /tmp/mkpause-nginx.conf
 
 cd /app/backend
 mkdir -p storage/framework/cache/data storage/framework/views storage/logs bootstrap/cache
+php artisan package:discover --ansi
 php artisan config:cache
 php artisan route:cache
 php artisan mkpause:aplicar-esquema
-php artisan mkpause:criar-demo
+php artisan mkpause:sincronizar-atividades
+if [ "${MKPAUSE_DEMO:-false}" = "true" ]; then
+    php artisan mkpause:criar-demo
+fi
 
 php-fpm8.2 --nodaemonize --fpm-config /app/deploy/php-fpm.conf &
 FPM=$!

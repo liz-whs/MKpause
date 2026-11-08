@@ -18,7 +18,7 @@ import { AdminEmails } from './features/admin/Emails';
 import { AdminIndicadores } from './features/admin/Indicadores';
 import { Apresentacao1, Apresentacao2, Apresentacao3, BoasVindas, Entrar, PrimeiroAcesso } from './features/onboarding/Onboarding';
 import { Atividades, Cuidados, Inicio, Perfil } from './features/student/Paginas';
-import { ComoFicou, EscolherAtividade, Humor, MKPotion, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
+import { AtividadeLivre, ComoFicou, EscolherAtividade, Humor, MKPotion, PausaFeita, PianoPause, Respiracao, Video } from './features/session/Sessao';
 import { JogoPianoPauseProvider } from './features/session/JogoPianoPause';
 import { AgoraRespira, AvisoSaida, VoceSeCuidou } from './features/levels/Niveis';
 import { EscolaAlertas, EscolaAvisos, EscolaEstudante, EscolaEstudantes, EscolaLayout } from './features/school/Escola';
@@ -29,14 +29,16 @@ import { CadastroProfissional } from './features/admin/CadastroProfissional';
 
 function Raiz() {
   const { idioma } = usePreferencias();
+  const { pathname } = useLocation();
+  const videoLocalizado = /^\/estudante\/(?:pausa|atividades)\/(?:video|espiral|chinchila)$/.test(pathname);
   // Telas que leem a api sem useDados redesenham quando a conta do backend termina de carregar.
   const conta = useDados(() => (api.carregado() ? api.conta()?.id_usuario ?? 'anonimo' : 'carregando'));
   const erroCarga = useDados(() => api.erroCarga());
   useTituloEFoco();
   return (
     <EstudanteProvider>
-      {/* Ao trocar de idioma as telas são remontadas e todo texto passa de novo por t(). */}
-      <Fragment key={`${idioma}-${conta}`}>
+      {/* O player traduz suas instruções sem remontar nem interromper a reprodução. */}
+      <Fragment key={`${videoLocalizado ? 'video-localizado' : idioma}-${conta}`}>
         <SkipLink />
         {/* Antes dos dados chegarem, as telas que conferem vínculo mandariam de volta para a lista. */}
         {erroCarga ? <main id="conteudo" className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6">
@@ -86,9 +88,9 @@ export const rotas: RouteObject[] = [
     children: [
       // Onboarding
       { path: '/', element: <BoasVindas />, handle: { titulo: 'Boas-vindas' } },
-      { path: '/apresentacao/1', element: <Apresentacao1 />, handle: { titulo: 'Quando a cabeça pesar' } },
+      { path: '/apresentacao/1', element: <Apresentacao1 />, handle: { titulo: 'Seu espaço para fazer uma pausa' } },
       { path: '/apresentacao/2', element: <Apresentacao2 />, handle: { titulo: 'Três jeitos de pausar' } },
-      { path: '/apresentacao/3', element: <Apresentacao3 />, handle: { titulo: 'Quem vê o quê' } },
+      { path: '/apresentacao/3', element: <Apresentacao3 />, handle: { titulo: 'Quem vê o quê?' } },
       { path: '/entrar', element: <Entrar />, handle: { titulo: 'Entrar' } },
       { path: '/primeiro-acesso', element: <PrimeiroAcesso />, handle: { titulo: 'Primeiro acesso' } },
       { path: '/cadastro', element: <CadastroComCodigo />, handle: { titulo: 'Código de cadastro' } },
@@ -114,6 +116,13 @@ export const rotas: RouteObject[] = [
           </JogoPianoPauseProvider>
         ),
         children: [
+          { path: 'atividades/respiracao', element: <AtividadeLivre atividade="respiracao"><Respiracao /></AtividadeLivre>, handle: { titulo: 'respire & pause' } },
+          { path: 'atividades/pianopause', element: <AtividadeLivre atividade="pianopause"><PianoPause /></AtividadeLivre>, handle: { titulo: 'piano pause' } },
+          { path: 'atividades/mkpotion', element: <AtividadeLivre atividade="mkpotion"><MKPotion /></AtividadeLivre>, handle: { titulo: 'mk potion' } },
+          { path: 'atividades/mkconnection', element: <AtividadeLivre atividade="mkconnection"><MKPotion jogo="mkconnection" /></AtividadeLivre>, handle: { titulo: 'mk connection' } },
+          { path: 'atividades/espiral', element: <AtividadeLivre atividade="espiral"><Video atividade="espiral" /></AtividadeLivre>, handle: { titulo: 'spiral pause' } },
+          { path: 'atividades/chinchila', element: <AtividadeLivre atividade="chinchila"><Video atividade="chinchila" /></AtividadeLivre>, handle: { titulo: 'chinchilla pause' } },
+          { path: 'atividades/video', element: <AtividadeLivre atividade="video"><Video /></AtividadeLivre>, handle: { titulo: 'mk breath' } },
           { path: 'pausa', element: <Humor />, handle: { titulo: 'Como você está' } },
           { path: 'pausa/atividade', element: <EscolherAtividade />, handle: { titulo: 'Escolha uma atividade' } },
           { path: 'pausa/respiracao', element: <Respiracao />, handle: { titulo: 'respire & pause' } },
@@ -128,7 +137,7 @@ export const rotas: RouteObject[] = [
           { path: 'aviso-de-saida', element: <AvisoSaida />, handle: { titulo: 'Sair da sala' } },
           { path: 'fora-da-sala', element: <Navigate to="/estudante" replace /> },
           { path: 'agora', element: <AgoraRespira />, handle: { titulo: 'Respire' } },
-          { path: 'agora/fim', element: <VoceSeCuidou />, handle: { titulo: 'Você se cuidou' } },
+          { path: 'agora/fim', element: <VoceSeCuidou />, handle: { titulo: 'Como está agora?' } },
         ],
       },
 

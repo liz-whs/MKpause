@@ -18,7 +18,7 @@ use RuntimeException;
 class AplicarEsquema extends Command
 {
     protected $signature = 'mkpause:aplicar-esquema';
-    protected $description = 'Aplica V1 a V5 ausentes no banco do MKpause (sem Flyway).';
+    protected $description = 'Aplica V1 a V11 ausentes no banco do MKpause (sem Flyway).';
 
     private const VERSOES = [
         ['V1__criacao_do_esquema_inicial.sql', ['usuario']],
@@ -26,6 +26,12 @@ class AplicarEsquema extends Command
         ['V3__codigos_de_cadastro_e_vinculo.sql', ['codigo_cadastro', 'uso_codigo_cadastro', 'codigo_vinculo']],
         ['V4__convites_responsaveis_e_fila_email.sql', ['convite_responsavel', 'notificacao_email']],
         ['V5__emocoes_categoricas.sql', ['registro_humor']],
+        ['V6__sessoes_autenticacao.sql', ['sessions']],
+        ['V7__isolamento_escolas.sql', ['escola']],
+        ['V8__cuidados_estudante.sql', ['cuidado_estudante']],
+        ['V9__amplia_catalogo_cuidados.sql', ['cuidado_estudante']],
+        ['V10__cuidados_adolescentes.sql', ['cuidado_estudante']],
+        ['V11__primeiro_acesso_estudante.sql', ['estudante']],
     ];
 
     public function handle(): int
@@ -37,6 +43,26 @@ class AplicarEsquema extends Command
             DB::select('SELECT pg_advisory_xact_lock(72843003)');
             $tabelas = array_flip(array_column(Schema::getTables(), 'name'));
             foreach (self::VERSOES as [$nome, $marcas]) {
+                if (str_starts_with($nome, 'V11__')) {
+                    if (Schema::hasColumn('estudante', 'primeiro_acesso_concluido')) {
+                        $this->line("{$nome}: já aplicado.");
+                        continue;
+                    }
+                    $this->line("Aplicando {$nome}...");
+                    DB::unprepared(file_get_contents("{$pasta}/{$nome}"));
+                    continue;
+                }
+                if (str_starts_with($nome, 'V9__') || str_starts_with($nome, 'V10__')) {
+                    $marcador = str_starts_with($nome, 'V10__') ? 'reconhecer' : 'careta';
+                    $regra = DB::selectOne("SELECT pg_get_constraintdef(oid) AS definicao FROM pg_constraint WHERE conrelid = 'cuidado_estudante'::regclass AND conname = 'cuidado_estudante_cuidado_check'");
+                    if ($regra && str_contains($regra->definicao, $marcador)) {
+                        $this->line("{$nome}: já aplicado.");
+                        continue;
+                    }
+                    $this->line("Aplicando {$nome}...");
+                    DB::unprepared(file_get_contents("{$pasta}/{$nome}"));
+                    continue;
+                }
                 if (str_starts_with($nome, 'V5__')) {
                     $colunas = array_flip(Schema::getColumnListing('registro_humor'));
                     if (isset($colunas['emocao'])) {
@@ -79,7 +105,7 @@ class AplicarEsquema extends Command
                 }
             }
         });
-        $this->info('Esquema pronto (V1 a V5).');
+        $this->info('Esquema pronto (V1 a V10).');
         return self::SUCCESS;
     }
 }

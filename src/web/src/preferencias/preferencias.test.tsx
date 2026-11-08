@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router';
 import { rotas } from '../router';
@@ -182,7 +182,9 @@ describe('painel Acessibilidade e idioma', () => {
   it('em espanhol, a primeira tela muda', () => {
     act(() => definirPreferencias({ idioma: 'es' }));
     abrir('/');
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Una pausa para respirar y volver más liviano(a).');
+    const pular = screen.queryByRole('button', { name: 'Saltar introducción' });
+    if (pular) fireEvent.click(pular);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Una pausa a tu ritmo.');
     expect(screen.getByRole('button', { name: 'Accesibilidad e idioma' })).toBeInTheDocument();
   });
 });

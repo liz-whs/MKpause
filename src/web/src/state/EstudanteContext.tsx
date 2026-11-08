@@ -7,11 +7,14 @@ import { useCuidados } from './cuidados';
 import { iniciais } from '../domain/formatos';
 import { chaveEstadoEstudante } from './armazenamentoEstudante';
 
-/** Sessão de pausa em andamento (nível 1). */
+/** Sessão de autorregulação em andamento. */
 export interface SessaoEmAndamento {
   antes?: EmocaoId;
   atividade?: AtividadeId;
   depois?: EmocaoId;
+  nivel3?: boolean;
+  etapaNivel3?: 'respiracao' | 'avaliacao';
+  concluida?: boolean;
 }
 
 interface EstadoPersistido {
@@ -64,6 +67,9 @@ function useEstadoEstudante(estudanteId: string) {
 
     /** Começa uma pausa nova com a emoção de antes (e a atividade, se veio de Atividades). */
     iniciarSessao: (antes: EmocaoId, atividade?: AtividadeId) => setEstado((s) => ({ ...s, sessao: { antes, atividade } })),
+    iniciarNivel3: (antes: EmocaoId) => setEstado((s) => ({
+      ...s, sessao: { antes, atividade: 'respiracao', nivel3: true, etapaNivel3: 'respiracao' },
+    })),
     atualizarSessao: (parcial: Partial<SessaoEmAndamento>) =>
       setEstado((s) => ({ ...s, sessao: { ...s.sessao, ...parcial } })),
     // As chamadas à api ficam fora do setEstado: no StrictMode o atualizador roda duas vezes.
@@ -71,9 +77,10 @@ function useEstadoEstudante(estudanteId: string) {
     concluirSessao: async (relato?: string, depoisAgora?: EmocaoId) => {
       const { antes, atividade } = estado.sessao;
       const depois = depoisAgora ?? estado.sessao.depois;
-      if (antes && atividade && depois) {
-        await api.estudante.registrarSessao({ estudanteId: perfil.id, antes, atividade, depois, relato: relato || undefined });
-      }
+      if (!antes || !atividade || !depois) throw new Error('Selecione o humor inicial e final antes de enviar.');
+      if (estado.sessao.concluida) return;
+      await api.estudante.registrarSessao({ estudanteId: perfil.id, antes, atividade, depois, relato: relato?.trim() || undefined });
+      setEstado((s) => ({ ...s, sessao: { ...s.sessao, depois, concluida: true } }));
     },
 
     avisarSaida: async (destino?: string) => {
@@ -108,7 +115,7 @@ export function EstudanteProvider({ children }: { children: ReactNode }) {
 
 function EstadoDoEstudante({ estudanteId, children }: { estudanteId: string; children: ReactNode }) {
   const store = useEstadoEstudante(estudanteId);
-  return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={store}>{store.erroCuidados && <p role="alert">{store.erroCuidados}</p>}{children}</Ctx.Provider>;
 }
 
 export function useEstudante(): EstudanteStore {

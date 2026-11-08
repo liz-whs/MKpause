@@ -20,7 +20,7 @@ class EscopoRequisitosTest extends TestCase
         config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:',
             'database.connections.sqlite.url' => null]);
         DB::purge('sqlite');
-        DB::statement('CREATE TABLE usuario (id_usuario INTEGER PRIMARY KEY, nome_completo TEXT, ativo BOOLEAN)');
+        DB::statement('CREATE TABLE usuario (id_escola INTEGER DEFAULT 1, id_usuario INTEGER PRIMARY KEY, nome_completo TEXT, ativo BOOLEAN)');
         DB::statement('CREATE TABLE estudante (id_estudante INTEGER PRIMARY KEY, id_usuario INTEGER, ativo BOOLEAN)');
         DB::statement('CREATE TABLE psicologo_clinico (id_psicologo_clinico INTEGER PRIMARY KEY, id_usuario INTEGER, ativo BOOLEAN)');
         DB::statement('CREATE TABLE psicologo_clinico_estudante (id_psicologo_clinico INTEGER, id_estudante INTEGER, ativo BOOLEAN, criado_em TEXT)');
@@ -34,7 +34,7 @@ class EscopoRequisitosTest extends TestCase
     private function pedido(string $perfil): Request
     {
         $request = Request::create('/api', 'GET');
-        $request->attributes->set('conta', new Conta((object) ['id_usuario' => 1], $perfil,
+        $request->attributes->set('conta', new Conta((object) ['id_usuario' => 1, 'id_escola' => 1], $perfil,
             (object) ['id_'.$perfil => 1]));
         return $request;
     }
@@ -86,6 +86,7 @@ class EscopoRequisitosTest extends TestCase
     {
         $r = Request::create('/api', 'POST', server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['psicologo_clinico' => 1, 'estudante' => 1]));
+        $r->attributes->set('conta', new Conta((object) ['id_usuario' => 1, 'id_escola' => 1], Conta::ADMINISTRADOR, (object) ['id_administrador' => 1]));
         $c = new CadastrosController;
         $this->assertSame(201, $c->criarVinculo($r, 'psicologos-clinicos')->getStatusCode());
         $this->assertSame(1, DB::table('psicologo_clinico_estudante')->where('ativo', true)->count());

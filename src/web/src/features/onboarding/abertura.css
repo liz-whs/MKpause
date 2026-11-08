@@ -1,0 +1,45 @@
+/* Contração nítida, letra por letra: make a → mk. Sem desfoque. */
+.abertura-palco {
+  --curva-abertura: cubic-bezier(.1,.9,.2,1);
+  --largura-mascote: clamp(64px,16vw,192px);
+  --espaco-mascote: clamp(12px,2vw,32px);
+  display: grid; place-items: center; flex: 1; min-height: 18rem; width: 100%;
+}
+.abertura-marca {
+  display: flex; align-items: center; justify-content: center; width: 100%; padding: 3rem 0;
+}
+.abertura-nome {
+  display: flex; flex: none; align-items: center; gap: .22em; white-space: nowrap;
+  font-weight: 600; font-size: clamp(1.5rem,9vw,7.5rem); line-height: 1.2; letter-spacing: -.045em;
+}
+.abertura-prefixo { position: relative; display: inline-flex; flex: none; align-items: center; }
+/* A régua contínua preserva o avanço e o espaçamento reais de cada caractere. */
+.abertura-medida { position: absolute; left: 0; top: 0; width: max-content; white-space: pre; visibility: hidden; pointer-events: none; }
+.abertura-caractere { display: block; flex: none; width: var(--largura-letra, auto); height: 1.2em; overflow: hidden; }
+.abertura-caractere > span { display: inline-block; white-space: pre; }
+.abertura-remove { animation: abertura-apaga-espaco .65s var(--atraso) linear both; }
+.abertura-cauda { animation: abertura-fecha-cauda .338s var(--atraso) cubic-bezier(.18,.8,.25,1) both; }
+.abertura-remove > span { animation: abertura-letra-esquerda .22s var(--atraso) ease-out both; }
+.abertura-pausa { display: inline-block; }
+.abertura-companheira {
+  display: flex; flex: none; align-items: center;
+  animation: abertura-espaco .74s 1s var(--curva-abertura) both;
+}
+.abertura-mascote {
+  display: block; flex: none; width: var(--largura-mascote); height: clamp(80px,20vw,240px); object-fit: contain;
+  animation: abertura-aparece .35s 1.75s ease-out both;
+}
+/* Um único impulso interno; a cauda entre k e pause fecha sem rebote. */
+@keyframes abertura-apaga-espaco {
+  0% { width: var(--largura-letra); margin-right: 0; animation-timing-function: cubic-bezier(.18,.8,.25,1); }
+  52% { width: 0; margin-right: -.045em; animation-timing-function: ease-in-out; }
+  100% { width: 0; margin-right: 0; }
+}
+@keyframes abertura-fecha-cauda { from { width: var(--largura-letra); } to { width: 0; } }
+@keyframes abertura-letra-esquerda { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-.35em); } }
+@keyframes abertura-aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes abertura-espaco { from { width: 0; margin-left: 0; } to { width: var(--largura-mascote); margin-left: var(--espaco-mascote); } }
+[data-estatica] .abertura-marca, [data-estatica] .abertura-nome span, [data-estatica] .abertura-mascote, [data-estatica] .abertura-companheira { animation: none !important; }
+[data-estatica] .abertura-companheira { width: var(--largura-mascote); margin-left: var(--espaco-mascote); }
+[data-estatica] .abertura-marca { flex-wrap: wrap; gap: 1rem; }
+@media (prefers-reduced-motion: reduce) { [data-abertura] * { animation: none !important; } }

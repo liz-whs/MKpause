@@ -14,7 +14,7 @@ WORKDIR /backend
 COPY backend/composer.json backend/composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
 COPY backend/ ./
-RUN composer dump-autoload --no-dev --optimize --classmap-authoritative
+RUN composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,6 +29,6 @@ COPY --from=dependencias --chown=app:app /backend/ /app/backend/
 COPY --from=interface --chown=app:app /web/dist/ /app/src/web/dist/
 RUN chmod +x /app/deploy/start.sh
 USER app
-ENV LOG_CHANNEL=stderr CACHE_STORE=file SESSION_DRIVER=cookie
+ENV LOG_CHANNEL=stderr CACHE_STORE=file SESSION_DRIVER=database
 EXPOSE 10000
 CMD ["/app/deploy/start.sh"]

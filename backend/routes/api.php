@@ -21,6 +21,10 @@ Route::post('auth/cadastro', [Codigos::class, 'cadastrar']);
 
 Route::post('auth/logout', [Autenticacao::class, 'logout'])->middleware('conta');
 Route::get('auth/eu', [Autenticacao::class, 'eu'])->middleware('conta');
+Route::post('auth/primeiro-acesso/concluir', [Autenticacao::class, 'concluirPrimeiroAcesso'])->middleware($estudante);
+
+Route::get('cuidados', [\App\Http\Controllers\CuidadosController::class, 'listar'])->middleware($estudante);
+Route::post('cuidados', [\App\Http\Controllers\CuidadosController::class, 'atualizar'])->middleware($estudante);
 
 Route::get('atividades', [Atividades::class, 'listar'])->middleware('conta');
 Route::get('atividades/{id}', [Atividades::class, 'ver'])->middleware('conta');

@@ -78,7 +78,7 @@ class Cena:
         # Desvanece o texto nas mudanças de fase, inclusive no encontro 30 s -> 0 s.
         opacidade = min(1., dentro_fase / .22, (5 - dentro_fase) / .22)
         cor = mix(INK, BG, opacidade)
-        d.text((self.cx, self.y_fase), "Inspire" if inspirando else "Solte o ar", font=self.fonte, fill=cor, anchor="mm")
+        # A instrução é desenhada pelo player, no idioma escolhido pelo usuário.
         return im
 
 

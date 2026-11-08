@@ -149,7 +149,7 @@ export function EmocaoTag({ id }: { id: EmocaoId }) {
 
 export function EmocaoAntesDepois({ antes, depois }: { antes: EmocaoId; depois: EmocaoId }) {
   return (
-    <span className="flex flex-wrap items-center gap-1.5 text-caption">
+    <span className="relative flex flex-wrap items-center gap-1.5 text-caption">
       <span className="sr-only">{t('Antes:')}</span>
       <EmocaoTag id={antes} />
       <Icon name="seta" size={16} className="text-muted" />

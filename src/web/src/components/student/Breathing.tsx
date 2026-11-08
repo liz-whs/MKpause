@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { t as traduzir } from '../../i18n';
 import { usePreferencias } from '../../preferencias/preferencias';
 
@@ -58,6 +58,15 @@ export function faseDaRespiracao(t: number) {
   return { rotulo: inspirando ? traduzir('Inspire') : traduzir('Solte o ar'), e };
 }
 
+/** Centro geométrico da janela, independente do cabeçalho e dos avisos. */
+export function BreathingStage({ children }: { children: ReactNode }) {
+  return <div data-respiracao-palco className="pointer-events-none fixed inset-0 flex items-center justify-center p-4 md:p-6">
+    <div className="relative flex shrink-0 items-center justify-center" style={{ width: 'min(100%, max(10rem, calc(100dvh - 14rem)), 64rem)', aspectRatio: '1' }}>
+      {children}
+    </div>
+  </div>;
+}
+
 interface BreathingCircleProps {
   t: number;
   /** Texto no centro no lugar da fase (ex.: "Pausado", "Pronto!"). */
@@ -65,13 +74,15 @@ interface BreathingCircleProps {
   /** Tamanho da área em px (290 na sessão, 320 no nível 3). */
   tamanho?: number;
   reduzir: boolean;
+  /** Ocupa a área quadrada disponível, sem perder nitidez. */
+  fluido?: boolean;
 }
 
 /**
  * Círculo de respiração. Com prefers-reduced-motion, mostra só o texto
  * alternado "Inspire / Solte o ar", sem animação.
  */
-export function BreathingCircle({ t, texto, tamanho = 290, reduzir }: BreathingCircleProps) {
+export function BreathingCircle({ t, texto, tamanho = 290, reduzir, fluido = false }: BreathingCircleProps) {
   const { rotulo, e } = faseDaRespiracao(t);
   const fala = texto ?? rotulo;
 
@@ -79,9 +90,9 @@ export function BreathingCircle({ t, texto, tamanho = 290, reduzir }: BreathingC
     return (
       <div
         className="flex items-center justify-center self-center rounded-full bg-lavender"
-        style={{ width: tamanho * 0.75, height: tamanho * 0.75 }}
+        style={{ width: fluido ? '82%' : tamanho * 0.75, height: fluido ? '82%' : tamanho * 0.75, containerType: fluido ? 'inline-size' : undefined }}
       >
-        <span aria-live="polite" className="font-display text-screen font-semibold">
+        <span aria-live="polite" className="font-display text-screen font-semibold" style={fluido ? { fontSize: 'clamp(1.75rem, 7cqw, 4rem)' } : undefined}>
           {fala}
         </span>
       </div>
@@ -90,24 +101,24 @@ export function BreathingCircle({ t, texto, tamanho = 290, reduzir }: BreathingC
 
   const r = tamanho / 2;
   const escala = 0.75 + 0.4 * e;
-  const externo = 2 * (r * 0.69) * escala;
-  const interno = 2 * (r * 0.48) * escala;
-  const halo = externo + 2 * (6 + 10 * e);
+  const externo = 2 * (r * (fluido ? 0.82 : 0.69)) * escala;
+  const interno = 2 * (r * (fluido ? 0.58 : 0.48)) * escala;
+  const halo = Math.min(fluido ? tamanho * 0.99 : Infinity, externo + 2 * (6 + 10 * e));
 
   const circulo = (d: number, classe: string, opacidade?: number) => (
     <span
       aria-hidden="true"
       className={`absolute top-1/2 left-1/2 rounded-full ${classe}`}
-      style={{ width: d, height: d, marginLeft: -d / 2, marginTop: -d / 2, opacity: opacidade }}
+      style={fluido ? { width: `${d / tamanho * 100}%`, height: `${d / tamanho * 100}%`, transform: 'translate(-50%, -50%)', opacity: opacidade } : { width: d, height: d, marginLeft: -d / 2, marginTop: -d / 2, opacity: opacidade }}
     />
   );
 
   return (
-    <div className="relative flex-none self-center" style={{ width: tamanho, height: tamanho }}>
+    <div className="relative flex-none self-center" style={{ width: fluido ? '100%' : tamanho, height: fluido ? '100%' : tamanho, containerType: fluido ? 'inline-size' : undefined }}>
       {circulo(halo, 'bg-lavender', (45 + 55 * e) / 255)}
       {circulo(externo, 'bg-lavender')}
       {circulo(interno, 'bg-sky')}
-      <span aria-live="polite" className="absolute inset-0 flex items-center justify-center font-display text-section font-semibold md:text-section-lg">
+      <span aria-live="polite" className="absolute inset-0 flex items-center justify-center font-display text-section font-semibold md:text-section-lg" style={fluido ? { fontSize: 'clamp(1.75rem, 7cqw, 4rem)' } : undefined}>
         {fala}
       </span>
     </div>

@@ -20,5 +20,5 @@ foreach ([[401,'{}',401],[200,'{"perfil":"estudante"}',403],[200,'invalido',403]
 }
 try { (new Autorizacao($config,fn()=>throw new RuntimeException('Não deve consultar sem cookie')))->exigirAdministrador(''); }
 catch (ErroHttp $e) { conferir($e->status===401, 'anônimo recusado antes da consulta'); }
-conferir((new Autorizacao($config,fn()=>[200,'{"perfil":"administrador","id_usuario":1}']))->exigirAdministrador('sessionid=teste')['id_usuario']===1, 'administrador autorizado');
+conferir((new Autorizacao($config,fn()=>[200,'{"perfil":"administrador","id_usuario":1,"id_escola":1}']))->exigirAdministrador('sessionid=teste')['id_usuario']===1, 'administrador autorizado');
 echo "$n verificações PHP passaram.\n";

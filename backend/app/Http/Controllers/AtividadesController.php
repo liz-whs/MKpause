@@ -27,7 +27,7 @@ class AtividadesController extends Controller
     {
         $dados = $this->validar($this->entrada($request), parcial: false);
         $agora = Formato::banco(Formato::agora());
-        $id = DB::table('atividade')->insertGetId($dados + ['disponivel' => true, 'criado_em' => $agora,
+        $id = DB::table('atividade')->insertGetId($dados + ['id_escola' => \App\Mkpause\Escola::id($this->conta($request)), 'disponivel' => true, 'criado_em' => $agora,
             'atualizado_em' => $agora], 'id_atividade');
         return $this->json(self::dados(DB::table('atividade')->where('id_atividade', $id)->first()), 201);
     }
@@ -51,7 +51,7 @@ class AtividadesController extends Controller
 
     private function consulta(Request $request)
     {
-        $q = DB::table('atividade')->orderBy('nome')->orderBy('id_atividade');
+        $q = DB::table('atividade')->where('id_escola', \App\Mkpause\Escola::id($this->conta($request)))->orderBy('nome')->orderBy('id_atividade');
         if (!$this->conta($request)->e(Conta::ADMINISTRADOR)) {
             $q->where('disponivel', true);
         }

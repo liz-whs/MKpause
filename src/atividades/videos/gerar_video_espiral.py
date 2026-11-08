@@ -102,6 +102,6 @@ for k in range(total):
     paste_disc(bg, dx, dy, r, GRASS, 0.9 * vis)
     paste_disc(bg, dx, dy, r * 0.82, LEAF, 1.0 * vis)
     im = Image.fromarray(np.clip(bg, 0, 255).astype(np.uint8)[:, :, ::-1])
-    lb = LABEL['in' if t < IN else 'ex']; im.paste(lb, (0, round(800 * K)), lb)
+    # O player desenha a instrução localizada; o vídeo contém só a animação.
     ff.stdin.write(np.array(im)[:, :, ::-1].tobytes())
 ff.stdin.close(); ff.wait(); print('ok →', A.out, f'({OW}x{OH}, {total} quadros)')

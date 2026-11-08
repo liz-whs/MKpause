@@ -65,6 +65,7 @@ const agora = () => new Date().toISOString();
 /* ───────────── Conta e sincronização com o backend ───────────── */
 
 let conta: servidor.Conta | null = null;
+const primeirosAcessosConcluidos = new Set<string>();
 let carregado = OFFLINE;
 let erroCarga: string | null = null;
 
@@ -177,6 +178,7 @@ const vincularNoServidor = (metodo: 'POST' | 'DELETE', estudanteId: string, prof
 export const api = {
   /** Só para testes: volta aos dados iniciais. */
   reiniciar() {
+    primeirosAcessosConcluidos.clear();
     banco = bancoInicial();
     mudou();
   },
@@ -212,6 +214,13 @@ export const api = {
 
   /* ───────────── Estudante ───────────── */
   estudante: {
+    primeiroAcessoPendente: () => OFFLINE ? !primeirosAcessosConcluidos.has(idEstudanteLogado()) : conta?.primeiro_acesso_pendente === true,
+    concluirPrimeiroAcesso: () => gravar(() => servidor.chamar('POST', 'auth/primeiro-acesso/concluir/', {}), () => {
+      primeirosAcessosConcluidos.add(idEstudanteLogado());
+      if (conta) conta = { ...conta, primeiro_acesso_pendente: false };
+      mudou();
+    }),
+
     perfil: () => estudante(idEstudanteLogado()) ?? PERFIL_VAZIO,
     quemAcompanha: () => profissionaisDoEstudante(idEstudanteLogado()),
     /** Atividades disponíveis (a administração pode ocultar). */
@@ -225,13 +234,6 @@ export const api = {
       return gravar(() => servidor.emitirAlerta(3), (id) => {
         const alerta: Alerta = { id: typeof id === 'string' ? id : novoId('alerta'), estudanteId, tipo: 'nivel3', criadoEm: agora() };
         banco.alertas.push(alerta); mudou(); return alerta;
-      });
-    },
-    cancelarAlerta(id: string) {
-      return gravar(() => servidor.mudarStatusAlerta(id, 'CANCELADO'), () => {
-        const alerta = banco.alertas.find((a) => a.id === id);
-        if (alerta) alerta.cancelado = true;
-        mudou();
       });
     },
     avisarSaida(estudanteId: string, destino?: string): Promise<AvisoSaida> {

@@ -1,21 +1,24 @@
+import { api } from '../../data/api';
+import { useDados } from '../../data/useDados';
+import { useFluxoAtividade } from './useFluxoAtividade';
 import { agir } from '../../state/acoes';
-import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router';
+import { useState, type ReactNode } from 'react';
+import { Navigate, useNavigate } from 'react-router';
 import { emocaoPorId, sugereEscalada, type Emocao, type EmocaoId } from '../../domain/emocoes';
 import type { AtividadeId } from '../../domain/tipos';
 import { useEstudante } from '../../state/EstudanteContext';
 import { EmotionGrid } from '../../components/student/EmotionGrid';
-import { BackButton, FocusTopBar, SairDaPausa } from '../../components/student/FocusTopBar';
+import { BackButton, FocusTopBar, SairDaPausa, TerminarExercicio, NomeAtividade } from '../../components/student/FocusTopBar';
 import { AtividadesPorCategoria } from '../../components/student/AtividadesPorCategoria';
 import { ActivityRow, ScreenTitle } from '../../components/student/Bits';
-import { BreathingCircle, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
+import { BreathingCircle, BreathingStage, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
 import { ProgressSteps } from '../../components/ui/ProgressSteps';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Field } from '../../components/ui/Field';
 import { Icon } from '../../components/ui/Icon';
 import { atividades } from '../student/Paginas';
-import { EspacoDoJogo, useTelaGrande } from './JogoPianoPause';
+import { EspacoDoJogo } from './JogoPianoPause';
 import mascote from '../../assets/chinchila/mascote.svg';
 import { t } from '../../i18n';
 import { VideoRespiracao } from './VideoRespiracao';
@@ -43,24 +46,19 @@ function Desativado({ children }: { children: string }) {
 /** Etapa 1 de 3: Como você está? */
 export function Humor() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { iniciarSessao } = useEstudante();
-  // Vindo de Atividades, a atividade já chega escolhida; senão, escolhe na etapa 2.
-  const escolhida = (location.state as { atividade?: AtividadeId } | null)?.atividade;
-  // "Voltar" leva de onde a pausa começou: Atividades ou Início.
-  const voltar = escolhida ? '/estudante/atividades' : '/estudante';
   const [emocao, setEmocao] = useState<EmocaoId | null>(null);
 
   const continuar = () => {
     if (!emocao) return;
     // Cada pausa começa do zero: nada da pausa anterior é reaproveitado.
-    iniciarSessao(emocao, escolhida);
-    navigate(escolhida ? ROTA_ATIVIDADE[escolhida] : '/estudante/pausa/atividade');
+    iniciarSessao(emocao);
+    navigate('/estudante/pausa/atividade');
   };
 
   return (
     <>
-      <FocusTopBar back={<BackButton to={voltar} />}>
+      <FocusTopBar back={<BackButton to="/estudante" />}>
         <SairDaPausa />
       </FocusTopBar>
       <ProgressSteps current={1} total={3} label={t('Como você está')} />
@@ -83,7 +81,8 @@ export function Humor() {
 /** Garante que existe uma sessão iniciada (com a emoção de antes). */
 function useSessaoValida() {
   const { sessao } = useEstudante();
-  return Boolean(sessao.antes);
+  const { livre } = useFluxoAtividade();
+  return livre || Boolean(sessao.antes);
 }
 
 /** Etapa 2 de 3: escolher a atividade. */
@@ -121,37 +120,36 @@ export function EscolherAtividade() {
   );
 }
 
-function CabecalhoAtividade() {
+function CabecalhoAtividade({ titulo }: { titulo: string }) {
+  const fluxo = useFluxoAtividade();
   return (
     <>
-      <FocusTopBar back={<BackButton to="/estudante/pausa/atividade" />}>
-        <SairDaPausa />
+      <FocusTopBar back={<NomeAtividade titulo={titulo} />}>
+        <TerminarExercicio to={fluxo.terminar} />
       </FocusTopBar>
-      <ProgressSteps current={2} total={3} label={t('Atividade')} />
+      {!fluxo.livre && <ProgressSteps current={2} total={3} label={t('Atividade')} />}
     </>
   );
 }
 
 /** Respiração contínua: o estudante decide quando pausar ou encerrar. */
 export function Respiracao() {
-  const navigate = useNavigate();
   const valida = useSessaoValida();
   const reduzir = usePrefersReducedMotion();
   const [rodando, setRodando] = useState(true);
   const { t: tempo } = useBreathClock(rodando, reduzir);
   if (!valida) return <Navigate to="/estudante/pausa" replace />;
   return <>
-    <CabecalhoAtividade />
-    <ScreenTitle className="text-center">{t('respire & pause')}</ScreenTitle>
-    <BreathingCircle t={tempo} reduzir={reduzir} texto={rodando ? undefined : t('Pausado')} />
-    <div className="grid grid-cols-2 gap-2.5">
-      <Button variant="outline" onClick={() => setRodando((v) => !v)}>{rodando ? t('Pausar') : t('Continuar')}</Button>
-      <Button onClick={() => {
-        // Interrompe as atualizações da animação antes da transição de página.
-        setRodando(false);
-        void navigate('/estudante/pausa/fim');
-      }}>{t('Terminei')}</Button>
-    </div>
+    <CabecalhoAtividade titulo="respire & pause" />
+    <BreathingStage>
+        <BreathingCircle t={tempo} reduzir={reduzir} tamanho={320} fluido texto={rodando ? undefined : ''} />
+        <button type="button" aria-label={rodando ? t('Pausar') : t('Continuar')}
+          className={`pointer-events-auto absolute top-1/2 left-1/2 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink md:size-20 ${rodando ? 'bg-transparent text-transparent' : 'border border-surface/35 bg-surface/15 text-surface/90 backdrop-blur-[2px] hover:bg-surface/25'}`}
+          onClick={() => setRodando((v) => !v)}>
+          {!rodando && <Icon name="play" size={28} className="drop-shadow-sm" />}
+        </button>
+        {!rodando && <span role="status" className="sr-only">{t('Pausado')}</span>}
+    </BreathingStage>
   </>;
 }
 
@@ -160,37 +158,15 @@ export function Respiracao() {
  * para o navegador com o pygbag. O build fica em public/jogos/pianopause;
  * para refazer, `npm run build:pianopause`.
  *
- * No celular o jogo usa o layout em pé (480 × 720). No computador abre com
- * `?modo=computador` e usa o layout deitado (1200 × 720). O iframe vem
- * pré-carregado do JogoPianoPauseProvider e aparece sobre o EspacoDoJogo.
+ * O iframe vem pré-carregado do JogoPianoPauseProvider e ocupa o EspacoDoJogo.
+ * A cópia integrada adapta o canvas à janela sem recarregar a partida.
  */
 export function PianoPause() {
-  const computador = useTelaGrande();
   if (!useSessaoValida()) return <Navigate to="/estudante/pausa" replace />;
-  return (
-    <>
-      <CabecalhoAtividade />
-      <IntroducaoJogo titulo="piano pause" instrucao="Toque nas teclas e acompanhe as notas no seu ritmo." />
-      <div className="flex flex-col gap-5 lg:w-[min(64rem,calc(100vw-4rem))] lg:self-center">
-        {computador ? (
-          // Deitado (5:3), do tamanho que couber sem rolar a página.
-          <EspacoDoJogo key="computador" className="mx-auto aspect-[5/3] w-[min(100%,calc((100dvh-16rem)*5/3))]" />
-        ) : (
-          // Em pé (2:3), na largura do celular.
-          <EspacoDoJogo key="celular" className="mx-auto aspect-[2/3] w-full max-w-120" />
-        )}
-        <div className="flex flex-col gap-5 lg:mx-auto lg:w-[min(100%,calc((100dvh-16rem)*5/3))] lg:flex-row lg:items-center lg:justify-between">
-          <p className="flex items-center justify-center gap-2 text-caption text-muted lg:text-body">
-            <Icon name="info" size={16} className="flex-none" />
-            {t('Na sala, use fones.')}
-          </p>
-          <Button to="/estudante/pausa/fim" block className="lg:w-auto lg:px-10">
-            {t('Terminei')}
-          </Button>
-        </div>
-      </div>
-    </>
-  );
+  return <>
+    <CabecalhoAtividade titulo="piano pause" />
+    <EspacoDoJogo className="min-h-0 w-full flex-1" />
+  </>;
 }
 
 /**
@@ -198,27 +174,18 @@ export function PianoPause() {
  * compilado com o pygbag para public/jogos/mkpotion (`npm run build:mkpotion`).
  * O jogo é deitado (1000 × 700) e se ajusta ao tamanho da janela; o progresso fica no navegador.
  */
-function IntroducaoJogo({ titulo, instrucao }: { titulo: string; instrucao: string }) {
-  return <div className="space-y-2 text-center">
-    <ScreenTitle>{t(titulo)}</ScreenTitle>
-    <p className="text-body text-muted">{t(instrucao)}</p>
-  </div>;
-}
-
 export function MKPotion({ jogo = 'mkpotion' }: { jogo?: 'mkpotion' | 'mkconnection' }) {
   const titulo = jogo === 'mkconnection' ? 'mk connection' : 'mk potion';
   const { perfil } = useEstudante();
   if (!useSessaoValida()) return <Navigate to="/estudante/pausa" replace />;
   return (
     <>
-      <CabecalhoAtividade />
-      <IntroducaoJogo titulo={titulo} instrucao={jogo === 'mkconnection'
-        ? 'Conecte os pontos da mesma cor, sem pressa.'
-        : 'Organize as cores nas garrafas, uma de cada vez.'} />
-      <div className="flex flex-col gap-5 lg:w-[min(64rem,calc(100vw-4rem))] lg:self-center">
+      <CabecalhoAtividade titulo={titulo} />
+
+      <div className="flex min-h-0 w-full flex-1 flex-col">
         {/* Ocupa a altura que sobra na tela (vertical no celular, horizontal no computador):
             com ?mkpause=1 o jogo desenha nesse tamanho exato, nítido, e se reorganiza ao redimensionar. */}
-        <div className="h-[max(26rem,calc(100dvh-21rem))] w-full overflow-hidden rounded-sheet bg-bg lg:h-[max(28rem,calc(100dvh-19rem))]">
+        <div className="min-h-0 w-full flex-1 overflow-hidden rounded-sheet bg-bg">
           <iframe
             src={`/jogos/${jogo}/index.html?mkpause=1&estudante=${encodeURIComponent(perfil.id)}`}
             title={t(jogo === 'mkconnection' ? 'Jogo mk connection' : 'Jogo mk potion')}
@@ -226,15 +193,7 @@ export function MKPotion({ jogo = 'mkpotion' }: { jogo?: 'mkpotion' | 'mkconnect
             className="size-full border-0"
           />
         </div>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <p className="flex items-center justify-center gap-2 text-caption text-muted lg:text-body">
-            <Icon name="info" size={16} className="flex-none" />
-            {t('Na sala, use fones.')}
-          </p>
-          <Button to="/estudante/pausa/fim" block className="lg:w-auto lg:px-10">
-            {t('Terminei')}
-          </Button>
-        </div>
+
       </div>
     </>
   );
@@ -246,13 +205,22 @@ export function Video({ atividade = 'video' }: { atividade?: 'video' | 'espiral'
   return <VideoRespiracao key={atividade} atividade={atividade} />;
 }
 
+/** Conteúdo livre preserva as mesmas regras de disponibilidade do catálogo. */
+export function AtividadeLivre({ atividade, children }: { atividade: AtividadeId; children: ReactNode }) {
+  const disponivel = useDados(() => api.estudante.conteudos().some((c) => c.id === atividade && c.disponivel));
+  return disponivel ? children : <Navigate to="/estudante/atividades" replace />;
+}
+
 /** Etapa 3 de 3: E agora? Se ainda não está bem, leva ao nível 3. */
 export function ComoFicou() {
   const navigate = useNavigate();
   const { sessao, atualizarSessao, concluirSessao } = useEstudante();
   const [emocao, setEmocao] = useState(sessao.depois ?? null);
   const [relato, setRelato] = useState('');
+  const [jaConcluida] = useState(Boolean(sessao.concluida));
   if (!sessao.antes) return <Navigate to="/estudante/pausa" replace />;
+  if (!sessao.atividade) return <Navigate to="/estudante/pausa/atividade" replace />;
+  if (jaConcluida) return <Navigate to="/estudante/pausa/concluida" replace />;
   const antes = emocaoPorId(sessao.antes);
 
   return (
@@ -288,7 +256,13 @@ export function ComoFicou() {
           <Desativado>{t('Escolha como está')}</Desativado>
         )}
         {/* Não há "Pedir ajuda": o nível 3 já avisa a escola automaticamente. */}
-        <Button to="/estudante/agora" variant="help" block>
+        <Button variant="help" block disabled={!emocao} onClick={() => {
+          if (!emocao) return;
+          void agir(async () => {
+            await concluirSessao(relato, emocao);
+            navigate('/estudante/agora');
+          }, 'Sessão concluída.');
+        }}>
           <Icon name="respiracao" size={22} />
           {t('Não estou bem')}
         </Button>

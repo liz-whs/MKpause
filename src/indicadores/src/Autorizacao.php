@@ -42,6 +42,7 @@ final class Autorizacao
         if (!is_array($conta) || !in_array($conta['perfil'] ?? null, self::PERFIS_PERMITIDOS, true)) {
             throw new ErroHttp(403, 'Só a administração da escola vê os indicadores.');
         }
+        if (!is_int($conta['id_escola'] ?? null) || $conta['id_escola'] < 1) throw new ErroHttp(403, 'Sua conta ainda não tem escola definida.');
         return $conta;
     }
 

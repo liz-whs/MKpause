@@ -46,7 +46,7 @@ export function ActivityRow({
   );
 }
 
-/** Lista de profissionais (Quem vai saber, Quem acompanha você). */
+/** Lista de profissionais que acompanham o estudante. */
 export function PeopleList({ pessoas, detalhe }: { pessoas: Profissional[]; detalhe?: (p: Profissional) => string }) {
   return (
     <ul className="flex flex-col gap-2">
@@ -82,7 +82,7 @@ export function EmergencyLine() {
   );
 }
 
-/** Botão flutuante "Me acalmar agora" (Atividades e Cuidados): leva ao nível 3. */
+/** Botão flutuante "Não estou bem" (Atividades e Cuidados): leva ao nível 3. */
 export function CalmFab() {
   return (
     <Link
@@ -94,7 +94,7 @@ export function CalmFab() {
       )}
     >
       <Icon name="respiracao" size={22} />
-      {t('Me acalmar agora')}
+      {t('Não estou bem')}
     </Link>
   );
 }

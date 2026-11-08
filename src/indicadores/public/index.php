@@ -47,9 +47,9 @@ try {
         return;
     }
     if ($rota === '/api/resumo') {
-        (new Autorizacao($config))->exigirAdministrador($_SERVER['HTTP_COOKIE'] ?? '');
+        $conta = (new Autorizacao($config))->exigirAdministrador($_SERVER['HTTP_COOKIE'] ?? '');
         $dias = filter_var($_GET['dias'] ?? '30', FILTER_VALIDATE_INT);
-        $indicadores = new Indicadores(Banco::conectar($config), $config->fuso());
+        $indicadores = new Indicadores(Banco::conectar($config), $config->fuso(), (int) $conta['id_escola']);
         responder(200, $indicadores->resumo($dias === false ? 0 : $dias));
         return;
     }

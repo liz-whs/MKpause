@@ -9,13 +9,17 @@ services:
     dockerContext: .
     healthCheckPath: /api/auth/csrf/
     envVars:
+      - key: APP_ENV
+        value: production
+      - key: SESSION_DRIVER
+        value: database
+      - key: MKPAUSE_DEMO
+        value: "false"
       - key: APP_DEBUG
         value: "false"
       - key: MKPAUSE_SECRET_KEY
         sync: false
       - key: DATABASE_URL
-        sync: false
-      - key: DEMO_SENHA
         sync: false
       - key: PUBLIC_BASE_URL
         sync: false # endereço público do serviço, usado nos links de convite (ex.: https://mkpause.onrender.com)

@@ -95,13 +95,13 @@ class Cadastros
     }
 
     /** Cria usuario + perfil (transação). Devolve o id do perfil. */
-    public static function criar(string $tipo, array $dados): int
+    public static function criar(string $tipo, array $dados, ?int $escola = null): int
     {
         [$tabela, $chave] = self::TIPOS[$tipo];
-        return DB::transaction(function () use ($tabela, $chave, $dados) {
+        return DB::transaction(function () use ($tabela, $chave, $dados, $escola) {
             $agora = Formato::banco(Formato::agora());
             $idUsuario = DB::table('usuario')->insertGetId([
-                ...$dados['usuario'],
+                ...$dados['usuario'], 'id_escola' => $escola,
                 'senha_hash' => SenhaPbkdf2::criar($dados['senha']),
                 'ativo' => true, 'criado_em' => $agora, 'atualizado_em' => $agora,
             ], 'id_usuario');

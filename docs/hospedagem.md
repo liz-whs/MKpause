@@ -13,7 +13,7 @@ acesso depois disso demora cerca de 1 minuto.
 2. Em **Connect**, com **Connection pooling** ligado, copie a URL (`postgresql://...?sslmode=require`).
 
 As tabelas são criadas sozinhas a cada início do serviço (`php artisan mkpause:aplicar-esquema`,
-que aplica só as versões V1 a V4 que faltam).
+que aplica só as versões V1 a V8 que faltam).
 
 ## 2. Site no Render
 
@@ -24,7 +24,7 @@ que aplica só as versões V1 a V4 que faltam).
    - `DATABASE_URL`: a URL do Neon;
    - `MKPAUSE_SECRET_KEY`: uma chave longa e aleatória;
    - `APP_DEBUG`: `false`;
-   - `DEMO_SENHA`: senha das contas de demonstração (pelo menos 8 caracteres);
+   - `MKPAUSE_DEMO`: `false` em instalações com dados reais;
    - `PUBLIC_BASE_URL`: o endereço público do serviço (ex.: `https://mkpause.onrender.com`);
    - `INDICADORES_DATABASE_URL`: opcional (URL sem pooler, só para o módulo de indicadores).
 4. Clique em **Apply**. O primeiro build leva alguns minutos.
@@ -33,8 +33,7 @@ que aplica só as versões V1 a V4 que faltam).
 
 ## Contas de demonstração
 
-Criadas a cada início pelo `php artisan mkpause:criar-demo` (contas existentes não mudam), todas
-com a `DEMO_SENHA`:
+Bloqueadas por padrão. Somente uma instalação isolada, sem dados reais, deve habilitar `MKPAUSE_DEMO=true` e configurar `DEMO_SENHA`. Nesse caso, o início pode executar `php artisan mkpause:criar-demo`. As contas de demonstração usam a senha configurada e ficam associadas à Escola Modelo:
 
 | Perfil | E-mail |
 |---|---|
@@ -43,6 +42,10 @@ com a `DEMO_SENHA`:
 | Professor | `professor.demo@mkpause.dev` |
 | Psicóloga escolar | `psicologo.demo@mkpause.dev` |
 | Psicólogo clínico | `clinico.demo@mkpause.dev` |
+
+## Migração de instalações existentes
+
+Antes de publicar, prepare um administrador real e a associação institucional de cada conta. Veja [Segurança e separação por escola](seguranca.md). Contas antigas sem escola definida ficam sem acesso aos dados; não existe mais administrador global entre escolas. Códigos antigos sem instituição devem ser substituídos.
 
 ## Atualizar o site
 

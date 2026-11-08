@@ -163,3 +163,8 @@ A interface e a API estão integradas aos fluxos de pausa, jogos e vínculos com
 ## Contexto acadêmico
 
 O MKpause é desenvolvido como projeto acadêmico no curso de **Engenharia de Software da PUCPR**, aplicando conceitos de Engenharia de Requisitos, Modelagem de Sistemas, Banco de Dados, Experiência do Usuário e Desenvolvimento de Software.
+
+
+### Segurança e escolas independentes
+
+Consulte [Segurança e separação por escola](docs/seguranca.md) antes de publicar as migrações V6 a V8: contas antigas precisam de associação institucional explícita, e contas de demonstração ficam bloqueadas por padrão.

@@ -28,32 +28,31 @@ export function useTelaGrande() {
 }
 
 const ROTA_JOGO = '/estudante/pausa/pianopause';
+const ROTA_LIVRE = '/estudante/atividades/pianopause';
 
 /** Telas em que vale a pena já ir carregando o jogo. */
-function deveCarregar(pathname: string, state: unknown) {
-  if (pathname === ROTA_JOGO || pathname === '/estudante/pausa/atividade') return true;
-  // Vindo de Atividades com o PianoPause escolhido, o próximo passo é o jogo.
-  return pathname === '/estudante/pausa' && (state as { atividade?: string } | null)?.atividade === 'pianopause';
+function deveCarregar(pathname: string) {
+  return pathname === ROTA_JOGO || pathname === ROTA_LIVRE || pathname === '/estudante/pausa/atividade';
 }
 
 const EspacoCtx = createContext<(el: HTMLElement | null) => void>(() => {});
 
 /** Envolve as telas de pausa e mantém o iframe do jogo vivo entre elas. */
 export function JogoPianoPauseProvider({ children }: { children: ReactNode }) {
-  const { pathname, state } = useLocation();
+  const { pathname } = useLocation();
   const computador = useTelaGrande();
   const [espaco, setEspaco] = useState<HTMLElement | null>(null);
   const [carregado, setCarregado] = useState(false);
   const [caixa, setCaixa] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
-  const naPausa = pathname.startsWith('/estudante/pausa');
-  const visivel = pathname === ROTA_JOGO && espaco !== null;
+  const naPausa = pathname.startsWith('/estudante/pausa') || pathname === ROTA_LIVRE;
+  const visivel = (pathname === ROTA_JOGO || pathname === ROTA_LIVRE) && espaco !== null;
 
   // Começa a carregar na hora certa e mantém enquanto o aluno estiver na pausa.
   useEffect(() => {
     if (!naPausa) setCarregado(false);
-    else if (deveCarregar(pathname, state)) setCarregado(true);
-  }, [naPausa, pathname, state]);
+    else if (deveCarregar(pathname)) setCarregado(true);
+  }, [naPausa, pathname]);
 
   // Acompanha a posição e o tamanho do espaço reservado na tela do jogo.
   useLayoutEffect(() => {
@@ -92,8 +91,7 @@ export function JogoPianoPauseProvider({ children }: { children: ReactNode }) {
           }
         >
           <iframe
-            key={computador ? 'computador' : 'celular'}
-            src={computador ? '/jogos/pianopause/index.html?mkpause=1&modo=computador' : '/jogos/pianopause/index.html?mkpause=1'}
+            src="/jogos/pianopause/index.html?mkpause=1"
             title={t('Jogo piano pause')}
             allow="autoplay; fullscreen"
             tabIndex={visivel ? 0 : -1}

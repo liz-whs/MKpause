@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { integrarPiano } from './integrar-jogos.mjs';
 
@@ -28,8 +28,25 @@ copyFileSync(origem, join(projeto, 'main.py'));
 // Fontes do site (Fraunces e Lexend) usadas pelo jogo.
 const fontes = join(dirname(origem), 'fontes');
 if (existsSync(fontes)) cpSync(fontes, join(projeto, 'fontes'), { recursive: true });
+cpSync(join(web, '..', 'MKpotion', 'mk_potion', 'assets', 'fonts_mkpause'), join(projeto, 'fontes'), { recursive: true });
 
 integrarPiano(projeto);
+// Notas pré-renderizadas com formato explícito, compatíveis com o áudio web.
+const audio = join(web, 'scripts', 'pianopause-audio.py');
+copyFileSync(join(web, 'scripts', 'pianopause-audio-web.py'), join(projeto, 'piano_audio.py'));
+execFileSync(python, [audio, projeto], { stdio: 'inherit' });
+for (let i = 0; i < 4; i++) {
+  const wav = join(projeto, 'audio', `nota-${i}.wav`);
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', wav, '-c:a', 'libvorbis', '-q:a', '8', join(projeto, 'audio', `nota-${i}.ogg`)], { stdio: 'inherit' });
+  rmSync(wav);
+}
+execFileSync(python, ['-c', `import pygame
+from pathlib import Path
+origem, destino = Path(__import__('sys').argv[1]), Path(__import__('sys').argv[2])
+for emocao in ['calmo','feliz']:
+    pygame.image.save(pygame.image.load(str(origem / (emocao+'.svg'))), str(destino / ('mascote-'+emocao+'.png')))
+`, join(web, 'src', 'assets', 'chinchila'), projeto], {stdio:'inherit'});
+
 console.log(`Compilando ${origem} com pygbag…`);
 // PYTHONUTF8: no Windows o pygbag leria o main.py como cp1252 e quebraria nos acentos.
 execFileSync(python, ['-m', 'pygbag', '--build', projeto], {
@@ -65,5 +82,6 @@ for (const [de, para] of trocas) {
 }
 writeFileSync(join(destino, 'index.html'), html);
 
+if (dirname(trabalho) !== tmpdir() || !basename(trabalho).startsWith('mkpause-pianopause-')) throw new Error('Pasta temporária inesperada.');
 rmSync(trabalho, { recursive: true, force: true });
 console.log(`Pronto: ${destino}`);

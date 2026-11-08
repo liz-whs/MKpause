@@ -22,7 +22,7 @@ class CodigosController extends Controller
 
     public function listarCadastro(Request $request)
     {
-        $lista = DB::table('codigo_cadastro')->orderByDesc('criado_em')->orderByDesc('id_codigo_cadastro')->get();
+        $lista = DB::table('codigo_cadastro')->where('id_escola', \App\Mkpause\Escola::id($this->conta($request)))->orderByDesc('criado_em')->orderByDesc('id_codigo_cadastro')->get();
         return $this->json($lista->map(fn ($c) => self::cadastro($c))->all());
     }
 
@@ -41,6 +41,7 @@ class CodigosController extends Controller
         $texto = Codigos::gerar(10);
         $agora = Formato::agora();
         $id = DB::table('codigo_cadastro')->insertGetId([
+            'id_escola' => \App\Mkpause\Escola::id($this->conta($request)),
             'codigo_hash' => Codigos::hash($texto), 'sufixo' => substr($texto, -3), 'perfil' => $perfil,
             'id_administrador' => $this->conta($request)->idPerfil(),
             'turma' => $turma === Entrada::AUSENTE ? null : $turma,
@@ -54,8 +55,8 @@ class CodigosController extends Controller
 
     public function revogarCadastro(Request $request, $id)
     {
-        $c = DB::transaction(function () use ($id) {
-            $c = DB::table('codigo_cadastro')->where('id_codigo_cadastro', self::id($id))->lockForUpdate()->first()
+        $c = DB::transaction(function () use ($id, $request) {
+            $c = DB::table('codigo_cadastro')->where('id_codigo_cadastro', self::id($id))->where('id_escola', \App\Mkpause\Escola::id($this->conta($request)))->lockForUpdate()->first()
                 ?? throw ErroApi::semRegistro('CodigoCadastro');
             if (!$c->revogado_em) {
                 DB::table('codigo_cadastro')->where('id_codigo_cadastro', $c->id_codigo_cadastro)
@@ -104,7 +105,7 @@ class CodigosController extends Controller
     {
         $q = DB::table('codigo_cadastro')->where('codigo_hash', Codigos::hash($texto));
         $c = ($bloquear ? $q->lockForUpdate() : $q)->first();
-        if ($c === null || self::situacao($c) !== 'ATIVO') {
+        if ($c === null || !$c->id_escola || self::situacao($c) !== 'ATIVO') {
             throw ErroApi::invalido(self::CADASTRO_INVALIDO);
         }
         return $c;
@@ -136,7 +137,7 @@ class CodigosController extends Controller
                 }
                 $tipo = strtolower($c->perfil);
                 $dados = Cadastros::validar($tipo, new Entrada($campos), parcial: false);
-                $idPerfil = Cadastros::criar($tipo, $dados);
+                $idPerfil = Cadastros::criar($tipo, $dados, (int) $c->id_escola);
                 $idUsuario = Cadastros::buscar($tipo, $idPerfil)->id_usuario;
                 DB::table('codigo_cadastro')->where('id_codigo_cadastro', $c->id_codigo_cadastro)->increment('usos');
                 DB::table('uso_codigo_cadastro')->insert(['id_codigo_cadastro' => $c->id_codigo_cadastro,
@@ -217,6 +218,7 @@ class CodigosController extends Controller
             return null;
         }
         return DB::table("{$tabela} as p")->join('usuario as u', 'u.id_usuario', '=', 'p.id_usuario')
+            ->where('u.id_escola', DB::table('estudante as e')->join('usuario as ue','ue.id_usuario','=','e.id_usuario')->where('e.id_estudante',$c->id_estudante)->value('ue.id_escola'))
             ->where("p.{$chave}", $id)->where('p.ativo', true)->where('u.ativo', true)->select('p.*', 'u.nome_completo')->first();
     }
 
@@ -298,6 +300,7 @@ class CodigosController extends Controller
         $texto = $this->textoCodigo($this->entrada($request));
         [$status, $idEstudante] = DB::transaction(function () use ($conta, $texto) {
             $c = self::bloquearCodigo(DB::table('codigo_vinculo')->where('codigo_hash', Codigos::hash($texto)), self::VINCULO_INVALIDO);
+            \App\Mkpause\Escola::exigirPerfil($conta, 'estudante', 'id_estudante', (int) $c->id_estudante);
             if ($c->status !== 'ABERTO') {
                 throw ErroApi::invalido(self::VINCULO_INVALIDO);
             }
@@ -322,7 +325,7 @@ class CodigosController extends Controller
         $coluna = $conta->e(Conta::PROFESSOR) ? 'c.id_professor' : 'c.id_psicologo_escolar';
         $lista = self::pendentes()->join('estudante as e', 'e.id_estudante', '=', 'c.id_estudante')
             ->join('usuario as u', 'u.id_usuario', '=', 'e.id_usuario')
-            ->where($coluna, $conta->idPerfil())->where('e.ativo', true)->where('u.ativo', true)
+            ->where('u.id_escola', \App\Mkpause\Escola::id($conta))->where($coluna, $conta->idPerfil())->where('e.ativo', true)->where('u.ativo', true)
             ->orderByDesc('c.resgatado_em')->orderByDesc('c.id_codigo_vinculo')->select('c.*')->get();
         return $this->json($lista->map(fn ($c) => ['id_codigo_vinculo' => (int) $c->id_codigo_vinculo,
             'estudante' => self::resumoEstudante((int) $c->id_estudante), 'resgatado_em' => Formato::utc($c->resgatado_em)])->all());

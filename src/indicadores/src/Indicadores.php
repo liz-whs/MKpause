@@ -7,7 +7,7 @@ use PDO;
 final class Indicadores
 {
     public const PERIODOS=[7,30,90];
-    public function __construct(private PDO $pdo, private string $fuso) {}
+    public function __construct(private PDO $pdo, private string $fuso, private int $escola) {}
 
     public function resumo(int $dias, ?\DateTimeImmutable $agora=null): array
     {
@@ -16,9 +16,9 @@ final class Indicadores
         $agora=($agora ?? new \DateTimeImmutable('now',$tz))->setTimezone($tz);
         $limite=$agora->setTime(0,0);
         $inicio=$limite->modify("-$dias days");
-        $p=['inicio'=>$inicio->format(DATE_ATOM),'fim'=>$limite->format(DATE_ATOM)];
+        $p=['escola'=>$this->escola,'inicio'=>$inicio->format(DATE_ATOM),'fim'=>$limite->format(DATE_ATOM)];
         $base=['periodo'=>['dias'=>$dias,'inicio'=>$inicio->format('Y-m-d'),'fim'=>$limite->modify('-1 day')->format('Y-m-d')], 'minimo_estudantes'=>Anonimizacao::MINIMO];
-        $filtro="s.status <> 'CANCELADA' AND s.iniciada_em >= :inicio AND s.iniciada_em < :fim";
+        $filtro="s.id_estudante IN (SELECT e.id_estudante FROM estudante e JOIN usuario u ON u.id_usuario=e.id_usuario WHERE u.id_escola=:escola) AND s.status <> 'CANCELADA' AND s.iniciada_em >= :inicio AND s.iniciada_em < :fim";
         $this->pdo->beginTransaction();
         try {
             $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY');
@@ -36,7 +36,7 @@ final class Indicadores
                 JOIN registro_humor pos ON pos.id_sessao=s.id_sessao AND pos.momento='POS'",
                 "CASE WHEN pos.estado>pre.estado THEN 'melhor' WHEN pos.estado=pre.estado THEN 'igual' ELSE 'pior' END","AND s.status='CONCLUIDA' AND pre.estado BETWEEN 1 AND 5 AND pos.estado BETWEEN 1 AND 5"));
             $niveis=Anonimizacao::proteger($this->consultar("SELECT nivel AS rotulo,COUNT(*) AS pausas,COUNT(DISTINCT id_estudante) AS estudantes
-                FROM alerta WHERE status <> 'CANCELADO' AND criado_em>=:inicio AND criado_em<:fim GROUP BY nivel ORDER BY nivel",$p));
+                FROM alerta WHERE id_estudante IN (SELECT e.id_estudante FROM estudante e JOIN usuario u ON u.id_usuario=e.id_usuario WHERE u.id_escola=:escola) AND status <> 'CANCELADO' AND criado_em>=:inicio AND criado_em<:fim GROUP BY nivel ORDER BY nivel",$p));
             $porDia=[];
             if (!$diasGrupo['ocultos']) {
                 $contagens=array_column($diasGrupo['grupos'],'pausas','rotulo');

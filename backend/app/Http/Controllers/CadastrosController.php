@@ -24,7 +24,7 @@ class CadastrosController extends Controller
 
     public function listar(Request $request, string $tipo)
     {
-        $q = Cadastros::consulta($tipo)->orderBy('u.nome_completo')->orderBy('p.'.Cadastros::TIPOS[$tipo][1]);
+        $q = Cadastros::consulta($tipo)->where('u.id_escola', \App\Mkpause\Escola::id($this->conta($request)))->orderBy('u.nome_completo')->orderBy('p.'.Cadastros::TIPOS[$tipo][1]);
         $this->filtrarAtivo($request, $q, 'p.ativo');
         return $this->json($q->get()->map(fn ($p) => Cadastros::dados($tipo, $p))->all());
     }
@@ -37,7 +37,7 @@ class CadastrosController extends Controller
     public function criar(Request $request, string $tipo)
     {
         $dados = Cadastros::validar($tipo, $this->entrada($request), parcial: false);
-        $id = Cadastros::criar($tipo, $dados);
+        $id = Cadastros::criar($tipo, $dados, \App\Mkpause\Escola::id($this->conta($request)));
         return $this->json(Cadastros::dados($tipo, Cadastros::buscar($tipo, $id)), 201);
     }
 
@@ -62,7 +62,7 @@ class CadastrosController extends Controller
 
     private function perfil(Request $request, string $tipo, $id): object
     {
-        $q = Cadastros::consulta($tipo)->where('p.'.Cadastros::TIPOS[$tipo][1], self::id($id));
+        $q = Cadastros::consulta($tipo)->where('u.id_escola', \App\Mkpause\Escola::id($this->conta($request)))->where('p.'.Cadastros::TIPOS[$tipo][1], self::id($id));
         $this->filtrarAtivo($request, $q, 'p.ativo');
         return $q->first() ?? throw ErroApi::semRegistro(self::MODELOS[$tipo]);
     }
@@ -91,8 +91,8 @@ class CadastrosController extends Controller
 
     public function listarVinculos(Request $request, string $tipo)
     {
-        [$tabela] = self::VINCULOS[$tipo];
-        $q = DB::table($tabela)->orderByDesc('criado_em');
+        [$tabela, $coluna, , $tabelaProf, $chaveProf] = self::VINCULOS[$tipo];
+        $q = DB::table($tabela)->whereIn($coluna, DB::table($tabelaProf.' as p')->join('usuario as u','u.id_usuario','=','p.id_usuario')->where('u.id_escola', \App\Mkpause\Escola::id($this->conta($request)))->select('p.'.$chaveProf))->whereIn('id_estudante', Permissoes::estudantesVinculados($this->conta($request)))->orderByDesc('criado_em');
         if ($est = $request->query('estudante')) {
             Entrada::paraInteiro($est) === null ? $q->whereRaw('false') : $q->where('id_estudante', (int) $est);
         }
@@ -107,6 +107,8 @@ class CadastrosController extends Controller
         $prof = $e->referencia($campo, $tabelaProf, $chaveProf);
         $estudante = $e->referencia('estudante', 'estudante', 'id_estudante');
         $e->falharSeHouverErros();
+        \App\Mkpause\Escola::exigirPerfil($this->conta($request), $tabelaProf, $chaveProf, $prof);
+        \App\Mkpause\Escola::exigirPerfil($this->conta($request), 'estudante', 'id_estudante', $estudante);
         $chave = [$coluna => $prof, 'id_estudante' => $estudante];
 
         $extras = [];
@@ -129,6 +131,7 @@ class CadastrosController extends Controller
         if ($prof === null || $estudante === null || !DB::table($tabela)->where($chave)->exists()) {
             throw ErroApi::semRegistro(self::MODELOS_VINCULO[$tipo]);
         }
+        \App\Mkpause\Escola::exigirPerfil($this->conta($request), 'estudante', 'id_estudante', $estudante);
         DB::table($tabela)->where($chave)->update(['ativo' => false]);
         return $this->json(['detail' => $mensagem]);
     }

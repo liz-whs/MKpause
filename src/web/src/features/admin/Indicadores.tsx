@@ -1,3 +1,4 @@
+import { dataBrasileira } from '../../domain/formatos';
 import { useEffect, useState } from 'react';
 import { buscarIndicadores, type ResumoIndicadores } from '../../data/indicadores';
 import { PageHeader, SelectField } from '../../components/pro/Pro';
@@ -39,12 +40,12 @@ export function AdminIndicadores() {
       <SelectField label={t('Período')} value={dias} onChange={setDias} options={[
         {value:'7',label:t('7 dias completos')},{value:'30',label:t('30 dias completos')},{value:'90',label:t('90 dias completos')},
       ]} />
-      <Button variant="outline" disabled={carregando} onClick={()=>setTentativa((n)=>n+1)}>{t('Atualizar')}</Button>
+      <Button variant="outline" className="min-h-12! text-body!" disabled={carregando} onClick={()=>setTentativa((n)=>n+1)}>{t('Atualizar')}</Button>
     </div>
     <p className="text-caption text-muted">{t('Os dados terminam ontem. Grupos pequenos são protegidos para reduzir a identificação de estudantes.')}</p>
     {carregando && <p role="status">{t('Carregando indicadores…')}</p>}
     {erro && <p role="alert">{erro}</p>}
-    {dados && <p>{t('De {inicio} a {fim}',{inicio:dados.periodo.inicio,fim:dados.periodo.fim})}</p>}
+    {dados && <p>{t('De {inicio} a {fim}',{inicio:dataBrasileira(dados.periodo.inicio),fim:dataBrasileira(dados.periodo.fim)})}</p>}
     {dados && !dados.suficiente && <Card><p role="status">{t('Ainda não há dados suficientes. É necessário ter pelo menos {n} estudantes no período.',{n:dados.minimo_estudantes})}</p></Card>}
     {totais && <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -54,7 +55,7 @@ export function AdminIndicadores() {
         ].map((item)=><Card key={item.nome}><p>{item.nome}</p><strong className="text-section">{item.valor??t('Protegido')}</strong></Card>)}
       </div>
       <div className="grid items-start gap-4 lg:grid-cols-2">
-        <Distribuicao titulo={t('Pausas por dia')} linhas={(dados?.pausas_por_dia??[]).map((l)=>({rotulo:l.dia,pausas:l.pausas}))} oculto={dados?.ocultos?.dias} />
+        <Distribuicao titulo={t('Pausas por dia')} linhas={(dados?.pausas_por_dia??[]).map((l)=>({rotulo:dataBrasileira(l.dia),pausas:l.pausas}))} oculto={dados?.ocultos?.dias} />
         <Distribuicao titulo={t('Pausas por horário')} linhas={(dados?.pausas_por_hora??[]).map((l)=>({rotulo:`${l.hora}h`,pausas:l.pausas}))} oculto={dados?.ocultos?.horas} />
         <Distribuicao titulo={t('Atividades escolhidas')} linhas={dados?.atividades??[]} oculto={dados?.ocultos?.atividades} />
         <Distribuicao titulo={t('Pausas por turma')} linhas={dados?.turmas??[]} oculto={dados?.ocultos?.turmas} />

@@ -20,6 +20,19 @@ export function BackButton({ to, label = t('Voltar') }: { to: To; label?: string
   );
 }
 
+/** Identifica a atividade sem ocupar a área de execução. */
+export function NomeAtividade({ titulo }: { titulo: string }) {
+  return <h1 className="min-w-0 max-w-32 font-sans text-label leading-snug font-semibold break-words md:max-w-none md:text-caption">{t(titulo)}</h1>;
+}
+
+/** Encerramento comum aos players; mantém o destino definido pelo fluxo da atividade. */
+export function TerminarExercicio({ to, onClick }: { to: To; onClick?: () => void }) {
+  return <Link to={to} onClick={onClick}
+    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-pill border border-ink/40 bg-peony px-3 py-2 text-caption font-semibold text-ink transition-colors hover:bg-ink hover:text-surface focus-visible:bg-ink focus-visible:text-surface focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ink md:px-4 md:text-body">
+    {t('Terminar exercício')}
+  </Link>;
+}
+
 export function SairDaPausa() {
   return (
     <Link to="/estudante" className="px-1 py-3 font-semibold">
@@ -36,7 +49,7 @@ export function FocusTopBar({ back, children }: { back?: ReactNode; children?: R
   return (
     <div className="flex items-center justify-between gap-3 self-stretch pt-4 pb-1">
       {back ?? <span />}
-      <span className="flex items-center gap-2.5">
+      <span className="flex shrink-0 items-center gap-2.5">
         {children}
         <BotaoPreferencias />
       </span>

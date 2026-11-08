@@ -1,3 +1,4 @@
+import { dataBrasileira } from '../../domain/formatos';
 import { AtividadesPorCategoria } from '../../components/student/AtividadesPorCategoria';
 import { dataParaISO, nascimentoValido, telefoneValido } from '../../domain/formularios';
 import { agir } from '../../state/acoes';
@@ -27,7 +28,7 @@ export function AdminLayout() {
   return (
     <ProLayout
       perfil={t('Administrador(a)')}
-      usuario={{ nome: eu.nome, iniciais: eu.iniciais }}
+      usuario={{ id: eu.id, nome: eu.nome, iniciais: eu.iniciais }}
       perfilTo="/admin/perfil"
       items={[
         { to: '/admin/usuarios', label: 'Usuários', icon: 'pessoas' },
@@ -509,7 +510,7 @@ function FormFicha({ estudanteId, opcoesNova, clinicos, onSalvo }: {
     responsavel: ficha?.responsavel ?? '',
     parentesco: ficha?.parentesco ?? '',
     contato: ficha?.contato ?? '',
-    inicio: ficha?.inicio ?? '',
+    inicio: ficha?.inicio ? dataBrasileira(ficha.inicio) : '',
     encaminhamento: ficha?.encaminhamento ?? '',
   });
   const [clinico, setClinico] = useState(

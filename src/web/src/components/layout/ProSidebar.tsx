@@ -20,7 +20,7 @@ export interface ProSidebarProps {
   /** Perfil exibido sob o logo, ex.: "Professor(a)". */
   perfil: string;
   items: ProMenuItem[];
-  usuario: { nome: string; iniciais: string };
+  usuario: { id?: string; nome: string; iniciais: string };
   /** Página de perfil de quem está usando (o cartão do usuário leva até ela). */
   perfilTo: string;
 }
@@ -116,13 +116,12 @@ export function ProSidebar({ perfil, items, usuario, perfilTo }: ProSidebarProps
   return (
     <>
       {/* Computador: coluna fixa à esquerda */}
-      <aside className="hidden w-68 flex-none flex-col gap-6 bg-surface px-4 py-6 lg:flex">
+      <aside className="hidden w-68 flex-none flex-col gap-6 bg-surface px-4 py-6 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:self-start lg:overflow-y-auto">
         <Marca perfil={perfil} />
         <nav aria-label={t('Menu')}>
           <MenuLinks items={items} />
         </nav>
         <div className="mt-auto flex flex-col gap-2">
-          <BotaoPreferencias rotulo className="w-full justify-start bg-transparent hover:bg-surface-hover" />
           <Usuario perfil={perfil} usuario={usuario} perfilTo={perfilTo} />
         </div>
       </aside>
@@ -132,7 +131,7 @@ export function ProSidebar({ perfil, items, usuario, perfilTo }: ProSidebarProps
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Marca perfil={perfil} />
           <span className="ml-auto flex items-center gap-1.5">
-          <BotaoPreferencias className="bg-transparent hover:bg-surface-hover" />
+          <BotaoPreferencias className="order-last bg-transparent hover:bg-surface-hover" />
           <button
             type="button"
             aria-expanded={aberto}

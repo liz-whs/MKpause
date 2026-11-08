@@ -1,34 +1,42 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
-import { LogoSymbol } from '../../components/brand/Logo';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
+import { Logo } from '../../components/brand/Logo';
 import { Button } from '../../components/ui/Button';
 import { Field } from '../../components/ui/Field';
 import { Icon, type IconName } from '../../components/ui/Icon';
 import { Switch } from '../../components/ui/Switch';
 import { cx } from '../../components/ui/cx';
-import { BackButton, FocusTopBar } from '../../components/student/FocusTopBar';
+import { BackButton } from '../../components/student/FocusTopBar';
 import { BotaoPreferencias } from '../../preferencias/PainelPreferencias';
 import { ScreenTitle } from '../../components/student/Bits';
 import { useEstudante } from '../../state/EstudanteContext';
 import { emocaoPorId } from '../../domain/emocoes';
 import { entrarComoProfissional } from '../../state/ProContext';
 import { api } from '../../data/api';
+import { useDados } from '../../data/useDados';
+import { agir } from '../../state/acoes';
 import type { Perfil } from '../../data/servidor';
 import mascote from '../../assets/chinchila/mascote.svg';
 import { t } from '../../i18n';
+import { Abertura, useAbertura } from './Abertura';
+import './onboarding.css';
 
 /** Página de onboarding: coluna única, ações no fim da tela. */
-export function Pagina({ children, centro }: { children: ReactNode; centro?: boolean }) {
-  return (
-    <main id="conteudo" tabIndex={-1}
-      className={cx(
-        'mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-5 px-6 pb-8',
-        centro && 'items-center pt-14 text-center',
-      )}
-    >
+export function Pagina({ children, centro, abertura = false, apresentacao = false, boasVindas = false }: { children: ReactNode; centro?: boolean; abertura?: boolean; apresentacao?: boolean; boasVindas?: boolean }) {
+  return <div className={cx("flex min-h-dvh flex-col bg-bg", apresentacao && "onboarding-tela onboarding-etapas", boasVindas && "onboarding-tela onboarding-boas-vindas")}>
+    <header className="flex items-center justify-between gap-4 px-4 pt-4 md:px-8">
+      {abertura ? <span /> : <Link to="/" aria-label={t('mkpause, início')} className="no-underline"><Logo size={36} /></Link>}
+      <BotaoPreferencias />
+    </header>
+    <main id="conteudo" tabIndex={-1} className={cx('mx-auto flex w-full flex-1 flex-col gap-5 px-6 pt-4 pb-8', abertura ? 'max-w-none' : 'max-w-xl', centro && 'items-center text-center')}>
       {children}
     </main>
-  );
+  </div>;
+}
+
+/** Navegação das etapas; as preferências já ficam no cabeçalho comum. */
+export function BarraOnboarding({ back, children }: { back?: ReactNode; children?: ReactNode }) {
+  return <div className="flex items-center justify-between gap-3 self-stretch py-1">{back ?? <span />}<span className="flex items-center gap-2.5">{children}</span></div>;
 }
 
 export function Rodape({ children }: { children: ReactNode }) {
@@ -36,21 +44,15 @@ export function Rodape({ children }: { children: ReactNode }) {
 }
 
 export function BoasVindas() {
+  const abertura = useAbertura();
+  if (abertura.ativa) return <Pagina abertura><Abertura terminar={abertura.terminar} estatica={abertura.estatica} /></Pagina>;
   return (
-    <Pagina centro>
-      {/* Primeira tela: idioma e acessibilidade já à vista, com texto. */}
-      <div className="-mt-10 flex justify-end self-stretch">
-        <BotaoPreferencias rotulo />
-      </div>
-      <div className="flex items-center gap-2.5">
-        <LogoSymbol size={34} />
-        <span className="font-display text-section font-semibold">MKpause</span>
-      </div>
-      <span className="mt-4.5 flex size-65 items-center justify-center rounded-full bg-surface">
+    <Pagina centro boasVindas>
+      <span className="boas-vindas-mascote mt-4.5 flex size-65 items-center justify-center rounded-full bg-surface">
         <img src={mascote} alt={t('Chinchila, mascote do MKpause')} className="h-54 w-55 object-contain" />
       </span>
-      <ScreenTitle className="mt-2.5">{t('Uma pausa para respirar e voltar mais leve.')}</ScreenTitle>
-      <p className="text-muted">{t('Respire, faça algo calmo e volte mais leve.')}</p>
+      <ScreenTitle className="mt-2.5">{t('Uma pausa no seu ritmo.')}</ScreenTitle>
+      <p className="text-muted">{t('Explore atividades, perceba como você está e procure apoio quando precisar.')}</p>
       <Rodape>
         <Button to="/apresentacao/1" block>
           {t('Começar')}
@@ -75,7 +77,7 @@ function Pontos({ atual }: { atual: number }) {
   );
 }
 
-function Apresentacao({ passo, children, titulo, texto, proximo, rotulo = t('Próximo'), extra }: {
+function Apresentacao({ passo, children, titulo, texto, proximo, rotulo = t('Próximo'), extra, icone }: {
   passo: number;
   children: ReactNode;
   titulo: string;
@@ -83,57 +85,52 @@ function Apresentacao({ passo, children, titulo, texto, proximo, rotulo = t('Pr�
   proximo: string;
   rotulo?: string;
   extra?: ReactNode;
+  icone?: IconName;
 }) {
   return (
-    <Pagina>
-      <FocusTopBar back={<BackButton to={passo === 1 ? '/' : `/apresentacao/${passo - 1}`} />}>
-        <Link to="/entrar" className="px-1 py-3 font-semibold">
-          {t('Pular')}
-        </Link>
-      </FocusTopBar>
-      {children}
-      <span className="text-caption font-semibold text-muted">
-        {t('{passo} de {total}', { passo, total: PASSOS })}
-      </span>
-      <ScreenTitle>{titulo}</ScreenTitle>
-      <p className="text-muted">{texto}</p>
-      {extra}
-      <Rodape>
+    <Pagina apresentacao>
+      <BarraOnboarding back={<BackButton to={passo === 1 ? '/' : `/apresentacao/${passo - 1}`} />}>
+        <Link to="/entrar" className="px-1 py-3 font-semibold">{t('Pular')}</Link>
+      </BarraOnboarding>
+      <div className="apresentacao-corpo">
+        <div className="apresentacao-intro">
+          {icone && <span className="apresentacao-ilustracao" data-etapa={passo}><Icon name={icone} size={36} /></span>}
+          <span className="text-caption font-semibold text-muted">{t('{passo} de {total}', { passo, total: PASSOS })}</span>
+          <ScreenTitle>{titulo}</ScreenTitle>
+          <p className="apresentacao-descricao text-muted">{texto}</p>
+          {extra && <div className="apresentacao-extra">{extra}</div>}
+        </div>
+        <div className="apresentacao-paineis">{children}</div>
+      </div>
+      <footer className="apresentacao-rodape">
         <Pontos atual={passo} />
-        <Button to={proximo} block>
-          {rotulo}
-        </Button>
-      </Rodape>
+        <Button to={proximo} block>{rotulo}</Button>
+      </footer>
     </Pagina>
   );
 }
 
+const CAMINHOS: { titulo: string; texto: string; icone: IconName }[] = [
+  { titulo: 'Início', texto: 'Conte como está antes, escolha uma atividade e avalie seu humor depois.', icone: 'inicio' },
+  { titulo: 'Atividades', texto: 'Explore jogos, vídeos e exercícios livremente, sem avaliação de humor.', icone: 'atividades' },
+  { titulo: 'Cuidados', texto: 'Escolha ações do cotidiano e marque o que você fez, inclusive em mais ideias.', icone: 'broto' },
+];
+
 export function Apresentacao1() {
-  return (
-    <Apresentacao
-      passo={1}
-      titulo={t('Quando a cabeça pesar, faça uma pausa')}
-      texto={t('Poucos minutos. Depois, volte para a aula.')}
-      proximo="/apresentacao/2"
-    >
-      <div className="flex h-62.5 items-center justify-center gap-1 rounded-sheet bg-surface">
-        <img src={emocaoPorId('ansioso').imagem} alt="" className="size-27.5 object-contain" />
-        <Icon name="seta" size={30} className="text-muted" />
-        <img src={emocaoPorId('calmo').imagem} alt="" className="size-27.5 object-contain" />
-      </div>
-    </Apresentacao>
-  );
+  return <Apresentacao passo={1} icone="atividades" titulo={t('Seu espaço para fazer uma pausa')} texto={t('Você pode usar cada espaço de um jeito, sem pressa e sem um resultado obrigatório.')} proximo="/apresentacao/2">
+    <ul className="flex flex-col gap-3">{CAMINHOS.map((c) => <li key={c.titulo} className="flex items-start gap-3 rounded-card bg-surface p-4"><Icon name={c.icone} className="shrink-0" /><span><strong>{t(c.titulo)}</strong><p className="text-caption text-muted">{t(c.texto)}</p></span></li>)}</ul>
+  </Apresentacao>;
 }
 
 const JEITOS: { nivel: 1 | 2 | 3; titulo: string; texto: string; icone: IconName; card: string; circulo: string; numero: string }[] = [
   { nivel: 1, titulo: 'Quero uma pausa', texto: 'Fico na sala e escolho uma atividade.', icone: 'pausa', card: 'bg-surface text-ink', circulo: 'bg-lavender', numero: 'bg-ink text-surface' },
-  { nivel: 2, titulo: 'Preciso sair da sala', texto: 'Aviso a escola e saio um pouco.', icone: 'porta', card: 'bg-sky text-ink', circulo: 'bg-surface', numero: 'bg-ink text-sky' },
-  { nivel: 3, titulo: 'Não estou bem', texto: 'Um toque. A escola é avisada sozinha.', icone: 'respiracao', card: 'bg-rose text-dark', circulo: 'bg-surface', numero: 'bg-dark text-rose' },
+  { nivel: 2, titulo: 'Preciso sair da sala', texto: 'Informe o destino e avise seus profissionais vinculados.', icone: 'porta', card: 'bg-sky text-ink', circulo: 'bg-surface', numero: 'bg-ink text-sky' },
+  { nivel: 3, titulo: 'Não estou bem', texto: 'Avise seus profissionais vinculados e siga a respiração guiada.', icone: 'respiracao', card: 'bg-rose text-dark', circulo: 'bg-surface', numero: 'bg-dark text-rose' },
 ];
 
 export function Apresentacao2() {
   return (
-    <Apresentacao passo={2} titulo={t('Três jeitos de pausar')} texto={t('Quanto mais pesado, menos passos.')} proximo="/apresentacao/3">
+    <Apresentacao passo={2} icone="pausa" titulo={t('Três jeitos de pausar')} texto={t('Escolha o que faz sentido para você agora.')} proximo="/apresentacao/3" extra={<p className="rounded-card bg-surface p-4 text-caption text-muted">{t('Seu pedido de apoio fica registrado. A resposta pode levar um pouco. Se precisar de ajuda agora, chame um adulto em quem confia.')}</p>}>
       <ol className="flex flex-col gap-2.5">
         {JEITOS.map((j) => (
           <li key={j.nivel} className={cx('flex items-center gap-3 rounded-card p-3.5', j.card)}>
@@ -156,21 +153,27 @@ export function Apresentacao2() {
 }
 
 const QUEM_VE: { icone: IconName; quem: string; o_que: string }[] = [
-  { icone: 'pessoa', quem: 'Você', o_que: 'Escolhe quando pausar.' },
-  { icone: 'pessoas', quem: 'Quem acompanha você', o_que: 'Vê suas pausas e avisos.' },
-  { icone: 'cadeado', quem: 'Sua turma', o_que: 'Não vê nada.' },
+  { icone: 'pessoas', quem: 'Profissionais escolares vinculados', o_que: 'Professores e psicólogos escolares autorizados consultam pausas, humores e avisos dos estudantes vinculados e recebem seus alertas.' },
+  { icone: 'ficha', quem: 'Psicólogo clínico vinculado', o_que: 'Consulta histórico, humores e observações escolares e registra o acompanhamento clínico. Não recebe os alertas escolares.' },
+  { icone: 'cadeado', quem: 'Administração', o_que: 'Gerencia cadastros e vínculos e consulta indicadores agregados. Não consulta sessões e humores individuais nem registros clínicos.' },
+];
+
+const PRIVACIDADE_COMPACTA = [
+  { quem: 'Profissionais escolares', texto: 'Com vínculo: pausas, humores, avisos e alertas. Sem acesso aos registros clínicos.' },
+  { quem: 'Psicólogo clínico', texto: 'Com vínculo: histórico, humores, observações escolares e acompanhamento clínico. Sem alertas escolares.' },
+  { quem: 'Administração', texto: 'Cadastros, vínculos e indicadores agregados. Sem sessões, humores individuais ou registros clínicos.' },
 ];
 
 /** Lista "Quem vê o quê" (também usada no Perfil). */
-export function QuemVeOQue() {
+export function QuemVeOQue({ compacto = false }: { compacto?: boolean }) {
   return (
     <ul className="flex flex-col gap-2">
-      {QUEM_VE.map((q) => (
+      {QUEM_VE.map((q, i) => (
         <li key={q.quem} className="flex items-start gap-3 rounded-[18px] bg-surface px-3.5 py-3">
           <Icon name={q.icone} size={22} />
           <span className="flex flex-col">
-            <strong>{t(q.quem)}</strong>
-            <span className="text-caption text-muted">{t(q.o_que)}</span>
+            <strong>{t(compacto ? PRIVACIDADE_COMPACTA[i].quem : q.quem)}</strong>
+            <span className="text-caption text-muted">{t(compacto ? PRIVACIDADE_COMPACTA[i].texto : q.o_que)}</span>
           </span>
         </li>
       ))}
@@ -182,22 +185,13 @@ export function Apresentacao3() {
   return (
     <Apresentacao
       passo={3}
-      titulo={t('Quem vê o quê')}
-      texto={t('Fica entre você e a escola.')}
+      titulo={t('Quem vê o quê?')}
+      texto={t('O acesso depende do perfil e do vínculo. Colegas de turma não consultam seus registros.')}
       proximo="/entrar"
       rotulo={t('Entendi, continuar')}
-      extra={
-        <>
-          <QuemVeOQue />
-          <p className="text-caption text-muted">{t('Emergência:')} 188 (CVV) · 192 (SAMU)</p>
-        </>
-      }
+      icone="escudo"
     >
-      <div className="flex h-37.5 items-center justify-center rounded-sheet bg-surface">
-        <span className="flex size-24 items-center justify-center rounded-full bg-sky">
-          <Icon name="escudo" size={48} />
-        </span>
-      </div>
+      <QuemVeOQue compacto />
     </Apresentacao>
   );
 }
@@ -230,7 +224,7 @@ function destinoDoLogin(usuario: string): string {
     entrarComoProfissional('prof-1');
     return '/escola';
   }
-  return '/primeiro-acesso';
+  return api.estudante.primeiroAcessoPendente() ? '/primeiro-acesso' : '/estudante';
 }
 
 export function Entrar() {
@@ -260,7 +254,7 @@ export function Entrar() {
       setErroLogin(undefined);
       setEntrando(true);
       const conta = await api.entrar(usuario, senha);
-      navigate(DESTINO_DO_PERFIL[conta.perfil]);
+      navigate(conta.perfil === 'estudante' && !conta.primeiro_acesso_pendente ? '/estudante' : DESTINO_DO_PERFIL[conta.perfil]);
     } catch (erro) {
       setErroLogin((erro as Error).message);
     } finally {
@@ -270,7 +264,7 @@ export function Entrar() {
 
   return (
     <Pagina>
-      <FocusTopBar back={<BackButton to="/" />} />
+      <BarraOnboarding back={<BackButton to="/" />} />
       <div className="flex items-center gap-3">
         <img src={emocaoPorId('calmo').imagem} alt="" className="size-16 object-contain" />
         <ScreenTitle>{t('Entrar')}</ScreenTitle>
@@ -332,12 +326,22 @@ export function PrimeiroAcesso() {
   const navigate = useNavigate();
   const { perfil, notificacoes, definirApelido, definirNotificacoes } = useEstudante();
   const [apelido, setApelido] = useState('');
+  const conta = useDados(() => api.conta());
+  const pendente = useDados(() => api.estudante.primeiroAcessoPendente());
+  if (conta && conta.perfil !== 'estudante') return <Navigate to={DESTINO_DO_PERFIL[conta.perfil]} replace />;
+  if (!conta && import.meta.env.MODE !== 'test') return <Navigate to="/entrar" replace />;
+  if (!pendente) return <Navigate to="/estudante" replace />;
+  const finalizar = (salvarApelido: boolean) => {
+    void agir(async () => {
+      await api.estudante.concluirPrimeiroAcesso();
+      if (salvarApelido) definirApelido(apelido);
+      navigate('/estudante');
+    }, '');
+  };
 
   return (
     <Pagina>
-      <FocusTopBar back={<BackButton to="/entrar" />}>
-        <span className="text-caption font-semibold text-muted">{t('Primeiro acesso')}</span>
-      </FocusTopBar>
+      <BarraOnboarding back={<BackButton to="/entrar" />} />
       <img src={emocaoPorId('feliz').imagem} alt="" className="size-24 object-contain" />
       <ScreenTitle>{t('Que bom ter você aqui!')}</ScreenTitle>
       <p className="text-muted">{t('Duas coisinhas rápidas antes de começar. Dá para mudar depois no Perfil.')}</p>
@@ -359,14 +363,11 @@ export function PrimeiroAcesso() {
       <Rodape>
         <Button
           block
-          onClick={() => {
-            definirApelido(apelido);
-            navigate('/estudante');
-          }}
+          onClick={() => finalizar(true)}
         >
           {t('Concluir')}
         </Button>
-        <Button to="/estudante" variant="text" className="self-center">
+        <Button onClick={() => finalizar(false)} variant="text" className="self-center">
           {t('Pular por agora')}
         </Button>
       </Rodape>

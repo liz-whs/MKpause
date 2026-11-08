@@ -1,6 +1,7 @@
 // Adapta somente as cópias web. As versões desktop conservam seus menus.
 import { cpSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function editar(caminho, transformar) {
   writeFileSync(caminho, transformar(readFileSync(caminho, 'utf8').replace(/\r\n/g, '\n')));
@@ -18,6 +19,7 @@ export function integrarPotion(projeto) {
     .replace('"btn_secondary": (MK_PEONY, MK_INK)', '"btn_secondary": (MK_SURFACE, MK_INK)')
     .replace(/def draw_background\(surface, theme, calm: bool = False\) -> None:[\s\S]*?(?=_MASCOT_CACHE:)/, 'def draw_background(surface, theme, calm: bool = False) -> None:\n    surface.fill(theme["bg"])\n\n\n'));
   editar(join(projeto, 'game', 'screens.py'), (s) => s
+    .replace('        pygame.init()', '        pygame.mixer.pre_init(44100, -16, 2, 1024)\n        pygame.init()')
     .replace('    MIN_SIZE = (800, 560)', '    MIN_SIZE = (360, 560) if web.EMBUTIDO else (800, 560)')
     .replace('        bw, bh, gap = 210 * s, 62 * s, 14 * s', '        bw, bh, gap = 210 * s, 62 * s, 14 * s\n        if web.EMBUTIDO:\n            bw, bh = min(bw, (w - 48 - 2 * gap) / 3), max(44, bh)')
     .replace('        self.screens[self.state.current].on_enter()', '        if web.EMBUTIDO:\n            self.state.go(Screen.PLAYING)\n        self.screens[self.state.current].on_enter()')
@@ -28,6 +30,14 @@ export function integrarPotion(projeto) {
     .replace('        elif key == "pause":\n            self.app.go(Screen.PAUSED)', '        elif key == "settings":\n            self.app.go(Screen.SETTINGS)\n        elif key == "pause":\n            self.app.go(Screen.PAUSED)')
     .replace('("menu", "Voltar ao menu", "home", "secondary", "Ir para a tela inicial")', '("menu", "Continuar" if web.EMBUTIDO else "Voltar ao menu", "play", "secondary", "Voltar ao jogo")')
     .replace('back_label = "Voltar ao jogo" if self.origin == Screen.PLAYING else "Voltar ao menu"', 'back_label = "Voltar ao jogo" if web.EMBUTIDO or self.origin == Screen.PLAYING else "Voltar ao menu"'));
+  editar(join(projeto, 'game', 'screens.py'), (s) => s.replace('fonts.get(20 * s), theme["text_soft"]', 'fonts.get(14 * app.web_unit), theme["text_soft"]'));
+  cpSync(join(dirname(fileURLToPath(import.meta.url)), 'mkpotion-web.py'), join(projeto, 'game', 'web_design.py'));
+  editar(join(projeto, 'game', 'screens.py'), (s) => s + '\nif web.EMBUTIDO:\n    from .web_design import aplicar\n    aplicar(globals())\n');
+  editar(join(projeto, 'game', 'web.py'), (s) => s
+    .replace('MAX_PIXELS = 1_800_000', 'MAX_PIXELS = 5_000_000')
+    .replace('fator = densidade', 'fator = max(2.0, densidade)')
+    .replace('width: 100vw !important; height: 100vh !important;', 'width: 100vw !important; height: 100vh !important; image-rendering: auto !important;'));
+
 }
 
 export function integrarConnection(projeto, fontes) {
@@ -64,10 +74,34 @@ export function integrarConnection(projeto, fontes) {
     .replace('int(h * 0.915)', 'int(h * 0.87) if web.EMBUTIDO else int(h * 0.915)')
     .replace('a.fonts.get(48 * s, True)', 'a.fonts.titulo(48 * s)')
     .replace('a.fonts.get(40 * s, True)', 'a.fonts.titulo(40 * s)'));
+  cpSync(join(dirname(fileURLToPath(import.meta.url)), 'mkconnection-web.py'), join(projeto, 'game', 'web_design.py'));
+  cpSync(join(dirname(fileURLToPath(import.meta.url)), 'mkconnection-menus-web.py'), join(projeto, 'game', 'web_menus.py'));
+  editar(join(projeto, 'game', 'screens.py'), (s) => s + '\nif web.EMBUTIDO:\n    from .web_design import aplicar\n    aplicar(PlayScreen)\n    from .web_menus import aplicar as aplicar_menus\n    aplicar_menus(globals())\n');
+  editar(join(projeto, 'game', 'settings.py'), (s) => s
+    .replace('INK = (62, 38, 36)', 'INK = (62, 43, 32)')
+    .replace('LILAC = (203, 171, 213)', 'LILAC = (204, 195, 209)')
+    .replace('CACAO_LIGHT = (173, 121, 107)', 'CACAO_LIGHT = (89, 65, 49)'));
+  editar(join(projeto, 'game', 'themes.py'), (s) => s
+    .replace('(64, 54, 82), (88, 77, 108)', '(168, 157, 177), (194, 184, 201)')
+    .replace('(47, 40, 62), DUSTY_ROSE', '(132, 118, 143), DUSTY_ROSE')
+    .replace('(58, 56, 38), (82, 80, 56)', '(161, 163, 140), (190, 192, 172)')
+    .replace('(42, 40, 27), LEAF', '(101, 97, 63), LEAF')
+    .replace('"Noite", "Azul arroxeado, com estrelas", (48, 57, 90), (72, 82, 116)', '"Céu", "Azul suave, com estrelas", (148, 158, 180), (181, 190, 207)')
+    .replace('(35, 42, 68), SKY', '(175, 184, 205), SKY')
+    .replace('Lavanda suave, com patinhas', 'Lavanda suave')
+    .replace('Verde-oliva, com folhinhas', 'Oliva suave')
+    .replace('Azul suave, com estrelas', 'Azul suave'));
+  editar(join(projeto, 'game', 'board_view.py'), (s) => s
+    .replace('from .settings import CREAM, symbol_ink', 'from .settings import CREAM, INK, symbol_ink')
+    .replace('pygame.draw.circle(surface, CREAM, center, dr +', 'pygame.draw.circle(surface, INK, center, dr +')
+    .replace('            self._draw_path(surface, p.cells, col, r)', '            self._draw_path(surface, p.cells, INK, r + max(1, int(cs * .025)))\n            self._draw_path(surface, p.cells, col, r)')
+    .replace('        self._draw_corners(surface, bt, pad, cs)', '        # Sem enfeites externos ao tabuleiro na versão integrada.'));
+
 }
 
 export function integrarPiano(projeto) {
   editar(join(projeto, 'main.py'), (s) => s
+    .replace('pygame.mixer.pre_init(22050, -16, 1, 512)', 'pygame.mixer.pre_init(44100, -16, 2, 1024)')
     .replace('MODO_COMPUTADOR = modo_computador()', 'MODO_COMPUTADOR = modo_computador()\nEMBUTIDO = sys.platform == "emscripten" and "mkpause=1" in str(__import__("platform").window.location.search)')
     .replace('    executando = True', '    if EMBUTIDO:\n        iniciar_jogo()\n    executando = True')
     .replace('    while executando:\n', '    while executando:\n        if EMBUTIDO and __import__("platform").window.frameElement is not None and __import__("platform").window.frameElement.parentElement.inert:\n            relogio.tick(60)\n            await asyncio.sleep(0)\n            continue\n')
@@ -77,4 +111,12 @@ export function integrarPiano(projeto) {
     .replace('elif dentro("botao_encerrar_pausa", x, y):', 'elif not EMBUTIDO and dentro("botao_encerrar_pausa", x, y):')
     .replace('PEONY = (247, 221, 213)', 'PEONY = (246, 239, 228) if EMBUTIDO else (247, 221, 213)')
     .replace('"PIANOPAUSE | Nível 1"', '"Nível 1" if EMBUTIDO else "PIANOPAUSE | Nível 1"'));
+  cpSync(join(dirname(fileURLToPath(import.meta.url)), 'pianopause-web.py'), join(projeto, 'piano_web.py'));
+  editar(join(projeto, 'main.py'), (s) => s
+    .replace('        dt = min(', '        if EMBUTIDO:\n            _piano_web_resize()\n        dt = min(')
+    .replace('tecla["y"] += velocidade * dt', 'tecla["y"] += velocidade * dt * (tabuleiro.height / 445 if EMBUTIDO else 1)')
+    .replace('        elif estado == "final":\n            desenhar_final()', '        elif estado == "ajustes":\n            desenhar_ajustes()\n        elif estado == "final":\n            desenhar_final()')
+    .replace('                    elif estado == "pausado":\n                        mudar_estado("jogando")', '                    elif estado in ("pausado", "ajustes"):\n                        mudar_estado("jogando")')
+    .replace('asyncio.run(main())', 'if EMBUTIDO:\n    from piano_web import aplicar\n    aplicar(globals())\n\nasyncio.run(main())'));
+
 }

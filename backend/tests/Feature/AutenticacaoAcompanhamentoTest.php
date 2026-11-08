@@ -23,10 +23,11 @@ class AutenticacaoAcompanhamentoTest extends TestCase
             'database.connections.sqlite.url' => null, 'cache.default' => 'array']);
         DB::purge('sqlite');
         Cache::flush();
-        DB::statement('CREATE TABLE usuario (id_usuario INTEGER PRIMARY KEY, nome_completo TEXT, email TEXT, senha_hash TEXT, ativo BOOLEAN)');
+        DB::statement('CREATE TABLE usuario (id_escola INTEGER DEFAULT 1, id_usuario INTEGER PRIMARY KEY, nome_completo TEXT, email TEXT, senha_hash TEXT, ativo BOOLEAN)');
         foreach (Conta::TABELAS as $perfil => [$tabela, $chave]) {
             DB::statement("CREATE TABLE {$tabela} ({$chave} INTEGER PRIMARY KEY, id_usuario INTEGER, ativo BOOLEAN)");
         }
+        DB::statement('ALTER TABLE estudante ADD COLUMN primeiro_acesso_concluido BOOLEAN NOT NULL DEFAULT TRUE');
         DB::statement('CREATE TABLE psicologo_clinico_estudante (id_psicologo_clinico INTEGER, id_estudante INTEGER, ativo BOOLEAN)');
         DB::statement('CREATE TABLE psicologo_escolar_estudante (id_psicologo_escolar INTEGER, id_estudante INTEGER, ativo BOOLEAN)');
         DB::statement('CREATE TABLE ficha_acompanhamento (id_ficha INTEGER PRIMARY KEY, id_estudante INTEGER, informacoes_acompanhamento TEXT, ativo BOOLEAN, criada_em TEXT, atualizada_em TEXT)');
@@ -177,7 +178,7 @@ class AutenticacaoAcompanhamentoTest extends TestCase
 
     public function test_sessao_e_humores_mantem_estudante_e_datas_e_so_psicologos_vinculados_consultam(): void
     {
-        DB::statement('CREATE TABLE atividade (id_atividade INTEGER PRIMARY KEY, nome TEXT, descricao TEXT, tipo TEXT, conteudo_ou_referencia TEXT, disponivel BOOLEAN, criado_em TEXT, atualizado_em TEXT)');
+        DB::statement('CREATE TABLE atividade (id_escola INTEGER DEFAULT 1, id_atividade INTEGER PRIMARY KEY, nome TEXT, descricao TEXT, tipo TEXT, conteudo_ou_referencia TEXT, disponivel BOOLEAN, criado_em TEXT, atualizado_em TEXT)');
         DB::statement('CREATE TABLE sessao (id_sessao INTEGER PRIMARY KEY, id_estudante INTEGER, id_atividade INTEGER, iniciada_em TEXT, terminada_em TEXT, nivel_avaliado INTEGER, duracao_segundos INTEGER, observacoes_sessao TEXT, status TEXT)');
         DB::statement('CREATE TABLE registro_humor (id_registro_humor INTEGER PRIMARY KEY, id_sessao INTEGER, estado INTEGER, emocao TEXT, momento TEXT, registrado_em TEXT)');
         DB::table('atividade')->insert(['id_atividade' => 1, 'nome' => 'Respire&Pause', 'tipo' => 'RESPIRACAO', 'disponivel' => true]);
@@ -249,4 +250,37 @@ class AutenticacaoAcompanhamentoTest extends TestCase
         $this->postJson('/api/admin/estudantes', $dados + ['data_nascimento' => '2024-02-29', 'telefone' => '4133334444'])
             ->assertCreated()->assertJsonPath('data_nascimento', '2024-02-29')->assertJsonPath('telefone', '(41) 3333-4444');
     }
+    public function test_primeiro_acesso_fica_concluido_na_conta_e_nao_altera_outro_estudante(): void
+    {
+        DB::table('estudante')->where('id_estudante', 1)->update(['primeiro_acesso_concluido' => false]);
+        DB::table('usuario')->insert(['id_usuario' => 7, 'nome_completo' => 'Outro estudante', 'email' => 'outro@teste.br', 'senha_hash' => 'hash', 'ativo' => true]);
+        DB::table('estudante')->insert(['id_estudante' => 7, 'id_usuario' => 7, 'ativo' => true, 'primeiro_acesso_concluido' => false]);
+        $token = str_repeat('p', 32);
+        $this->withCredentials()->withUnencryptedCookie('csrftoken', $token)->withHeader('X-CSRFToken', $token);
+        $this->withSession(['id_usuario' => 1])->getJson('/api/auth/eu')->assertOk()->assertJsonPath('primeiro_acesso_pendente', true);
+        $this->postJson('/api/auth/primeiro-acesso/concluir', ['id_estudante' => 7])->assertOk()->assertJsonPath('primeiro_acesso_pendente', false);
+        $this->assertTrue((bool) DB::table('estudante')->where('id_estudante', 1)->value('primeiro_acesso_concluido'));
+        $this->assertFalse((bool) DB::table('estudante')->where('id_estudante', 7)->value('primeiro_acesso_concluido'));
+        $this->withSession(['id_usuario' => 1])->getJson('/api/auth/eu')->assertOk()->assertJsonPath('primeiro_acesso_pendente', false);
+        $this->postJson('/api/auth/primeiro-acesso/concluir')->assertOk()->assertJsonPath('primeiro_acesso_pendente', false);
+    }
+
+    public function test_contas_existentes_e_profissionais_nao_tem_primeiro_acesso_pendente(): void
+    {
+        foreach ([1, 2, 3, 4, 5] as $id) {
+            $this->withSession(['id_usuario' => $id])->getJson('/api/auth/eu')->assertOk()->assertJsonPath('primeiro_acesso_pendente', false);
+        }
+    }
+
+    public function test_concluir_primeiro_acesso_exige_login_csrf_e_perfil_estudante(): void
+    {
+        $this->postJson('/api/auth/primeiro-acesso/concluir')->assertUnauthorized();
+        $this->withSession(['id_usuario' => 1])->postJson('/api/auth/primeiro-acesso/concluir')->assertForbidden();
+        $token = str_repeat('p', 32);
+        $this->withCredentials()->withUnencryptedCookie('csrftoken', $token)->withHeader('X-CSRFToken', $token);
+        foreach ([2, 3, 4, 5] as $id) {
+            $this->withSession(['id_usuario' => $id])->postJson('/api/auth/primeiro-acesso/concluir')->assertForbidden();
+        }
+    }
+
 }

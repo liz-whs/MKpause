@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { cadastro, type CodigoVerificado, type DadosCadastro, type PerfilCodigo } from '../../data/codigos';
 import { api } from '../../data/api';
 import type { Perfil } from '../../data/servidor';
-import { BackButton, FocusTopBar } from '../../components/student/FocusTopBar';
+import { BackButton } from '../../components/student/FocusTopBar';
 import { ScreenTitle } from '../../components/student/Bits';
 import { AvisoSimulacao } from '../../components/ui/AvisoSimulacao';
 import { Badge } from '../../components/ui/Badge';
@@ -12,7 +12,7 @@ import { Button } from '../../components/ui/Button';
 import { Field } from '../../components/ui/Field';
 import { Icon } from '../../components/ui/Icon';
 import { emocaoPorId } from '../../domain/emocoes';
-import { DESTINO_DO_PERFIL, Pagina, Rodape } from './Onboarding';
+import { BarraOnboarding, DESTINO_DO_PERFIL, Pagina, Rodape } from './Onboarding';
 import { t } from '../../i18n';
 
 export const NOME_DO_PERFIL: Record<PerfilCodigo, string> = {
@@ -147,7 +147,7 @@ export function CadastroComCodigo() {
 
   return (
     <Pagina>
-      <FocusTopBar
+      <BarraOnboarding
         back={
           info ? (
             <button
@@ -167,7 +167,7 @@ export function CadastroComCodigo() {
         }
       >
         <span className="text-caption font-semibold text-muted">{info ? t('Etapa {atual} de {total}', { atual: 2, total: 2 }) : t('Etapa {atual} de {total}', { atual: 1, total: 2 })}</span>
-      </FocusTopBar>
+      </BarraOnboarding>
       <AvisoSimulacao />
 
       {!info ? (

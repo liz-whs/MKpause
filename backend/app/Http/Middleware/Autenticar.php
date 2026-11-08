@@ -19,8 +19,9 @@ class Autenticar
             throw ErroApi::semLogin();
         }
         $conta = Conta::carregar($id);
-        if ($conta === null) {
-            $request->session()->flush();
+        $assinatura = $request->session()->get('credencial');
+        if ($conta === null || !is_string($assinatura) || !hash_equals(self::credencial($conta), $assinatura)) {
+            $request->session()->invalidate();
             throw new ErroApi(401, ['detail' => 'Sua conta não está mais ativa. Procure a escola.'],
                 ['WWW-Authenticate' => 'Session']);
         }
@@ -30,13 +31,20 @@ class Autenticar
         if ($perfis && !$conta->e(...$perfis)) {
             throw ErroApi::proibido('Seu perfil não tem acesso a esta área.');
         }
+        if (!$request->is('api/auth/*')) \App\Mkpause\Escola::id($conta);
         $request->attributes->set('conta', $conta);
         return $next($request);
+    }
+
+    public static function credencial(Conta $conta): string
+    {
+        return hash_hmac('sha256', $conta->id().'|'.$conta->perfil.'|'.$conta->idPerfil().'|'.($conta->usuario->id_escola ?? '').'|'.$conta->usuario->senha_hash, config('mkpause.segredo'));
     }
 
     public static function entrar(Request $request, Conta $conta): void
     {
         $request->session()->regenerate(true);
         $request->session()->put(self::CHAVE_SESSAO, $conta->id());
+        $request->session()->put('credencial', self::credencial($conta));
     }
 }

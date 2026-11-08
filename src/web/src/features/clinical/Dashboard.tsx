@@ -1,10 +1,12 @@
+import { LinhasHumor } from './LinhasHumor';
+import { ComparacaoHumor } from './ComparacaoHumor';
 import type { DashboardClinico, PeriodoDashboard } from '../../data/servidor';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { SelectField, StatCard } from '../../components/pro/Pro';
 import { locale, t } from '../../i18n';
-import { hora } from '../../domain/formatos';
-import { emocaoPorId, type EmocaoId } from '../../domain/emocoes';
+import { dataBrasileira, hora } from '../../domain/formatos';
+import { emocaoPorId } from '../../domain/emocoes';
 
 export function FiltroDashboard({dias, setDias, atualizar, carregando}: {
   dias:PeriodoDashboard; setDias:(dias:PeriodoDashboard)=>void; atualizar:()=>void; carregando:boolean;
@@ -15,13 +17,13 @@ export function FiltroDashboard({dias, setDias, atualizar, carregando}: {
         {value:'7',label:t('7 dias')},{value:'14',label:t('14 dias')},
         {value:'30',label:t('30 dias')},{value:'90',label:t('90 dias')},
       ]} />
-    <Button size="md" variant="outline" disabled={carregando} onClick={atualizar}>{t('Atualizar gráficos')}</Button>
+    <Button size="md" variant="outline" className="min-h-12! rounded-field! text-body!" disabled={carregando} onClick={atualizar}>{t('Atualizar gráficos')}</Button>
   </div>;
 }
 
 function Evolucao({sessoes}: {sessoes:DashboardClinico['evolucao']}) {
-  return <Card as="section" aria-label={t('Evolução por sessão')} className="flex flex-col gap-3">
-    <h2 className="text-section">{t('Evolução por sessão')}</h2>
+  return <Card as="details" open aria-label={t('Evolução por sessão')}>
+    <summary className="cursor-pointer rounded-field py-1 marker:text-muted focus-visible:outline-2 focus-visible:outline-ink"><h2 className="inline text-section">{t('Evolução por sessão')}</h2><span className="ml-2 text-caption text-muted">({sessoes.length})</span></summary>
     <p>{t('Um registro por sessão, na ordem cronológica. Não existe escala de intensidade entre emoções.')}</p>
     <div className="max-h-96 overflow-auto" tabIndex={0} aria-label={t('Valores por sessão')}>
       <table className="w-full text-left text-caption">
@@ -29,7 +31,7 @@ function Evolucao({sessoes}: {sessoes:DashboardClinico['evolucao']}) {
         <thead><tr><th scope="col">{t('Sessão')}</th><th scope="col">{t('Data')}</th><th scope="col">{t('Antes')}</th><th scope="col">{t('Depois')}</th></tr></thead>
         <tbody>{sessoes.map((s,i)=><tr key={s.id_sessao}>
           <th scope="row" className="py-2">{i+1}</th>
-          <td>{s.data} · {hora(s.iniciada_em)}</td>
+          <td className="whitespace-nowrap pr-3">{dataBrasileira(s.data)} · {hora(s.iniciada_em)}</td>
           <td>{emocaoPorId(s.humor_antes).label}</td>
           <td>{emocaoPorId(s.humor_depois).label}</td>
         </tr>)}</tbody>
@@ -41,10 +43,10 @@ function Evolucao({sessoes}: {sessoes:DashboardClinico['evolucao']}) {
 export function Dashboard({dados}: {dados:DashboardClinico}) {
   const r=dados.resumo;
   const percentual=r.percentual_terminou_leve===null ? '—' : `${r.percentual_terminou_leve.toLocaleString(locale(),{maximumFractionDigits:1})}%`;
-  const maximo=Math.max(1,...dados.distribuicao_humor.flatMap((d)=>[d.antes,d.depois]));
+  const maximoAtividades=Math.max(1,...dados.atividades.map((a)=>a.quantidade));
   const tipos:Record<string,string>={RESPIRACAO:t('Respiração'),JOGO:t('Jogos'),VIDEO:t('Vídeos')};
   return <>
-    <p>{t('De {inicio} a {fim}',{inicio:dados.periodo.inicio,fim:dados.periodo.fim})}</p>
+    <p>{t('De {inicio} a {fim}',{inicio:dataBrasileira(dados.periodo.inicio),fim:dataBrasileira(dados.periodo.fim)})}</p>
     <p className="text-caption text-muted">{t('Os gráficos mostram as seis emoções escolhidas pelo estudante, sem escala de intensidade.')}</p>
     <div className="flex flex-wrap gap-3.5">
       <StatCard valor={String(r.sessoes_concluidas)} rotulo={t('sessões concluídas no período')} />
@@ -55,25 +57,16 @@ export function Dashboard({dados}: {dados:DashboardClinico}) {
     <p className="text-caption text-muted">{t('As emoções são categorias. Terminar feliz ou calmo não mede efeito terapêutico.')}</p>
     <p className="text-caption text-muted">{t('Emoções autorrelatadas; não constituem diagnóstico nem medem melhora clínica.')}</p>
     {r.sessoes_concluidas===0 ? <p role="status">{t('Nenhuma sessão concluída com registros completos neste período.')}</p> : <>
-      <Evolucao sessoes={dados.evolucao} />
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        <Card as="section" aria-label={t('Distribuição das emoções')} className="flex flex-col gap-3">
-          <h2 className="text-section">{t('Distribuição das emoções')}</h2>
-          <table className="w-full text-left">
-            <caption className="text-left text-caption">{t('Quantidade de registros antes e depois para cada emoção')}</caption>
-            <thead><tr><th scope="col">{t('Emoção')}</th><th scope="col">{t('Antes')}</th><th scope="col">{t('Depois')}</th></tr></thead>
-            <tbody>{dados.distribuicao_humor.map((d)=><tr key={d.emocao}><th scope="row" className="py-2">{emocaoPorId(d.emocao as EmocaoId).label}</th>
-              <td className="pr-3"><span>{d.antes}</span><div aria-hidden="true" className="h-2 rounded bg-ink" style={{width:`${d.antes/maximo*100}%`}} /></td>
-              <td><span>{d.depois}</span><div aria-hidden="true" className="h-2 rounded bg-jungle" style={{width:`${d.depois/maximo*100}%`}} /></td>
-            </tr>)}</tbody>
-          </table>
-        </Card>
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
+      <LinhasHumor key={`${dados.estudante.id_estudante}-${dados.periodo.inicio}-${dados.periodo.fim}`} dados={dados} />
         <Card as="section" aria-label={t('Sessões por tipo de atividade')} className="flex flex-col gap-3">
           <h2 className="text-section">{t('Sessões por tipo de atividade')}</h2>
           <p className="text-caption text-muted">{t('Jogos diferentes são contados juntos no tipo Jogos.')}</p>
-          <ul className="flex flex-col gap-3">{dados.atividades.map((a)=><li key={a.tipo} className="flex justify-between gap-3"><span>{tipos[a.tipo]??a.tipo}</span><strong>{a.quantidade}</strong></li>)}</ul>
+          <ul className="flex flex-col gap-3">{dados.atividades.map((a)=><li key={a.tipo} className="rounded-field bg-bg/60 p-3"><div className="mb-2 flex justify-between gap-3"><span>{tipos[a.tipo]??a.tipo}</span><strong className="tabular-nums">{a.quantidade}</strong></div><div aria-hidden="true" className="h-4 overflow-hidden rounded-pill bg-line/50"><div className="h-full rounded-pill bg-ink motion-safe:transition-[width] motion-safe:duration-500" style={{width:`${a.quantidade/maximoAtividades*100}%`}} /></div></li>)}</ul>
         </Card>
       </div>
+      <ComparacaoHumor linhas={dados.distribuicao_humor} />
+      <Evolucao sessoes={dados.evolucao} />
     </>}
   </>;
 }

@@ -70,3 +70,21 @@ it('a conclusão da sessão aguarda o servidor e mantém o relato quando falha',
   await userEvent.click(screen.getByRole('button', { name: 'Finalizar' }));
   await waitFor(() => expect(router.state.location.pathname).toBe('/estudante/pausa/concluida'));
 });
+
+
+it('no nível 3, falha no envio mantém a avaliação e a observação para tentar novamente', async () => {
+  sessionStorage.setItem('mkpause:estudante:v2:est-1', JSON.stringify({ sessao: { antes: 'ansioso', atividade: 'respiracao', nivel3: true, etapaNivel3: 'avaliacao' } }));
+  const salvar = vi.spyOn(api.estudante, 'registrarSessao').mockRejectedValueOnce(new Error('Falha ao enviar a avaliação.'));
+  const router = abrir('/estudante/agora/fim');
+  await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+  const observacao = screen.getByLabelText(/Quer contar algo/);
+  await userEvent.type(observacao, 'Estou mais tranquilo');
+  await userEvent.click(screen.getByRole('button', { name: 'Enviar resposta' }));
+  expect(await screen.findByText('Falha ao enviar a avaliação.')).toBeInTheDocument();
+  expect(router.state.location.pathname).toBe('/estudante/agora/fim');
+  expect(observacao).toHaveValue('Estou mais tranquilo');
+  salvar.mockResolvedValueOnce(undefined);
+  await userEvent.click(screen.getByRole('button', { name: 'Enviar resposta' }));
+  await waitFor(() => expect(router.state.location.pathname).toBe('/estudante/pausa/concluida'));
+  expect(salvar).toHaveBeenLastCalledWith({ estudanteId: 'est-1', antes: 'ansioso', depois: 'calmo', atividade: 'respiracao', relato: 'Estou mais tranquilo' });
+});

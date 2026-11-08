@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * GET   /api/alertas/[?status=ABERTO]      estudante: os seus; professor/psi. escolar: recebidos;
  *                                          admin: todos; clínico: sem acesso a alertas
  * GET   /api/alertas/<id>/
- * PATCH /api/alertas/<id>/                 {"status": ...} destinatário, admin, ou estudante (só CANCELADO)
+ * PATCH /api/alertas/<id>/                 {"status": ...} destinatário, admin, ou estudante (só CANCELADO no nível 2)
  * POST  /api/alertas/<id>/lido/            destinatário marca a notificação como lida
  * GET/POST /api/alertas/<id>/observacoes/  {"conteudo": "..."}
  *
@@ -102,6 +102,7 @@ class AlertasController extends Controller
         $buscar = function (string $tabela, string $vinculo, string $chave, string $tipo) use ($estudante, &$escolhidos) {
             $linhas = DB::table("{$tabela} as p")->join('usuario as u', 'u.id_usuario', '=', 'p.id_usuario')
                 ->join("{$vinculo} as v", "v.{$chave}", '=', "p.{$chave}")
+                ->where('u.id_escola', DB::table('estudante as e')->join('usuario as ue', 'ue.id_usuario', '=', 'e.id_usuario')->where('e.id_estudante', $estudante)->value('ue.id_escola'))
                 ->where('p.ativo', true)->where('u.ativo', true)->where('v.id_estudante', $estudante)->where('v.ativo', true)
                 ->orderBy("p.{$chave}")->select('u.id_usuario', 'u.nome_completo', 'u.email')->get();
             foreach ($linhas as $u) {
@@ -121,6 +122,10 @@ class AlertasController extends Controller
         $e = $this->entrada($request);
         $novo = $e->escolha('status', self::STATUS);
         $e->falharSeHouverErros();
+
+        if ((int) $alerta->nivel === 3 && $novo === 'CANCELADO') {
+            throw ErroApi::proibido('Alertas de nível 3 não podem ser cancelados.');
+        }
 
         $conta = $this->conta($request);
         if ($conta->e(Conta::ESTUDANTE)) {
@@ -205,6 +210,8 @@ class AlertasController extends Controller
             $q->whereIn('a.id_estudante', Permissoes::estudantesVinculados($conta));
             $q->whereExists(fn ($s) => $s->from('destinatario_alerta as d')->whereColumn('d.id_alerta', 'a.id_alerta')
                 ->where('d.id_usuario', $conta->id()));
+        } elseif ($conta->e(Conta::ADMINISTRADOR)) {
+            $q->whereIn('a.id_estudante', Permissoes::estudantesVinculados($conta));
         } elseif ($conta->e(Conta::PSICOLOGO_CLINICO)) {
             throw ErroApi::proibido('Seu perfil não tem acesso a alertas.');
         }
@@ -230,6 +237,7 @@ class AlertasController extends Controller
         $nomes = DB::table('estudante as e')->join('usuario as u', 'u.id_usuario', '=', 'e.id_usuario')
             ->whereIn('e.id_estudante', $alertas->pluck('id_estudante')->unique())->pluck('u.nome_completo', 'e.id_estudante');
         $destinatarios = DB::table('destinatario_alerta as d')->join('usuario as u', 'u.id_usuario', '=', 'd.id_usuario')
+            ->join('alerta as escopo_alerta', 'escopo_alerta.id_alerta', '=', 'd.id_alerta')->join('estudante as escopo_estudante', 'escopo_estudante.id_estudante', '=', 'escopo_alerta.id_estudante')->join('usuario as escopo_usuario', 'escopo_usuario.id_usuario', '=', 'escopo_estudante.id_usuario')->whereColumn('u.id_escola', 'escopo_usuario.id_escola')
             ->whereIn('d.id_alerta', $alertas->pluck('id_alerta'))->orderBy('d.id_destinatario_alerta')
             ->select('d.*', 'u.nome_completo')->get()->groupBy('id_alerta');
         return $alertas->map(fn ($a) => [

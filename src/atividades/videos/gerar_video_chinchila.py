@@ -190,7 +190,7 @@ class Renderer:
         if opacity < 1:
             label = label.copy()
             label.putalpha(label.getchannel('A').point(lambda a: round(a*opacity)))
-        im.paste(label, (0,0), label)
+        # O player desenha a instrução localizada; o vídeo contém só a animação.
         return im
 
 

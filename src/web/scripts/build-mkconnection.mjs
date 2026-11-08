@@ -46,6 +46,13 @@ let tela = readFileSync(telas, 'utf8').replace('import logging', 'import asyncio
   .replace('self.window = pygame.display.get_surface()\n                    for ev', 'self.window = pygame.display.get_surface()\n                    if web.EMBUTIDO:\n                        alvo = web.tamanho_ideal(self.MIN_SIZE)\n                        if alvo and alvo != self.window.get_size():\n                            self.window = pygame.display.set_mode(alvo, pygame.RESIZABLE)\n                            self.screens[self.state.current].relayout()\n                    for ev');
 writeFileSync(telas, tela);
 copyFileSync(join(web, '..', 'MKpotion', 'mk_potion', 'game', 'web.py'), join(projeto, 'game', 'web.py'));
+// Supersampling em todas as telas; limita o custo em telas grandes e suaviza o canvas.
+let canvasWeb = readFileSync(join(projeto, 'game', 'web.py'), 'utf8')
+  .replace('MAX_PIXELS = 1_800_000', 'MAX_PIXELS = 5_000_000')
+  .replace('fator = densidade', 'fator = max(2.0, densidade)')
+  .replace('width: 100vw !important; height: 100vh !important;', 'width: 100vw !important; height: 100vh !important; image-rendering: auto !important;');
+writeFileSync(join(projeto, 'game', 'web.py'), canvasWeb);
+
 // Persistência web separada por estudante; no desktop mantém os arquivos originais.
 let storage = readFileSync(join(web, '..', 'MKpotion', 'mk_potion', 'game', 'storage.py'), 'utf8')
   .replace('_PREFIX = "mk_potion:"', '_PREFIX = "mkconnection:"')
@@ -62,6 +69,12 @@ for (const arquivo of ['progress.py', 'settings.py']) {
 }
 
 integrarConnection(projeto, join(web, '..', 'MKpotion', 'mk_potion', 'assets', 'fonts_mkpause'));
+execFileSync(python, ['-c', `import pygame
+from pathlib import Path
+origem, destino = Path(__import__('sys').argv[1]), Path(__import__('sys').argv[2])
+for nome, emocao in [('mascot_front','calmo'),('mascot_sit','calmo'),('mascot_think','calmo'),('mascot_happy','feliz')]:
+    pygame.image.save(pygame.image.load(str(origem / (emocao+'.svg'))), str(destino / (nome+'.png')))
+`, join(web, 'src', 'assets', 'chinchila'), join(projeto, 'assets', 'images')], {stdio:'inherit'});
 console.log(`Compilando ${origem} com pygbag…`);
 // PYTHONUTF8: no Windows o pygbag leria o código como cp1252 e quebraria nos acentos.
 execFileSync(python, ['-m', 'pygbag', '--build', projeto], {
@@ -100,5 +113,6 @@ html = html.replace('<head>', '<head><script>window.MKPAUSE_STUDENT = new URLSea
 writeFileSync(join(destino, 'index.html'), html);
 
 if (!existsSync(join(destino, 'mkconnection.apk'))) console.warn('Aviso: mkconnection.apk não foi gerado.');
+if (dirname(trabalho) !== tmpdir() || !basename(trabalho).startsWith('mkpause-mkconnection-')) throw new Error('Pasta temporária inesperada.');
 rmSync(trabalho, { recursive: true, force: true });
 console.log(`Pronto: ${destino}`);

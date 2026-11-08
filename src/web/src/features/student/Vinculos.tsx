@@ -5,8 +5,8 @@ import { useDados } from '../../data/useDados';
 import { AvisoSimulacao } from '../../components/ui/AvisoSimulacao';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
-import { hora } from '../../domain/formatos';
-import { locale, t } from '../../i18n';
+import { dataBrasileira, hora } from '../../domain/formatos';
+import { t } from '../../i18n';
 
 /** O estudante logado, no formato que a camada de códigos usa. */
 export function useEuEstudante(): Quem {
@@ -182,7 +182,7 @@ export function CompartilharCodigo({ eu }: { eu: Quem }) {
           <span className="text-caption">
             {t('Vale até {hora} de {dia}. Só pode ser usado uma vez.', {
               hora: hora(atual.expira_em),
-              dia: new Date(atual.expira_em).toLocaleDateString(locale(), { day: '2-digit', month: '2-digit' }),
+              dia: dataBrasileira(atual.expira_em),
             })}
           </span>
           <div className="flex flex-wrap gap-2 pt-1">

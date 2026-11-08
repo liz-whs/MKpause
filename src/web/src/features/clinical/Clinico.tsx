@@ -4,7 +4,7 @@ import { Link, Navigate, NavLink, useParams } from 'react-router';
 import { api } from '../../data/api';
 import { useDados } from '../../data/useDados';
 import { ehLeve } from '../../domain/emocoes';
-import { dia, hora, iniciais, nomeCurto, quando } from '../../domain/formatos';
+import { dataBrasileira, dia, hora, iniciais, nomeCurto, quando } from '../../domain/formatos';
 import { PAPEL_LABEL, type Profissional } from '../../domain/tipos';
 import { profissionalLogado } from '../../state/ProContext';
 import { ProLayout } from '../../components/layout/Layouts';
@@ -26,7 +26,7 @@ export function ClinicoLayout() {
   return (
     <ProLayout
       perfil={PAPEL_LABEL[eu.papel]}
-      usuario={{ nome: eu.nome, iniciais: eu.iniciais }}
+      usuario={{ id: eu.id, nome: eu.nome, iniciais: eu.iniciais }}
       perfilTo="/clinico/perfil"
       items={[
         { to: '/clinico/acompanhados', label: 'Acompanhados', icon: 'pessoas' },
@@ -95,7 +95,7 @@ function Cabecalho({ estudanteId, eu }: { estudanteId: string; eu: Profissional 
           <h1 className="text-screen md:text-screen-lg">{nomeCurto(e.nome)}</h1>
           <span className="text-muted">
             {e.turma} · {e.escola}
-            {ficha?.inicio && ` · ${t('acompanhamento desde {data}', { data: ficha.inicio })}`}
+            {ficha?.inicio && ` · ${t('acompanhamento desde {data}', { data: dataBrasileira(ficha.inicio) })}`}
           </span>
         </div>
       </div>
@@ -143,7 +143,7 @@ export function ClinicoEstudante() {
         <BackLink to="/clinico/acompanhados">{t('Acompanhados')}</BackLink>
         <h1 className="text-screen md:text-screen-lg">{t('Histórico e humor')}</h1>
       </div>}
-      <FiltroDashboard dias={dashboard.dias} setDias={dashboard.setDias} atualizar={dashboard.atualizar} carregando={dashboard.carregando} />
+      <FiltroDashboard dias={dashboard.dias} setDias={dashboard.setDias} atualizar={dashboard.atualizar} carregando={dashboard.atualizando} />
       {dashboard.carregando && <p role="status">{t('Carregando gráficos do estudante…')}</p>}
       {dashboard.erro && <div role="alert" className="flex flex-col gap-2">
         <p>{dashboard.erro instanceof ErroApi ? dashboard.erro.message : t('Não foi possível carregar os gráficos. Tente novamente.')}</p>
@@ -153,12 +153,13 @@ export function ClinicoEstudante() {
       <Dashboard dados={dashboard.dados} />
       <p className="text-caption text-muted">{t('O filtro de período vale para os gráficos. O histórico abaixo mantém os registros disponíveis.')}</p>
       <div className="flex flex-wrap items-start gap-6">
-        <Card as="section" aria-labelledby="t-sessoes" className="flex min-w-0 flex-[3_1_480px] flex-col">
-          <h2 id="t-sessoes" className="text-section">
-            {t('Sessões e registros de humor')}
-          </h2>
+        <Card as="details" open key={id} aria-labelledby="t-sessoes" className="group min-w-0 flex-[3_1_480px]">
+          <summary className="cursor-pointer rounded-field py-1 marker:text-muted focus-visible:outline-2 focus-visible:outline-ink">
+            <h2 id="t-sessoes" className="inline text-section">{t('Sessões e registros de humor')}</h2>
+            <span className="ml-2 text-caption text-muted">({sessoes.length})</span>
+          </summary>
           {sessoes.length === 0 && <p className="mt-2 text-muted">{t('Nenhuma pausa ainda.')}</p>}
-          <ul>
+          <ul className="max-h-[28rem] overflow-y-auto pr-2" tabIndex={0} aria-label={t('Sessões e registros de humor')}>
             {sessoes.map((s) => {
               return (
                 <li key={s.id} className="flex flex-col gap-2 border-b-2 border-bg py-4">
@@ -204,7 +205,7 @@ export function ClinicoFicha() {
     ? [
         [t('Responsável'), `${ficha.responsavel} · ${t(ficha.parentesco)}`],
         [t('Contato do responsável'), ficha.contato],
-        [t('Início do acompanhamento'), ficha.inicio || '—'],
+        [t('Início do acompanhamento'), dataBrasileira(ficha.inicio)],
         [t('Encaminhamento'), ficha.encaminhamento || '—'],
       ]
     : [];

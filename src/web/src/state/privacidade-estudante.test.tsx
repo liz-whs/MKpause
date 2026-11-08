@@ -55,3 +55,13 @@ it('o professor não recebe sessões e humores do cache', () => {
   expect(api.escola.sessoes('prof-1', 'est-1')).toEqual([]);
   expect(api.escola.sessoes('pe-1', 'est-1').length).toBeGreaterThan(0);
 });
+
+
+it('sair apaga cuidados do aparelho e preserva preferências de acessibilidade', async () => {
+  localStorage.setItem('mkpause:cuidados:v1:est-1', '{"2026-11-07":["agua"]}');
+  localStorage.setItem('mkpause:preferencias', '{"idioma":"pt"}');
+  await api.sair();
+  expect(localStorage.getItem('mkpause:cuidados:v1:est-1')).toBeNull();
+  expect(localStorage.getItem('mkpause:preferencias')).not.toBeNull();
+  localStorage.removeItem('mkpause:preferencias');
+});

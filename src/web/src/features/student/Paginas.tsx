@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { NIVEIS } from '../../domain/niveis';
 import { emocaoPorId } from '../../domain/emocoes';
-import { CUIDADOS_DO_DIA, MAIS_IDEIAS } from '../../domain/cuidados';
+import { META_DIARIA_CUIDADOS, type Cuidado } from '../../domain/cuidados';
 import type { AtividadeId, Conteudo } from '../../domain/tipos';
 import { api } from '../../data/api';
 import { useEstudante } from '../../state/EstudanteContext';
 import { LevelCard } from '../../components/student/LevelCard';
 import { CareStreakCard, CareStreakSummary } from '../../components/student/CareStreak';
+import { CuidadosConcluidos } from '../../components/student/CuidadosConcluidos';
 import { ActivityRow, CalmFab, PeopleList, PrivacyNote, ScreenTitle, SectionTitle } from '../../components/student/Bits';
 import { AtividadesPorCategoria } from '../../components/student/AtividadesPorCategoria';
 import { Icon, type IconName } from '../../components/ui/Icon';
@@ -98,6 +99,7 @@ export function Atividades() {
   return (
     <div className="flex flex-col gap-5 pb-20">
       <ScreenTitle>{t('Atividades')}</ScreenTitle>
+      <p>{t('Explore jogos, vídeos e exercícios livremente, no seu ritmo.')}</p>
       <AtividadesPorCategoria atividades={lista} ferramentas={
       <div className="flex min-h-13 items-center gap-2 rounded-pill bg-surface px-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-ink">
         <Icon name="busca" size={20} className="text-muted" />
@@ -114,10 +116,9 @@ export function Atividades() {
         />
       </div>
       } renderAtividade={(a) => (
-        // Para começar, toda atividade passa pelo "Como você está".
+        // O catálogo oferece acesso livre; a avaliação pertence ao fluxo iniciado no Início.
         <ActivityRow
-          to="/estudante/pausa"
-          state={{ atividade: a.id }}
+          to={`/estudante/atividades/${a.id}`}
           icone={a.icone}
           fundo={a.fundo}
           titulo={a.titulo}
@@ -129,43 +130,20 @@ export function Atividades() {
   );
 }
 
-export function Cuidados() {
-  const { feitosHoje, alternarCuidado } = useEstudante();
-  const total = CUIDADOS_DO_DIA.length;
-  const feitos = feitosHoje.length;
-
+function ListaCuidados({ itens }: { itens: readonly Cuidado[] }) {
+  const { feitosHoje, concluirCuidado } = useEstudante();
   return (
-    <div className="flex flex-col gap-5 pb-20">
-      <ScreenTitle>{t('Cuidados')}</ScreenTitle>
-      {/* No computador: sequência na largura toda; embaixo, Hoje e Mais ideias lado a lado (títulos na mesma altura). */}
-      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
-      <div className="lg:col-span-2">
-        <CareStreakSummary />
-      </div>
-
-      <section aria-labelledby="titulo-hoje" className="flex flex-col gap-2.5">
-        {/* Barra na linha do título: a lista começa na mesma altura que a de "Mais ideias". */}
-        <div className="flex items-center gap-3">
-          <SectionTitle>
-            <span id="titulo-hoje">{t('Hoje')}</span>
-          </SectionTitle>
-          <div aria-hidden="true" className="h-2.5 flex-1 overflow-hidden rounded-pill bg-surface">
-            <span className="block h-full rounded-pill bg-leaf transition-[width]" style={{ width: `${(100 * feitos) / total}%` }} />
-          </div>
-          <span className="text-caption font-semibold text-muted">
-            {t('{feitos} de {total}', { feitos, total })}
-          </span>
-        </div>
         <ul className="flex flex-col gap-2">
-          {CUIDADOS_DO_DIA.map((c) => {
+          {itens.map((c) => {
             const feito = feitosHoje.includes(c.id);
             return (
               <li key={c.id}>
                 <button
                   type="button"
                   aria-pressed={feito}
-                  onClick={() => alternarCuidado(c.id)}
-                  className="flex w-full items-center gap-3 rounded-[20px] bg-surface px-3.5 py-3 text-left hover:bg-surface-hover"
+                  disabled={feito}
+                  onClick={() => concluirCuidado(c.id)}
+                  className="flex w-full items-center gap-3 rounded-[20px] bg-surface px-3.5 py-3 text-left enabled:hover:bg-surface-hover disabled:cursor-default"
                 >
                   <span className={cx('flex size-11 flex-none items-center justify-center rounded-field', c.fundo)}>
                     <Icon name={c.icone} size={22} />
@@ -184,25 +162,38 @@ export function Cuidados() {
             );
           })}
         </ul>
-      </section>
+  );
+}
 
-      <section aria-labelledby="titulo-ideias" className="flex flex-col gap-2.5">
-        <SectionTitle>
-          <span id="titulo-ideias">{t('Mais ideias')}</span>
-        </SectionTitle>
-        <ul className="flex flex-col gap-2">
-          {MAIS_IDEIAS.map((i) => (
-            <li key={i.label} className="flex items-center gap-3 rounded-[20px] bg-surface px-3.5 py-3">
-              <span className={cx('flex size-11 flex-none items-center justify-center rounded-field', i.fundo)}>
-                <Icon name={i.icone} size={22} />
-              </span>
-              <span className="font-semibold">{i.label}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+export function Cuidados() {
+  const { feitosHoje, sugestoesHoje, outrosCuidados } = useEstudante();
+  const total = META_DIARIA_CUIDADOS;
+  const feitos = Math.min(feitosHoje.length, total);
+
+  return (
+    <div className="flex flex-col gap-5 pb-20">
+      <ScreenTitle>{t('Cuidados')}</ScreenTitle>
+      <p>{t('Escolha o que combina com você. Qualquer cuidado feito hoje conta para sua sequência.')}</p>
+      <CareStreakSummary />
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-6">
+          <section aria-labelledby="titulo-hoje" className="flex flex-col gap-2.5">
+            <div className="flex items-center gap-3">
+              <SectionTitle><span id="titulo-hoje">{t('Sugestões de hoje')}</span></SectionTitle>
+              <div aria-hidden="true" className="h-2.5 flex-1 overflow-hidden rounded-pill bg-surface">
+                <span className="block h-full rounded-pill bg-leaf transition-[width]" style={{ width: `${(100 * feitos) / total}%` }} />
+              </div>
+              <span className="text-caption font-semibold text-muted">{t('{feitos} de {total}', { feitos, total })}</span>
+            </div>
+            <ListaCuidados itens={sugestoesHoje} />
+          </section>
+          <section aria-labelledby="titulo-ideias" className="flex flex-col gap-2.5">
+            <SectionTitle><span id="titulo-ideias">{t('Mais ideias')}</span></SectionTitle>
+            <ListaCuidados itens={outrosCuidados} />
+          </section>
+        </div>
+        <CuidadosConcluidos />
       </div>
-
       <PrivacyNote>{t('Só você vê.')}</PrivacyNote>
       <CalmFab />
     </div>

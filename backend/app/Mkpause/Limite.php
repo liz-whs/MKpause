@@ -21,9 +21,9 @@ class Limite
     {
         $conta = $request->attributes->get('conta');
         $quem = $escopo === 'vinculo' && $conta ? 'u'.$conta->id() : self::ip($request);
-        // Uma escola pode compartilhar IP: o limite menor é por IP + conta,
+        // Uma escola pode compartilhar IP: o limite menor é por conta (independente do IP),
         // e o limite global maior impede tentativas distribuídas entre e-mails.
-        if ($escopo === 'login') $quem .= ':'.hash('sha256', mb_strtolower(trim((string) $request->input('email', ''))));
+        if ($escopo === 'login') $quem = 'conta:'.hash('sha256', mb_strtolower(trim((string) $request->input('email', ''))));
         $chave = "mkpause:limite:{$escopo}:{$quem}";
         $maximo = config("mkpause.limites.{$escopo}");
 

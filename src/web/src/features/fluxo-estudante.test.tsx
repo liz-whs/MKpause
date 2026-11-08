@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
@@ -17,6 +17,8 @@ beforeEach(() => {
   sessionStorage.clear();
   api.reiniciar();
 });
+
+afterEach(() => vi.restoreAllMocks());
 
 describe('Início do estudante', () => {
   it('mostra os níveis 1, 2, 3 e não mostra pedir ajuda nem contagem de pausas', () => {
@@ -54,18 +56,21 @@ describe('Nível 1', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/atividade');
-    await router.navigate('/estudante/pausa/fim');
-    expect(await screen.findByRole('link', { name: 'Não estou bem' })).toHaveAttribute('href', '/estudante/agora');
+    await userEvent.click(screen.getByRole('link', { name: /respire & pause/ }));
+    await userEvent.click(screen.getByRole('link', { name: 'Terminar exercício' }));
+    expect(await screen.findByRole('button', { name: 'Não estou bem' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('button', { name: 'Triste' }));
     expect(screen.queryByRole('link', { name: /Pedir ajuda/ })).toBeNull();
     expect(screen.queryByText('Ainda não está bem?')).toBeNull();
     const anteriores = new Set(api.escola.alertas('pe-1').map((a) => a.id));
-    await userEvent.click(screen.getByRole('link', { name: 'Não estou bem' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Não estou bem' }));
+    expect(await screen.findByRole('heading', { name: 'Como você está?' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/estudante/agora');
-    expect(await screen.findByText('Aviso enviado à escola')).toBeInTheDocument();
+    expect(await screen.findByText('Aviso enviado aos profissionais vinculados que podem receber alertas.')).toBeInTheDocument();
     const novos = api.escola.alertas('pe-1').filter((a) => !anteriores.has(a.id));
     expect(novos).toHaveLength(1);
     expect(novos[0]).toMatchObject({ estudanteId: 'est-1', tipo: 'nivel3' });
-    expect(screen.getByText('Inspire')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Começar respiração' })).toBeDisabled();
   });
 });
 
@@ -93,12 +98,12 @@ describe('Nova pausa', () => {
       act(() => vi.advanceTimersByTime(30_000));
       expect(screen.getByText('Pausado')).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-      expect(screen.getByRole('button', { name: 'Pausar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Pausar' }).querySelector('svg')).toBeNull();
       fireEvent.click(screen.getByRole('button', { name: 'Pausar' }));
     } finally { vi.useRealTimers(); }
   });
 
-  it.each([false, true])('Terminei encerra respire & pause e registra a sessão após o humor final (pausada: %s)', async (pausada) => {
+  it.each([false, true])('Terminar exercício encerra respire & pause e registra a sessão após o humor final (pausada: %s)', async (pausada) => {
     const { router } = abrir('/estudante/pausa');
     const quantidade = api.escola.sessoes('pe-1', 'est-1').length;
     await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
@@ -113,7 +118,7 @@ describe('Nova pausa', () => {
       expect(router.state.location.pathname).toBe('/estudante/pausa/respiracao');
       await userEvent.click(screen.getByRole('button', { name: 'Pausar' }));
     }
-    await userEvent.click(screen.getByRole('button', { name: 'Terminei' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Terminar exercício' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/fim');
     expect(screen.getByRole('heading', { name: 'E agora?' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
@@ -125,10 +130,10 @@ describe('Nova pausa', () => {
   });
 
   it('não reaproveita a atividade nem a emoção da pausa anterior', async () => {
-    const { router } = abrir('/estudante/atividades');
-    await userEvent.click(screen.getByRole('link', { name: /piano pause/ }));
+    const { router } = abrir('/estudante/pausa');
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
+    await userEvent.click(screen.getByRole('link', { name: /piano pause/ }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/pianopause');
 
     // Nova pausa pelo card do nível 1: começa do zero e passa pela escolha da atividade.
@@ -144,36 +149,35 @@ describe('Nova pausa', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     await router.navigate('/estudante/pausa/pianopause');
-    expect(await screen.findByRole('link', { name: 'Terminei' })).toHaveAttribute('href', '/estudante/pausa/fim');
+    expect(await screen.findByRole('link', { name: 'Terminar exercício' })).toHaveAttribute('href', '/estudante/pausa/fim');
     const jogo = screen.getByTitle('Jogo piano pause');
     expect(jogo).toHaveAttribute('src', '/jogos/pianopause/index.html?mkpause=1');
     // Na tela do jogo ele fica visível e acessível.
     expect(jogo.parentElement).not.toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('o vídeo de respiração toca a versão do celular, com legendas nos três idiomas', async () => {
+  it('o vídeo de respiração toca a versão do celular com instrução localizada sem legendas', async () => {
     const { router, container } = abrir('/estudante/pausa');
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     await router.navigate('/estudante/pausa/video');
     const video = await screen.findByLabelText(/Vídeo de respiração guiada/);
-    expect(video).toHaveAttribute('poster', '/videos/respiracao-celular.jpg?v=3');
-    expect(container.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=3');
-    expect([...container.querySelectorAll('track')].map((t) => t.getAttribute('srclang'))).toEqual(['pt-BR', 'en', 'es']);
+    expect(video).toHaveAttribute('poster', '/videos/respiracao-celular.jpg?v=4');
+    expect(container.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=4');
+    expect(container.querySelectorAll('track')).toHaveLength(0);
+    expect(container.querySelector('[data-instrucao-respiracao]')).toHaveTextContent('Inspire');
   });
 
-  it('o mk potion aparece em Jogos e abre dentro da pausa', async () => {
+  it('o mk potion aparece em Jogos e abre livremente', async () => {
     const { router } = abrir('/estudante/atividades');
     await userEvent.click(screen.getByRole('button', { name: 'Jogos' }));
-    const jogos = screen.getAllByRole('link').filter((l) => l.getAttribute('href') === '/estudante/pausa');
+    const jogos = screen.getAllByRole('link').filter((l) => l.getAttribute('href')?.startsWith('/estudante/atividades/'));
     expect(jogos.map((l) => l.textContent)).toEqual([expect.stringContaining('piano pause'), expect.stringContaining('mk potion'), expect.stringContaining('mk connection')]);
 
     await userEvent.click(screen.getByRole('link', { name: /mk potion/ }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
-    expect(router.state.location.pathname).toBe('/estudante/pausa/mkpotion');
+    expect(router.state.location.pathname).toBe('/estudante/atividades/mkpotion');
     expect(screen.getByTitle('Jogo mk potion')).toHaveAttribute('src', '/jogos/mkpotion/index.html?mkpause=1&estudante=est-1');
-    expect(screen.getByRole('link', { name: 'Terminei' })).toHaveAttribute('href', '/estudante/pausa/fim');
+    expect(screen.getByRole('link', { name: 'Terminar exercício' })).toHaveAttribute('href', '/estudante/atividades');
   });
 });
 
@@ -183,10 +187,11 @@ describe('Navegação sem labirinto', () => {
     expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/estudante');
   });
 
-  it('vindo de Atividades, o Voltar do "Como você está" retorna a Atividades', async () => {
+  it('a atividade livre usa o encerramento para retornar ao catálogo', async () => {
     abrir('/estudante/atividades');
     await userEvent.click(screen.getByRole('link', { name: /piano pause/ }));
-    expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/estudante/atividades');
+    expect(screen.queryByRole('link', { name: 'Voltar' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Terminar exercício' })).toHaveAttribute('href', '/estudante/atividades');
   });
 
   it('a escolha da atividade não manda o aluno para fora da pausa', async () => {
@@ -199,17 +204,81 @@ describe('Navegação sem labirinto', () => {
 });
 
 describe('Nível 3', () => {
-  it('envia o alerta sozinho, uma vez, e permite cancelar', async () => {
+  it('exige humor antes e depois, envia ambos e deixa apenas a observação opcional', async () => {
+    const salvar = vi.spyOn(api.estudante, 'registrarSessao');
+    const { router, container } = abrir('/estudante/agora');
+    await screen.findByText('Aviso enviado aos profissionais vinculados que podem receber alertas.');
+    expect(screen.getByRole('button', { name: 'Começar respiração' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Terminei' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Triste' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Começar respiração' }));
+    expect(screen.getByText('Inspire')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('link', { name: 'Terminar exercício' }));
+    expect(router.state.location.pathname).toBe('/estudante/agora/fim');
+    expect(screen.getByRole('button', { name: 'Enviar resposta' })).toBeDisabled();
+    expect(screen.queryByRole('link', { name: 'Início' })).toBeNull();
+    expect(salvar).not.toHaveBeenCalled();
+    expect(screen.getAllByText('(opcional)')).toHaveLength(1);
+    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    expect(await violacoes(container)).toEqual([]);
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar resposta' }));
+    await screen.findByRole('heading', { name: 'Pausa feita!' });
+    expect(router.state.location.pathname).toBe('/estudante/pausa/concluida');
+    expect(screen.getByText('Antes')).toBeInTheDocument();
+    expect(screen.getByText('Depois')).toBeInTheDocument();
+    expect(screen.getByText('Triste')).toBeInTheDocument();
+    expect(screen.getByText('Calmo(a)')).toBeInTheDocument();
+    expect(salvar).toHaveBeenCalledExactlyOnceWith({ estudanteId: 'est-1', antes: 'triste', depois: 'calmo', atividade: 'respiracao', relato: undefined });
+    await act(async () => { await router.navigate('/estudante/agora/fim'); });
+    expect(router.state.location.pathname).toBe('/estudante/pausa/concluida');
+    expect(salvar).toHaveBeenCalledTimes(1);
+    expect(await violacoes(container)).toEqual([]);
+    await userEvent.click(screen.getByRole('link', { name: 'Início' }));
+    await screen.findByRole('heading', { name: /Oi,/ });
+    expect(router.state.location.pathname).toBe('/estudante');
+  });
+
+  it('não mostra conclusão se o envio do humor final do nível 3 falhar', async () => {
+    sessionStorage.setItem('mkpause:estudante:v2:est-1', JSON.stringify({ sessao: { antes: 'triste', atividade: 'respiracao', nivel3: true, etapaNivel3: 'avaliacao' } }));
+    vi.spyOn(api.estudante, 'registrarSessao').mockRejectedValueOnce(new Error('Não foi possível salvar a sessão.'));
+    const { router } = abrir('/estudante/agora/fim');
+    await userEvent.click(screen.getByRole('button', { name: 'Calmo(a)' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar resposta' }));
+    await screen.findByText('Não foi possível salvar a sessão.');
+    expect(router.state.location.pathname).toBe('/estudante/agora/fim');
+    expect(screen.queryByRole('heading', { name: 'Pausa feita!' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Enviar resposta' })).toBeEnabled();
+  });
+
+  it('abrir a URL final sem avaliação inicial não permite enviar', () => {
+    const { router } = abrir('/estudante/agora/fim');
+    expect(router.state.location.pathname).toBe('/estudante/agora');
+    expect(screen.getByRole('button', { name: 'Começar respiração' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Enviar resposta' })).toBeNull();
+  });
+
+  it('respirar mais mantém a avaliação inicial e não duplica o alerta', async () => {
+    const avisar = vi.spyOn(api.estudante, 'enviarAlertaNivel3');
+    abrir('/estudante/agora');
+    await screen.findByText('Aviso enviado aos profissionais vinculados que podem receber alertas.');
+    await userEvent.click(screen.getByRole('button', { name: 'Ansioso(a)' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Começar respiração' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Terminar exercício' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Respirar mais' }));
+    expect(screen.getByText('Inspire')).toBeInTheDocument();
+    expect(avisar).toHaveBeenCalledTimes(1);
+  });
+
+  it('envia o alerta uma vez e não permite cancelar', async () => {
     const antes = api.escola.alertas('pe-1').length;
     abrir('/estudante/agora');
-    expect(await screen.findByText('Aviso enviado à escola')).toBeInTheDocument();
+    expect(await screen.findByText('Aviso enviado aos profissionais vinculados que podem receber alertas.')).toBeInTheDocument();
     const novos = api.escola.alertas('pe-1').slice(0, api.escola.alertas('pe-1').length - antes);
     expect(novos).toHaveLength(1);
     expect(novos[0].tipo).toBe('nivel3');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Cancelar aviso' }));
-    expect(screen.getByText('Aviso cancelado.')).toBeInTheDocument();
-    expect(api.escola.alertas('pe-1').some((a) => a.id === novos[0].id)).toBe(false);
+    expect(screen.queryByRole('button', { name: 'Cancelar aviso' })).toBeNull();
+    expect(api.escola.alertas('pe-1').some((a) => a.id === novos[0].id)).toBe(true);
   });
 });
 
@@ -219,7 +288,8 @@ describe('Sem pedir ajuda', () => {
     expect(router.state.location.pathname).toBe('/');
   });
 
-  it('Você se cuidou mostra a linha de emergência e não tem pedir ajuda', () => {
+  it('a avaliação final mantém a linha de emergência e não tem pedir ajuda', () => {
+    sessionStorage.setItem('mkpause:estudante:v2:est-1', JSON.stringify({ sessao: { antes: 'triste', atividade: 'respiracao', nivel3: true, etapaNivel3: 'avaliacao' } }));
     abrir('/estudante/agora/fim');
     expect(screen.getByText(/Emergência:/)).toHaveTextContent('Emergência: 188 (CVV) · 192 (SAMU)');
     expect(screen.queryByRole('link', { name: /Pedir ajuda/ })).toBeNull();
@@ -227,6 +297,38 @@ describe('Sem pedir ajuda', () => {
 });
 
 describe('Nível 2', () => {
+  it('mostra campo para outro lugar, exige preenchimento e envia o local informado', async () => {
+    const { router, container } = abrir('/estudante/aviso-de-saida');
+    expect(screen.queryByRole('heading', { name: /Quem.*saber/i })).toBeNull();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Outro lugar' }));
+    const campo = screen.getByRole('textbox', { name: 'Qual é o outro lugar?' });
+    expect(campo).toHaveFocus();
+    expect(campo).toHaveAttribute('maxlength', '160');
+    const enviar = screen.getByRole('button', { name: 'Avisar e sair' });
+    expect(enviar).toBeDisabled();
+    await userEvent.type(campo, '   ');
+    expect(enviar).toBeDisabled();
+    await userEvent.clear(campo);
+    await userEvent.type(campo, '  Sala de leitura  ');
+    expect(enviar).toBeEnabled();
+    expect(await violacoes(container)).toEqual([]);
+    await userEvent.click(enviar);
+    expect(router.state.location.pathname).toBe('/estudante/pausa');
+    expect(api.escola.avisos('pe-1').some((a) => !a.voltouEm && a.destino === 'Sala de leitura')).toBe(true);
+  });
+
+  it('trocar outro lugar por um destino da lista oculta o campo e envia somente a escolha atual', async () => {
+    abrir('/estudante/aviso-de-saida');
+    await userEvent.click(screen.getByRole('button', { name: 'Outro lugar' }));
+    await userEvent.type(screen.getByRole('textbox', { name: 'Qual é o outro lugar?' }), 'Sala de leitura');
+    await userEvent.click(screen.getByRole('button', { name: 'Pátio' }));
+    expect(screen.queryByRole('textbox')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Avisar e sair' }));
+    expect(api.escola.avisos('pe-1').some((a) => !a.voltouEm && a.destino === 'Pátio')).toBe(true);
+    expect(api.escola.avisos('pe-1').some((a) => a.destino === 'Sala de leitura')).toBe(false);
+  });
+
   it('avisa a saída, segue direto à pausa e registra o retorno no início', async () => {
     const { router } = abrir('/estudante/aviso-de-saida');
     expect(screen.queryByRole('link', { name: 'Pedir ajuda' })).toBeNull();
@@ -265,7 +367,7 @@ describe('Nível 2', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Calmo(a)' }));
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     await userEvent.click(screen.getByRole('link', { name: /piano pause/ }));
-    await userEvent.click(screen.getByRole('link', { name: 'Terminei' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Terminar exercício' }));
     await userEvent.click(screen.getByRole('button', { name: 'Feliz' }));
     await userEvent.click(screen.getByRole('button', { name: 'Finalizar' }));
     expect(router.state.location.pathname).toBe('/estudante/pausa/concluida');
@@ -318,4 +420,22 @@ describe('acessibilidade das telas do estudante (axe)', () => {
     const { container } = abrir(caminho);
     expect(await violacoes(container)).toEqual([]);
   });
+});
+
+
+it('oculta a confirmação após cinco segundos sem remover o alerta enviado', async () => {
+  vi.useFakeTimers();
+  try {
+    await act(async () => { abrir('/estudante/agora'); });
+    expect(screen.getByText('Aviso enviado aos profissionais vinculados que podem receber alertas.')).toBeInTheDocument();
+    const alertas = api.escola.alertas('pe-1');
+    act(() => { vi.advanceTimersByTime(4999); });
+    expect(screen.getByText('Aviso enviado aos profissionais vinculados que podem receber alertas.')).toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(1); });
+    expect(screen.queryByText('Aviso enviado aos profissionais vinculados que podem receber alertas.')).toBeNull();
+    expect(api.escola.alertas('pe-1')).toEqual(alertas);
+    expect(screen.getByRole('button', { name: 'Começar respiração' })).toBeDisabled();
+  } finally {
+    vi.useRealTimers();
+  }
 });

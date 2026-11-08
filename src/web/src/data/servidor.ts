@@ -23,6 +23,7 @@ export interface Conta {
   email: string;
   perfil: Perfil;
   id_perfil: number;
+  primeiro_acesso_pendente?: boolean;
 }
 
 export class ErroApi extends Error {

@@ -20,12 +20,12 @@ class Permissoes
 
     public static function estudantesVinculados(Conta $conta): Builder
     {
-        $q = DB::table('estudante as e')->select('e.id_estudante');
+        $q = DB::table('estudante as e')->join('usuario as ue', 'ue.id_usuario', '=', 'e.id_usuario')
+            ->where('ue.id_escola', Escola::id($conta))->select('e.id_estudante');
         if ($conta->perfil === Conta::ADMINISTRADOR) {
             return $q;
         }
-        $q->join('usuario as ue', 'ue.id_usuario', '=', 'e.id_usuario')
-            ->where('e.ativo', true)->where('ue.ativo', true);
+        $q->where('e.ativo', true)->where('ue.ativo', true);
         $id = $conta->idPerfil();
         return match ($conta->perfil) {
             Conta::ESTUDANTE => $q->where('e.id_estudante', $id),
