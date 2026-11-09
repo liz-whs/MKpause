@@ -18,14 +18,27 @@ if [ "${MKPAUSE_BENCHMARK_SENHA:-false}" = "true" ]; then
 <?php
 require 'app/Mkpause/SenhaPbkdf2.php';
 
-// Hash de teste pré-calculado para medir apenas uma verificação.
-$hash = 'pbkdf2_sha256$1200000$mkpauseBenchmark$RqGOUsY7AmGrmlSjehdDMX9ziKdCxxJ4KiuZQjXhMEg=';
+// Hashes fictícios pré-calculados para medir apenas as verificações.
+$senha = 'senha-ficticia-para-teste';
+$hashPbkdf2 = 'pbkdf2_sha256$1200000$mkpauseBenchmark$RqGOUsY7AmGrmlSjehdDMX9ziKdCxxJ4KiuZQjXhMEg=';
 $inicio = hrtime(true);
-$confere = \App\Mkpause\SenhaPbkdf2::conferir('senha-ficticia-para-teste', $hash);
+$conferePbkdf2 = \App\Mkpause\SenhaPbkdf2::conferir($senha, $hashPbkdf2);
 $duracao = (hrtime(true) - $inicio) / 1e6;
 
-printf("mkpause.login.benchmark iteracoes=1200000 verificacao_ms=%.1f confere=%s\n", $duracao, $confere ? 'sim' : 'nao');
-exit($confere ? 0 : 1);
+printf("mkpause.login.benchmark algoritmo=pbkdf2 iteracoes=1200000 verificacao_ms=%.1f confere=%s\n", $duracao, $conferePbkdf2 ? 'sim' : 'nao');
+
+if (!in_array('argon2id', password_algos(), true)) {
+    echo "mkpause.login.benchmark algoritmo=argon2id suporte=nao\n";
+    exit($conferePbkdf2 ? 0 : 1);
+}
+
+$hashArgon2id = '$argon2id$v=19$m=19456,t=2,p=1$bWtwYXVzZUJlbmNobWFyaw$1UID9YTX7BxmkVXMyXAQ8wGVYoPBk8506Jsma1VMc60';
+$inicio = hrtime(true);
+$confereArgon2id = password_verify($senha, $hashArgon2id);
+$duracao = (hrtime(true) - $inicio) / 1e6;
+
+printf("mkpause.login.benchmark algoritmo=argon2id memoria_kib=19456 iteracoes=2 paralelismo=1 verificacao_ms=%.1f confere=%s\n", $duracao, $confereArgon2id ? 'sim' : 'nao');
+exit($conferePbkdf2 && $confereArgon2id ? 0 : 1);
 PHP
     then
         echo 'mkpause.login.benchmark falhou' >&2
