@@ -102,11 +102,8 @@ export const contaAtual = () => chamar<Conta>('GET', 'auth/eu/').catch((erro) =>
   throw erro;
 });
 
-export async function entrar(email: string, senha: string) {
-  const conta = await chamar<Conta>('POST', 'auth/login/', { email: email.trim(), senha });
-  // A API troca o token de CSRF no login.
-  await fetch('/api/auth/csrf/', { credentials: 'same-origin' });
-  return conta;
+export function entrar(email: string, senha: string) {
+  return chamar<Conta>('POST', 'auth/login/', { email: email.trim(), senha });
 }
 
 export const sair = () => chamar('POST', 'auth/logout/');
