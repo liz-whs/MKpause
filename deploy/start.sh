@@ -11,6 +11,27 @@ sed "s/__PORT__/${PORT}/" /app/deploy/nginx.conf > /tmp/mkpause-nginx.conf
 nginx -e stderr -t -c /tmp/mkpause-nginx.conf
 
 cd /app/backend
+
+# Benchmark opcional com dados fictícios, antes de inicializar o Laravel e o banco.
+if [ "${MKPAUSE_BENCHMARK_SENHA:-false}" = "true" ]; then
+    if ! php <<'PHP'
+<?php
+require 'app/Mkpause/SenhaPbkdf2.php';
+
+// Hash de teste pré-calculado para medir apenas uma verificação.
+$hash = 'pbkdf2_sha256$1200000$mkpauseBenchmark$RqGOUsY7AmGrmlSjehdDMX9ziKdCxxJ4KiuZQjXhMEg=';
+$inicio = hrtime(true);
+$confere = \App\Mkpause\SenhaPbkdf2::conferir('senha-ficticia-para-teste', $hash);
+$duracao = (hrtime(true) - $inicio) / 1e6;
+
+printf("mkpause.login.benchmark iteracoes=1200000 verificacao_ms=%.1f confere=%s\n", $duracao, $confere ? 'sim' : 'nao');
+exit($confere ? 0 : 1);
+PHP
+    then
+        echo 'mkpause.login.benchmark falhou' >&2
+    fi
+fi
+
 mkdir -p storage/framework/cache/data storage/framework/views storage/logs bootstrap/cache
 php artisan package:discover --ansi
 php artisan config:cache
