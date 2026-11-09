@@ -60,6 +60,11 @@ FPM=$!
 nginx -e stderr -c /tmp/mkpause-nginx.conf -g 'daemon off;' &
 NGINX=$!
 
+# Executa após subir o serviço para a migração em lote não bloquear a inicialização.
+if [ "${MKPAUSE_DEMO:-false}" = "true" ] && [ "${MKPAUSE_MIGRAR_SENHAS_DEMO:-false}" = "true" ]; then
+    php artisan mkpause:criar-demo --migrar-senhas &
+fi
+
 parar() { kill "$FPM" "$NGINX" 2>/dev/null || true; }
 trap parar TERM INT
 
