@@ -16,6 +16,8 @@ return [
 
     'debug' => filter_var(env('APP_DEBUG', env('DJANGO_DEBUG', false)), FILTER_VALIDATE_BOOLEAN),
 
+    'diagnostico_login' => filter_var(env('MKPAUSE_DIAGNOSTICO_LOGIN', false), FILTER_VALIDATE_BOOLEAN),
+
     'senha_tamanho_minimo' => 8,
 
     'demo_senha' => env('DEMO_SENHA'),
