@@ -102,7 +102,7 @@ class Cadastros
             $agora = Formato::banco(Formato::agora());
             $idUsuario = DB::table('usuario')->insertGetId([
                 ...$dados['usuario'], 'id_escola' => $escola,
-                'senha_hash' => SenhaPbkdf2::criar($dados['senha']),
+                'senha_hash' => Senha::criar($dados['senha']),
                 'ativo' => true, 'criado_em' => $agora, 'atualizado_em' => $agora,
             ], 'id_usuario');
             return DB::table($tabela)->insertGetId([
@@ -119,7 +119,7 @@ class Cadastros
             $agora = Formato::banco(Formato::agora());
             $usuario = $dados['usuario'] + ['atualizado_em' => $agora];
             if ($dados['senha']) {
-                $usuario['senha_hash'] = SenhaPbkdf2::criar($dados['senha']);
+                $usuario['senha_hash'] = Senha::criar($dados['senha']);
             }
             DB::table('usuario')->where('id_usuario', $atual->id_usuario)->update($usuario);
             DB::table($tabela)->where($chave, $atual->$chave)->update($dados['perfil'] + ['atualizado_em' => $agora]);

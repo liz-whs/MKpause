@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Mkpause\Formato;
 use App\Mkpause\CatalogoAtividades;
-use App\Mkpause\SenhaPbkdf2;
+use App\Mkpause\Senha;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -63,7 +63,7 @@ class CriarDemo extends Command
         if ($id === null) {
             $agora = Formato::banco(Formato::agora());
             $id = DB::table('usuario')->insertGetId(['nome_completo' => $nome, 'email' => $email,
-                'senha_hash' => SenhaPbkdf2::criar($senha), 'ativo' => true, 'criado_em' => $agora, 'atualizado_em' => $agora],
+                'senha_hash' => Senha::criar($senha), 'ativo' => true, 'criado_em' => $agora, 'atualizado_em' => $agora],
                 'id_usuario');
             $this->line("  conta {$email} criada");
         }

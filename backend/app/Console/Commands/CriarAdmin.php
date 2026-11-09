@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Mkpause\Formato;
-use App\Mkpause\SenhaPbkdf2;
+use App\Mkpause\Senha;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -39,7 +39,7 @@ class CriarAdmin extends Command
             $idEscola = (int) DB::table('escola')->where('nome', $escola)->value('id_escola');
             \App\Mkpause\CatalogoAtividades::sincronizar($idEscola);
             $id = DB::table('usuario')->insertGetId(['id_escola' => $idEscola, 'nome_completo' => $nome, 'email' => $email,
-                'senha_hash' => SenhaPbkdf2::criar($senha), 'ativo' => true, 'criado_em' => $agora,
+                'senha_hash' => Senha::criar($senha), 'ativo' => true, 'criado_em' => $agora,
                 'atualizado_em' => $agora], 'id_usuario');
             DB::table('administrador')->insert(['id_usuario' => $id, 'ativo' => true, 'criado_em' => $agora,
                 'atualizado_em' => $agora]);
