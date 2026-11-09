@@ -76,6 +76,27 @@ class AutenticacaoAcompanhamentoTest extends TestCase
         $this->getJson('/api/auth/eu')->assertUnauthorized();
     }
 
+    public function test_migra_hash_legado_apos_login_valido_e_reutiliza_argon2id(): void
+    {
+        if (!in_array('argon2id', password_algos(), true)) {
+            $this->markTestSkipped('PHP sem Argon2id.');
+        }
+
+        $usuario = DB::table('usuario')->where('id_usuario', 2);
+        $legado = $usuario->value('senha_hash');
+        $this->login('incorreta')->assertUnauthorized();
+        $this->assertSame($legado, $usuario->value('senha_hash'));
+
+        $this->login()->assertOk();
+        $novoHash = $usuario->value('senha_hash');
+        $this->assertStringStartsWith('$argon2id$', $novoHash);
+        $this->getJson('/api/auth/eu')->assertOk();
+        $this->postJson('/api/auth/logout')->assertOk();
+
+        $this->login()->assertOk();
+        $this->assertSame($novoHash, $usuario->value('senha_hash'));
+    }
+
     public function test_senha_errada_conta_inativa_e_login_sem_csrf_sao_recusados(): void
     {
         $this->postJson('/api/auth/login', ['email' => 'conta2@teste.br', 'senha' => 'Senha teste 123!'])->assertForbidden();

@@ -72,11 +72,11 @@ let erroCarga: string | null = null;
 const idEstudanteLogado = () => (conta?.perfil === 'estudante' ? `est-${conta.id_perfil}` : 'est-1');
 
 /** Recarrega o cache a partir do backend. */
-async function sincronizar() {
+async function sincronizar(contaConfirmada?: servidor.Conta) {
   if (OFFLINE) return;
   try {
     erroCarga = null;
-    conta = await servidor.contaAtual();
+    conta = contaConfirmada ?? await servidor.contaAtual();
     limparPausasLocais(conta?.perfil === 'estudante' ? `est-${conta.id_perfil}` : undefined);
     banco = conta ? await servidor.carregar(conta) : bancoInicial();
   } catch (erro) {
@@ -195,13 +195,13 @@ export const api = {
   },
 
   /* ───────────── Conta ───────────── */
-  sincronizar,
+  sincronizar: () => sincronizar(),
   conta: () => conta,
   carregado: () => carregado,
   erroCarga: () => erroCarga,
   async entrar(email: string, senha: string) {
-    conta = await servidor.entrar(email, senha);
-    await sincronizar();
+    const contaConfirmada = await servidor.entrar(email, senha);
+    await sincronizar(contaConfirmada);
     return conta!;
   },
   async sair() {

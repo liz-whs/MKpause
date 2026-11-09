@@ -102,11 +102,8 @@ export const contaAtual = () => chamar<Conta>('GET', 'auth/eu/').catch((erro) =>
   throw erro;
 });
 
-export async function entrar(email: string, senha: string) {
-  const conta = await chamar<Conta>('POST', 'auth/login/', { email: email.trim(), senha });
-  // A API troca o token de CSRF no login.
-  await fetch('/api/auth/csrf/', { credentials: 'same-origin' });
-  return conta;
+export function entrar(email: string, senha: string) {
+  return chamar<Conta>('POST', 'auth/login/', { email: email.trim(), senha });
 }
 
 export const sair = () => chamar('POST', 'auth/logout/');
@@ -302,18 +299,21 @@ export function profissionalDaConta(conta: Conta): Profissional | null {
 export async function carregar(conta: Conta): Promise<Carga> {
   const carga = vazia();
   idsAtividade.clear();
-  carga.conteudos = converterAtividades(await chamar<AtividadeApi[]>('GET', 'atividades/'));
-
   if (conta.perfil === 'estudante') {
+    const [atividades, alertas] = await Promise.all([
+      chamar<AtividadeApi[]>('GET', 'atividades/'),
+      chamar<AlertaApi[]>('GET', 'alertas/'),
+    ]);
+    carga.conteudos = converterAtividades(atividades);
     carga.estudantes = [converterEstudante({
       id_estudante: conta.id_perfil, nome_completo: conta.nome_completo, email: conta.email, turma: null, instituicao_ensino: null,
     })];
-    const alertas = await chamar<AlertaApi[]>('GET', 'alertas/');
     carga.alertas = alertas.filter((a) => !ehSaida(a)).map(converterAlerta);
     carga.avisos = alertas.filter(ehSaida).map(converterAviso);
     return carga;
   }
 
+  carga.conteudos = converterAtividades(await chamar<AtividadeApi[]>('GET', 'atividades/'));
   if (conta.perfil === 'administrador') return carregarAdmin(carga);
 
   const eu = profissionalDaConta(conta)!;
