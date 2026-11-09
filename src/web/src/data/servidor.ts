@@ -299,18 +299,21 @@ export function profissionalDaConta(conta: Conta): Profissional | null {
 export async function carregar(conta: Conta): Promise<Carga> {
   const carga = vazia();
   idsAtividade.clear();
-  carga.conteudos = converterAtividades(await chamar<AtividadeApi[]>('GET', 'atividades/'));
-
   if (conta.perfil === 'estudante') {
+    const [atividades, alertas] = await Promise.all([
+      chamar<AtividadeApi[]>('GET', 'atividades/'),
+      chamar<AlertaApi[]>('GET', 'alertas/'),
+    ]);
+    carga.conteudos = converterAtividades(atividades);
     carga.estudantes = [converterEstudante({
       id_estudante: conta.id_perfil, nome_completo: conta.nome_completo, email: conta.email, turma: null, instituicao_ensino: null,
     })];
-    const alertas = await chamar<AlertaApi[]>('GET', 'alertas/');
     carga.alertas = alertas.filter((a) => !ehSaida(a)).map(converterAlerta);
     carga.avisos = alertas.filter(ehSaida).map(converterAviso);
     return carga;
   }
 
+  carga.conteudos = converterAtividades(await chamar<AtividadeApi[]>('GET', 'atividades/'));
   if (conta.perfil === 'administrador') return carregarAdmin(carga);
 
   const eu = profissionalDaConta(conta)!;
