@@ -12,7 +12,7 @@ class Banco
     public static function exigir(Command $comando): void
     {
         $cfg = DB::connection()->getConfig();
-        $comando->line("Conectando em {$cfg['host']}:{$cfg['port']}, banco '{$cfg['database']}', usuário '{$cfg['username']}'...");
+        $comando->line('Conectando em '.($cfg['host'] ?? 'local').':'.($cfg['port'] ?? '-').", banco '".($cfg['database'] ?? '?')."', usuário '".($cfg['username'] ?? '-')."'...");
         try {
             DB::connection()->getPdo();
         } catch (Throwable $erro) {

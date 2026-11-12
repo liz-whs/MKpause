@@ -15,6 +15,8 @@ export interface SessaoEmAndamento {
   nivel3?: boolean;
   etapaNivel3?: 'respiracao' | 'avaliacao';
   concluida?: boolean;
+  /** O estudante escreveu em "Quer contar algo?" e o texto foi salvo. */
+  relatoRegistrado?: boolean;
 }
 
 interface EstadoPersistido {
@@ -48,6 +50,11 @@ function useEstadoEstudante(estudanteId: string) {
   const [estado, setEstado] = useState<EstadoPersistido>(() => estadoInicial(chave));
 
   const perfil = useDados(() => api.estudante.perfil());
+  // O aviso guardado nesta aba vale primeiro; sem ele, usa o que continua aberto no servidor.
+  const avisoNoServidor = useDados(() => api.estudante.avisoAberto());
+  const local = estado.avisoSaida;
+  const localEncerrado = useDados(() => Boolean(local && api.estudante.avisoEncerrado(local.id)));
+  const avisoSaida = local && !localEncerrado ? local : avisoNoServidor;
   const cuidados = useCuidados(estudanteId);
 
   useEffect(() => {
@@ -60,7 +67,7 @@ function useEstadoEstudante(estudanteId: string) {
     notificacoes: estado.notificacoes,
     ...cuidados,
     sessao: estado.sessao,
-    avisoSaida: estado.avisoSaida,
+    avisoSaida,
 
     definirApelido: (apelido: string) => setEstado((s) => ({ ...s, apelido: apelido.trim() || s.apelido })),
     definirNotificacoes: (notificacoes: boolean) => setEstado((s) => ({ ...s, notificacoes })),
@@ -79,8 +86,10 @@ function useEstadoEstudante(estudanteId: string) {
       const depois = depoisAgora ?? estado.sessao.depois;
       if (!antes || !atividade || !depois) throw new Error('Selecione o humor inicial e final antes de enviar.');
       if (estado.sessao.concluida) return;
-      await api.estudante.registrarSessao({ estudanteId: perfil.id, antes, atividade, depois, relato: relato?.trim() || undefined });
-      setEstado((s) => ({ ...s, sessao: { ...s.sessao, depois, concluida: true } }));
+      const texto = relato?.trim() || undefined;
+      await api.estudante.registrarSessao({ estudanteId: perfil.id, antes, atividade, depois, relato: texto });
+      setEstado((s) => ({ ...s, sessao: { ...s.sessao, depois, concluida: true, relatoRegistrado: Boolean(texto) } }));
+      return Boolean(texto);
     },
 
     avisarSaida: async (destino?: string) => {
@@ -88,7 +97,7 @@ function useEstadoEstudante(estudanteId: string) {
       setEstado((s) => ({ ...s, avisoSaida: aviso }));
     },
     voltei: async () => {
-      if (estado.avisoSaida) await api.estudante.registrarRetorno(estado.avisoSaida.id);
+      if (avisoSaida) await api.estudante.registrarRetorno(avisoSaida.id);
       setEstado((s) => ({ ...s, avisoSaida: null }));
     },
 

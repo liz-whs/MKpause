@@ -71,12 +71,12 @@ describe('vídeo de respiração em toda a janela', () => {
 
   it('adapta a orientação preservando o ponto e a escolha de continuar tocando', async () => {
     const { video, container } = await abrir();
-    expect(video.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=4');
+    expect(video.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=5');
     video.currentTime = 12;
     Object.defineProperty(video, 'paused', { configurable: true, value: false });
     act(() => { horizontal = true; mudarOrientacao?.(); });
-    expect(video.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-computador.mp4?v=4');
-    expect(video).toHaveAttribute('poster', '/videos/respiracao-computador.jpg?v=4');
+    expect(video.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-computador.mp4?v=5');
+    expect(video).toHaveAttribute('poster', '/videos/respiracao-computador.jpg?v=5');
     expect(HTMLMediaElement.prototype.load).toHaveBeenCalledOnce();
     video.currentTime = 0;
     await act(() => fireEvent.loadedMetadata(video));
@@ -84,7 +84,7 @@ describe('vídeo de respiração em toda a janela', () => {
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(2);
     expect(container.querySelector('main')).not.toHaveClass('max-w-2xl');
     act(() => { horizontal = false; mudarOrientacao?.(); });
-    expect(video.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=4');
+    expect(video.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=5');
   });
 
   it('não inicia um vídeo pausado ao mudar a orientação', async () => {

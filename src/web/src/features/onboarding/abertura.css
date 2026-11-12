@@ -15,7 +15,10 @@
 .abertura-prefixo { position: relative; display: inline-flex; flex: none; align-items: center; }
 /* A régua contínua preserva o avanço e o espaçamento reais de cada caractere. */
 .abertura-medida { position: absolute; left: 0; top: 0; width: max-content; white-space: pre; visibility: hidden; pointer-events: none; }
-.abertura-caractere { display: block; flex: none; width: var(--largura-letra, auto); height: 1.2em; overflow: hidden; }
+/* Sem overflow: hidden: o desenho da letra (haste do k, serifas) passa da caixa e seria cortado.
+   Só as letras que saem são recortadas, com folga para o desenho, para não passarem por cima do m e do k. */
+.abertura-caractere { display: block; flex: none; width: var(--largura-letra, auto); height: 1.2em; overflow: visible; }
+.abertura-remove { clip-path: inset(-.5em -.08em -.5em 0); }
 .abertura-caractere > span { display: inline-block; white-space: pre; }
 .abertura-remove { animation: abertura-apaga-espaco .65s var(--atraso) linear both; }
 .abertura-cauda { animation: abertura-fecha-cauda .338s var(--atraso) cubic-bezier(.18,.8,.25,1) both; }

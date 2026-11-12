@@ -22,7 +22,7 @@ export function useTituloEFoco() {
   const titulo = [...matches].reverse().map((m) => (m.handle as HandleRota | undefined)?.titulo).find(Boolean);
 
   useEffect(() => {
-    document.title = titulo ? `${t(titulo)} · MKpause` : 'MKpause';
+    document.title = titulo ? `${t(titulo)} · mkpause` : 'mkpause';
   }, [titulo, idioma]);
 
   useEffect(() => {

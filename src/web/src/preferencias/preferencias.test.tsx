@@ -130,7 +130,7 @@ describe('painel Acessibilidade e idioma', () => {
       'I need to leave the room, Level 2',
       "I'm not okay, Level 3",
     ]);
-    expect(document.title).toBe('Home · MKpause');
+    expect(document.title).toBe('Home · mkpause');
     // O painel continua aberto, já traduzido.
     expect(screen.getByRole('dialog', { name: 'Accessibility and language' })).toBeInTheDocument();
   });

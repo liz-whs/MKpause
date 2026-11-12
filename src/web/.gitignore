@@ -1,3 +1,6 @@
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Renders verticais em alta resolução (origem dos vídeos publicados)
+.videos-mestres/

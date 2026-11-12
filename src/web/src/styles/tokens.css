@@ -1,5 +1,5 @@
 /*
- * Design tokens do MKpause (HANDOFF, seção 3).
+ * Design tokens do mkpause (HANDOFF, seção 3).
  * Cada token vira utilitário do Tailwind: bg-rose, text-ink, rounded-card, etc.
  */
 @theme {

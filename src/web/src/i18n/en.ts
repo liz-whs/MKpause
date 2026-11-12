@@ -64,7 +64,7 @@ export const en: Record<string, string> = {
   Resumo: 'Summary',
   '(opcional)': '(optional)',
   'Emergência:': 'Emergency:',
-  'Chinchila, mascote do MKpause': 'Chinchilla, the MKpause mascot',
+  'Chinchila, mascote do mkpause': 'Chinchilla, the mkpause mascot',
   'Etapa {atual} de {total}': 'Step {atual} of {total}',
   'Progresso da pausa': 'Pause progress',
   '{passo} de {total}': '{passo} of {total}',
@@ -120,8 +120,8 @@ export const en: Record<string, string> = {
   'Vê suas pausas e avisos.': 'Sees your pauses and notices.',
   'Sua turma': 'Your class',
   'Não vê nada.': 'Sees nothing.',
-  'Em emergência, siga o protocolo da escola. O MKpause não é serviço de emergência.':
-    'In an emergency, follow your school protocol. MKpause is not an emergency service.',
+  'Em emergência, siga o protocolo da escola. O mkpause não é serviço de emergência.':
+    'In an emergency, follow your school protocol. mkpause is not an emergency service.',
 
   // Entrar e primeiro acesso
   Entrar: 'Sign in',
@@ -144,7 +144,7 @@ export const en: Record<string, string> = {
   'Aparece só para você, na tela inicial.': 'Only you see it, on the home screen.',
   'Ex.: {apelido}': 'E.g.: {apelido}',
   'Notificações do navegador': 'Browser notifications',
-  'Para receber os avisos do MKpause.': 'To get MKpause notices.',
+  'Para receber os avisos do mkpause.': 'To get mkpause notices.',
   Concluir: 'Finish',
   'Pular por agora': 'Skip for now',
 
@@ -227,7 +227,7 @@ export const en: Record<string, string> = {
   Ligadas: 'On',
   Desligadas: 'Off',
   Privacidade: 'Privacy',
-  'Quem vê o quê no MKpause': 'Who sees what on MKpause',
+  'Quem vê o quê no mkpause': 'Who sees what on mkpause',
   'Ajuda e emergência': 'Help and emergency',
   'Sair da conta': 'Sign out',
 
@@ -293,6 +293,8 @@ export const en: Record<string, string> = {
   Voltei: "I'm back",
   'Bom retorno!': 'Welcome back!',
   'Avisamos seu retorno.': 'We let them know you are back.',
+  'Seu professor foi avisado da sua saída.': 'Your teacher was notified that you left.',
+  'Sua observação foi registrada.': 'Your note was saved.',
 
   // Nível 3
   Respire: 'Breathe',
@@ -339,6 +341,7 @@ export const en: Record<string, string> = {
   'Ninguém voltou ainda hoje.': 'No one has come back yet today.',
   'Saiu {hora}': 'Left {hora}',
   'Voltou {hora}': 'Back {hora}',
+  'Voltou': 'Back',
   'Só aparecem os estudantes vinculados a você.': 'Only students linked to you appear here.',
   'Buscar estudante': 'Search student',
   'Nome ou matrícula': 'Name or student ID',
@@ -828,4 +831,10 @@ export const en: Record<string, string> = {
   "Avise seus profissionais vinculados e siga a respiração guiada.": "Notify your linked professionals and follow the guided breathing.",
   "No nível 3, o alerta não pode ser cancelado e a resposta pode não ser imediata. Se precisar de ajuda agora, procure um adulto de confiança.": "At level 3, the alert cannot be canceled and the response may not be immediate. If you need help now, find a trusted adult.",
   "Seu pedido de apoio fica registrado. A resposta pode levar um pouco. Se precisar de ajuda agora, chame um adulto em quem confia.": "Your request for support is recorded. A reply may take a little time. If you need help now, reach out to an adult you trust.",
+  "Encerrar alerta": "Close alert",
+  "Confirmar encerramento": "Confirm closing",
+  "Encerrar este alerta? Ele sai da lista de alertas de todos que o receberam.": "Close this alert? It leaves the alert list for everyone who received it.",
+  "Encerrar": "Close",
+  "Alerta encerrado.": "Alert closed.",
+  "Os conteúdos não são excluídos: oculte os que não devem aparecer para os estudantes.": "Content is not deleted: hide what students should not see.",
 };

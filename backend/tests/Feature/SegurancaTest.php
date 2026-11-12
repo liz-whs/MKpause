@@ -82,6 +82,61 @@ class SegurancaTest extends TestCase
         }
     }
 
+    public function test_volta_para_a_sala_guarda_o_horario_em_que_o_aviso_terminou(): void
+    {
+        $this->preparar();
+        DB::statement('CREATE TABLE alerta (id_alerta INTEGER PRIMARY KEY, id_estudante INTEGER, id_sessao INTEGER, nivel INTEGER, status TEXT, criado_em TEXT, descricao TEXT, finalizado_em TEXT)');
+        DB::statement('CREATE TABLE destinatario_alerta (id_destinatario_alerta INTEGER PRIMARY KEY, id_alerta INTEGER, id_usuario INTEGER, tipo_destinatario TEXT, status_notificacao TEXT, enviado_em TEXT, lido_em TEXT)');
+        DB::table('alerta')->insert(['id_alerta' => 1, 'id_estudante' => 1, 'nivel' => 2, 'status' => 'ABERTO', 'criado_em' => '2026-11-06 12:00:00']);
+        DB::table('destinatario_alerta')->insert(['id_alerta' => 1, 'id_usuario' => 4, 'tipo_destinatario' => 'PROFESSOR', 'status_notificacao' => 'PENDENTE']);
+
+        $this->travelTo(new \DateTimeImmutable('2026-11-06 12:25:00', new \DateTimeZone('America/Sao_Paulo')));
+        $resposta = $this->withSession(['id_usuario' => 1])->patchJson('/api/alertas/1', ['status' => 'CANCELADO'])->assertOk();
+
+        $this->assertNotNull(DB::table('alerta')->where('id_alerta', 1)->value('finalizado_em'));
+        $this->assertNotSame($resposta->json('criado_em'), $resposta->json('finalizado_em'));
+        $this->assertStringContainsString('12:25', $resposta->json('finalizado_em'));
+        $this->withSession(['id_usuario' => 4])->getJson('/api/alertas')->assertOk()
+            ->assertJsonPath('0.finalizado_em', $resposta->json('finalizado_em'));
+    }
+
+    public function test_alerta_repetido_reaproveita_o_aberto_sem_novos_emails(): void
+    {
+        $this->preparar();
+        DB::statement('CREATE TABLE alerta (id_alerta INTEGER PRIMARY KEY, id_estudante INTEGER, id_sessao INTEGER, nivel INTEGER, status TEXT, criado_em TEXT, descricao TEXT, finalizado_em TEXT)');
+        DB::statement('CREATE TABLE destinatario_alerta (id_destinatario_alerta INTEGER PRIMARY KEY, id_alerta INTEGER, id_usuario INTEGER, tipo_destinatario TEXT, status_notificacao TEXT, enviado_em TEXT, lido_em TEXT)');
+        DB::statement('CREATE TABLE notificacao_email (id INTEGER PRIMARY KEY, id_destinatario_alerta INTEGER, email_destino TEXT, status TEXT, tentativas INTEGER, criado_em TEXT, disponivel_em TEXT)');
+        DB::statement('ALTER TABLE usuario ADD COLUMN telefone TEXT');
+        config(['mkpause.email.envio_automatico' => false]);
+        $this->withSession(['id_usuario' => 1]);
+        foreach ([3, 2] as $nivel) {
+            $primeiro = $this->postJson('/api/alertas', ['nivel' => $nivel])->assertCreated()->json('alerta.id_alerta');
+            $emails = DB::table('notificacao_email')->count();
+            $this->postJson('/api/alertas', ['nivel' => $nivel])->assertOk()
+                ->assertJsonPath('alerta.id_alerta', $primeiro)->assertJsonPath('repetido', true);
+            $this->assertSame($emails, DB::table('notificacao_email')->count());
+            $this->assertSame(1, DB::table('alerta')->where('nivel', $nivel)->count());
+        }
+        // Depois do retorno, uma nova saída gera um novo aviso.
+        $this->patchJson('/api/alertas/'.DB::table('alerta')->where('nivel', 2)->value('id_alerta'), ['status' => 'CANCELADO'])->assertOk();
+        $this->postJson('/api/alertas', ['nivel' => 2])->assertCreated();
+        $this->assertSame(2, DB::table('alerta')->where('nivel', 2)->count());
+    }
+
+    public function test_professor_registra_observacao_de_estudante_sem_alerta(): void
+    {
+        $this->preparar();
+        DB::statement('CREATE TABLE observacao (id_observacao INTEGER PRIMARY KEY, id_alerta INTEGER, id_estudante INTEGER, id_autor INTEGER, conteudo TEXT, criado_em TEXT, atualizado_em TEXT)');
+        $this->withSession(['id_usuario' => 4])->postJson('/api/estudantes/1/observacoes', ['conteudo' => 'Conversamos no intervalo.'])
+            ->assertCreated()->assertJsonPath('alerta', null)->assertJsonPath('estudante', 1);
+        $this->getJson('/api/estudantes/1/observacoes')->assertOk()
+            ->assertJsonPath('0.conteudo', 'Conversamos no intervalo.')->assertJsonPath('0.papel_autor', 'professor');
+        $this->withSession(['id_usuario' => 5])->getJson('/api/estudantes/1/observacoes')->assertOk()->assertJsonCount(1);
+        // Sem vínculo, não registra; o estudante também não usa esta rota.
+        $this->withSession(['id_usuario' => 4])->postJson('/api/estudantes/7/observacoes', ['conteudo' => 'x'])->assertForbidden();
+        $this->withSession(['id_usuario' => 1])->postJson('/api/estudantes/1/observacoes', ['conteudo' => 'x'])->assertForbidden();
+    }
+
     public function test_auditoria_idor_sessoes_e_fichas_e_listas(): void
     {
         $this->preparar();
@@ -170,6 +225,49 @@ class SegurancaTest extends TestCase
     {
         DB::table('usuario')->where('id_usuario', 3)->update(['id_escola' => null]);
         $this->withSession(['id_usuario' => 3])->getJson('/api/admin/estudantes')->assertForbidden();
+    }
+
+    private function prepararEscolaUnica(): void
+    {
+        config(['mkpause.escola_unica' => true]);
+        DB::statement('CREATE TABLE escola (id_escola INTEGER PRIMARY KEY, nome TEXT UNIQUE)');
+        DB::table('escola')->insert([['id_escola' => 1, 'nome' => 'Principal'], ['id_escola' => 2, 'nome' => 'Outra']]);
+        DB::statement('CREATE TABLE codigo_cadastro (id_codigo_cadastro INTEGER PRIMARY KEY, id_escola INTEGER)');
+        DB::table('codigo_cadastro')->insert([['id_codigo_cadastro' => 1, 'id_escola' => null], ['id_codigo_cadastro' => 2, 'id_escola' => 2]]);
+        DB::statement('CREATE TABLE atividade (id_escola INTEGER, id_atividade INTEGER PRIMARY KEY, nome TEXT, descricao TEXT, tipo TEXT, conteudo_ou_referencia TEXT, disponivel BOOLEAN, criado_em TEXT, atualizado_em TEXT)');
+        $token = str_repeat('a', 32);
+        $this->withCredentials()->withUnencryptedCookie('csrftoken', $token)->withHeader('X-CSRFToken', $token);
+    }
+
+    public function test_escola_unica_conta_antiga_sem_escola_entra_e_acessa(): void
+    {
+        $this->prepararEscolaUnica();
+        // Conta criada antes da V7: sem escola (ex.: estudante do Marista).
+        DB::table('usuario')->where('id_usuario', 3)->update(['id_escola' => null]);
+        $this->postJson('/api/auth/login', ['email' => 'conta3@teste.br', 'senha' => 'Senha teste 123!'])->assertOk();
+        $this->assertSame(1, (int) DB::table('usuario')->where('id_usuario', 3)->value('id_escola'));
+        // Rota que exige escola definida: antes dava "Sua conta ainda não tem escola definida".
+        $this->getJson('/api/atividades')->assertOk();
+    }
+
+    public function test_escola_unica_comando_reune_contas_e_codigos_e_pode_repetir(): void
+    {
+        $this->prepararEscolaUnica();
+        DB::table('usuario')->where('id_usuario', 2)->update(['id_escola' => null]);
+        DB::table('usuario')->where('id_usuario', 4)->update(['id_escola' => 2]);
+        $this->artisan('mkpause:escola-unica')->assertSuccessful();
+        $this->assertSame([1], DB::table('usuario')->distinct()->pluck('id_escola')->map(fn ($i) => (int) $i)->all());
+        $this->assertSame([1], DB::table('codigo_cadastro')->distinct()->pluck('id_escola')->map(fn ($i) => (int) $i)->all());
+        $this->assertSame(count(\App\Mkpause\CatalogoAtividades::ITENS), DB::table('atividade')->where('id_escola', 1)->count());
+        $this->artisan('mkpause:escola-unica')->expectsOutputToContain('Contas movidas: 0')->assertSuccessful();
+    }
+
+    public function test_escola_unica_desligada_mantem_separacao(): void
+    {
+        config(['mkpause.escola_unica' => false]);
+        DB::table('usuario')->where('id_usuario', 4)->update(['id_escola' => 2]);
+        $this->artisan('mkpause:escola-unica')->assertSuccessful();
+        $this->assertSame(2, (int) DB::table('usuario')->where('id_usuario', 4)->value('id_escola'));
     }
 
     public function test_mudanca_de_escola_invalida_sessao(): void

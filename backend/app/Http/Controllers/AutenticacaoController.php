@@ -41,7 +41,8 @@ class AutenticacaoController extends Controller
             $valida = Senha::conferir($senha, $hash);
         }
         $verificacao = hrtime(true);
-        $conta = $usuario && $valida ? Conta::comPerfil($usuario) : null;
+        // MVP (escola única): contas antigas sem escola entram na escola principal antes de abrir a sessão.
+        $conta = $usuario && $valida ? Conta::comPerfil(\App\Mkpause\Escola::unificar($usuario)) : null;
         $perfil = hrtime(true);
         if ($conta !== null && str_starts_with($hash, 'pbkdf2_sha256$') && Senha::argon2idDisponivel()) {
             $conta = $this->migrarSenha($conta, $senha, $hash);

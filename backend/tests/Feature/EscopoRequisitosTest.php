@@ -25,7 +25,8 @@ class EscopoRequisitosTest extends TestCase
         DB::statement('CREATE TABLE psicologo_clinico (id_psicologo_clinico INTEGER PRIMARY KEY, id_usuario INTEGER, ativo BOOLEAN)');
         DB::statement('CREATE TABLE psicologo_clinico_estudante (id_psicologo_clinico INTEGER, id_estudante INTEGER, ativo BOOLEAN, criado_em TEXT)');
         DB::statement('CREATE TABLE alerta (id_alerta INTEGER PRIMARY KEY, id_estudante INTEGER)');
-        DB::statement('CREATE TABLE observacao (id_observacao INTEGER PRIMARY KEY, id_alerta INTEGER, id_autor INTEGER, conteudo TEXT, criado_em TEXT)');
+        DB::statement('CREATE TABLE observacao (id_observacao INTEGER PRIMARY KEY, id_alerta INTEGER, id_estudante INTEGER, id_autor INTEGER, conteudo TEXT, criado_em TEXT)');
+        DB::statement('CREATE TABLE psicologo_escolar (id_psicologo_escolar INTEGER PRIMARY KEY, id_usuario INTEGER, ativo BOOLEAN)');
         DB::table('usuario')->insert(['id_usuario' => 1, 'nome_completo' => 'Teste', 'ativo' => true]);
         DB::table('estudante')->insert(['id_estudante' => 1, 'id_usuario' => 1, 'ativo' => true]);
         DB::table('psicologo_clinico')->insert(['id_psicologo_clinico' => 1, 'id_usuario' => 1, 'ativo' => true]);
@@ -69,7 +70,7 @@ class EscopoRequisitosTest extends TestCase
     public function test_observacoes_clinicas_continuam_restritas_ao_vinculo_sem_expor_alerta(): void
     {
         DB::table('alerta')->insert(['id_alerta' => 9, 'id_estudante' => 1]);
-        DB::table('observacao')->insert(['id_observacao' => 2, 'id_alerta' => 9, 'id_autor' => 1,
+        DB::table('observacao')->insert(['id_observacao' => 2, 'id_alerta' => 9, 'id_estudante' => 1, 'id_autor' => 1,
             'conteudo' => 'Observação escolar', 'criado_em' => '2026-11-06 12:00:00']);
         $c = new AlertasController;
         $r = $this->pedido(Conta::PSICOLOGO_CLINICO);

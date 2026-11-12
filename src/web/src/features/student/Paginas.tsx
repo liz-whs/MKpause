@@ -258,7 +258,7 @@ export function Perfil() {
             </div>
 
             <div className="rounded-card-lg bg-surface p-2.5">
-              <Linha icone="escudo" titulo={t('Privacidade')} valor={t('Quem vê o quê no MKpause')}>
+              <Linha icone="escudo" titulo={t('Privacidade')} valor={t('Quem vê o quê no mkpause')}>
                 <QuemVeOQue />
               </Linha>
               <Linha icone="duvida" titulo={t('Ajuda e emergência')} valor="188 (CVV) · 192 (SAMU)">

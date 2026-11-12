@@ -105,12 +105,19 @@ def renderizar(formato):
             codigo = processo.wait()
         if codigo:
             raise subprocess.CalledProcessError(codigo, processo.args)
+        # Celulares não decodificam H.264 acima de 4K: a versão de celular sai em 1080 x 1920, nível 4.1.
+        codificacao = ["-c", "copy"] if formato == "computador" else [
+            "-vf", "scale=1080:1920:flags=lanczos", "-c:v", "libx264", "-profile:v", "high", "-level", "4.1",
+            "-preset", "slow", "-crf", "18", "-tune", "animation", "-pix_fmt", "yuv420p"]
         subprocess.run([
             "ffmpeg", "-y", "-loglevel", "error", "-stream_loop", str(CICLOS - 1),
-            "-i", str(unidade), "-c", "copy", "-movflags", "+faststart", str(saida),
+            "-i", str(unidade), *codificacao, "-movflags", "+faststart", str(saida),
         ], check=True)
     # Capa na resolução nativa, sem extrair um quadro já comprimido do MP4.
-    cena.quadro(.5).save(saida.with_suffix('.jpg'), quality=98, subsampling=0)
+    capa = cena.quadro(.5)
+    if formato == "celular":
+        capa = capa.resize((1080, 1920), Image.LANCZOS)
+    capa.save(saida.with_suffix('.jpg'), quality=98, subsampling=0)
     for idioma, frases in {'pt-BR': ('Inspire', 'Solte o ar'), 'en': ('Breathe in', 'Breathe out'), 'es': ('Inhala', 'Exhala')}.items():
         trechos = ['WEBVTT\n']
         for i in range(CICLOS * 2):

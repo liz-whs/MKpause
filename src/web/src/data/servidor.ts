@@ -139,6 +139,8 @@ interface SessaoApi {
 interface AlertaApi {
   id_alerta: number; estudante: number; nome_estudante: string; nivel: number; criado_em: string; status: string;
   descricao: string | null; destinatarios: { usuario: number; lido_em: string | null }[];
+  /** Quando o alerta terminou (no nível 2, a volta para a sala). Ausente em alertas antigos. */
+  finalizado_em?: string | null;
 }
 interface EstudanteApi {
   id_estudante: number; nome_completo: string; email: string; turma: string | null; instituicao_ensino: string | null;
@@ -201,12 +203,15 @@ const ehSaida = (a: AlertaApi) => a.nivel === 2;
 
 /** Nível 2 do backend = aviso de saída da interface (vai para os professores). */
 function converterAviso(a: AlertaApi): AvisoSaida {
+  const voltou = a.status !== 'ABERTO' && a.status !== 'EM_ACOMPANHAMENTO';
   return {
     id: `alerta-${a.id_alerta}`,
     estudanteId: `est-${a.estudante}`,
     desde: a.criado_em,
     destino: a.descricao?.replace(/^Destino: /, '') || undefined,
-    voltouEm: a.status === 'ABERTO' || a.status === 'EM_ACOMPANHAMENTO' ? undefined : a.criado_em,
+    // Sem finalizado_em (aviso antigo), a data da saída só serve para agrupar em "Voltaram hoje".
+    voltouEm: voltou ? (a.finalizado_em ?? a.criado_em) : undefined,
+    voltaSemHorario: voltou && !a.finalizado_em ? true : undefined,
   };
 }
 
@@ -325,16 +330,15 @@ export async function carregar(conta: Conta): Promise<Carga> {
   carga.alertas = alertas.filter((a) => !ehSaida(a)).map(converterAlerta);
   carga.avisos = alertas.filter(ehSaida).map(converterAviso);
 
-  // Observações ficam presas a alertas no banco; a interface mostra por estudante.
-  const obs = conta.perfil === 'psicologo_clinico' ? await Promise.all(carga.estudantes.map((e) =>
-    chamar<{ id_observacao: number; autor: number; nome_autor: string; conteudo: string; criado_em: string }[]>(
-      'GET', `estudantes/${idDe(e.id)}/observacoes/`).then((l) => l.map((o) => ({ ...o, estudante: idDe(e.id) }))))) : await Promise.all(alertas.map((a) =>
-    chamar<{ id_observacao: number; autor: number; nome_autor: string; conteudo: string; criado_em: string }[]>(
-      'GET', `alertas/${a.id_alerta}/observacoes/`).catch(() => []).then((l) => l.map((o) => ({ ...o, estudante: a.estudante })))));
+  // Observações escolares por estudante (V13): incluem as feitas sem alerta.
+  const obs = await Promise.all(carga.estudantes.map((e) =>
+    chamar<{ id_observacao: number; autor: number; nome_autor: string; papel_autor?: Perfil; conteudo: string; criado_em: string }[]>(
+      'GET', `estudantes/${idDe(e.id)}/observacoes/`).catch(() => []).then((l) => l.map((o) => ({ ...o, estudante: idDe(e.id) })))));
   for (const o of obs.flat()) {
     carga.observacoes.push({ id: `obs-${o.id_observacao}`, estudanteId: `est-${o.estudante}`, autorId: `u-${o.autor}`, em: o.criado_em, texto: o.conteudo });
     if (!carga.profissionais.some((p) => p.id === `u-${o.autor}`)) {
-      carga.profissionais.push({ id: `u-${o.autor}`, nome: o.nome_autor, iniciais: iniciais(o.nome_autor), papel: 'professor', ativo: true });
+      carga.profissionais.push({ id: `u-${o.autor}`, nome: o.nome_autor, iniciais: iniciais(o.nome_autor),
+        papel: o.papel_autor === 'psicologo_escolar' ? 'psicologo-escolar' : 'professor', ativo: true });
     }
   }
 
@@ -343,8 +347,8 @@ export async function carregar(conta: Conta): Promise<Carga> {
     const historicos = await Promise.all(carga.estudantes.map((e) =>
       chamar<SessaoApi[]>('GET', `sessoes/?estudante=${idDe(e.id)}`).catch(() => [])));
     carga.sessoes = historicos.flat().map(converterSessao).filter((s): s is SessaoRegistrada => s !== null);
-    for (const e of carga.estudantes) {
-      const f = await lerFichaDe(e.id);
+    // Em paralelo: uma de cada vez ficava lento com muitos estudantes.
+    for (const f of await Promise.all(carga.estudantes.map((e) => lerFichaDe(e.id)))) {
       if (f) {
         carga.fichas.push(f.ficha);
         carga.registros.push(...f.registros);
@@ -352,6 +356,12 @@ export async function carregar(conta: Conta): Promise<Carga> {
     }
   }
   return carga;
+}
+
+/** Só alertas e avisos de saída (uma requisição): o que o painel da escola precisa em tempo real. */
+export async function carregarAlertas(): Promise<Pick<Carga, 'alertas' | 'avisos'>> {
+  const alertas = await chamar<AlertaApi[]>('GET', 'alertas/');
+  return { alertas: alertas.filter((a) => !ehSaida(a)).map(converterAlerta), avisos: alertas.filter(ehSaida).map(converterAviso) };
 }
 
 /* ───────────── Administração ───────────── */
@@ -383,8 +393,7 @@ async function carregarAdmin(carga: Carga): Promise<Carga> {
       if (v.ativo) carga.vinculos.push({ estudanteId: `est-${v.estudante}`, profissionalId: `${r.prefixo}-${v[r.campo]}` });
     }
   }
-  for (const e of carga.estudantes) {
-    const f = await lerFichaDe(e.id);
+  for (const f of await Promise.all(carga.estudantes.map((e) => lerFichaDe(e.id)))) {
     if (f) carga.fichas.push(f.ficha);
   }
   return carga;
@@ -392,14 +401,33 @@ async function carregarAdmin(carga: Carga): Promise<Carga> {
 
 /* ───────────── Escritas ───────────── */
 
+/**
+ * Sessão criada cuja conclusão falhou: a nova tentativa conclui esta mesma sessão
+ * em vez de criar outra, para não deixar sessões pela metade no banco.
+ */
+let sessaoPendente: { chave: string; id: number } | null = null;
+
 export async function registrarSessao(s: Omit<SessaoRegistrada, 'id' | 'em' | 'estudanteId'>) {
   const id_atividade = idsAtividade.get(s.atividade);
   if (!id_atividade) throw new Error(`Atividade "${s.atividade}" não cadastrada no backend (rode criar_demo).`);
-  const { sessao } = await chamar<{ sessao: SessaoApi }>('POST', 'sessoes/', { id_atividade, humor_pre: s.antes });
-  await chamar('POST', `sessoes/${sessao.id_sessao}/concluir/`, {
-    humor_pos: s.depois,
-    observacoes_sessao: s.relato ?? '',
-  });
+  const chave = `${id_atividade}:${s.antes}`;
+  const reaproveitada = sessaoPendente?.chave === chave;
+  let id = reaproveitada ? sessaoPendente!.id : null;
+  if (id === null) {
+    const { sessao } = await chamar<{ sessao: SessaoApi }>('POST', 'sessoes/', { id_atividade, humor_pre: s.antes });
+    id = sessao.id_sessao;
+    sessaoPendente = { chave, id };
+  }
+  try {
+    await chamar('POST', `sessoes/${id}/concluir/`, {
+      humor_pos: s.depois,
+      observacoes_sessao: s.relato ?? '',
+    });
+  } catch (erro) {
+    // A tentativa anterior concluiu, mas a resposta se perdeu: a pausa já está registrada.
+    if (!(reaproveitada && erro instanceof ErroApi && erro.status === 409)) throw erro;
+  }
+  sessaoPendente = null;
 }
 
 export const emitirAlerta = async (nivel: 2 | 3, descricao?: string) =>
@@ -409,8 +437,8 @@ export const mudarStatusAlerta = (id: string, status: string) => chamar('PATCH',
 
 export const marcarLido = (id: string) => chamar('POST', `alertas/${idDe(id)}/lido/`);
 
-export const observar = (alertaId: string, conteudo: string) =>
-  chamar('POST', `alertas/${idDe(alertaId)}/observacoes/`, { conteudo });
+export const observar = (estudanteId: string, conteudo: string) =>
+  chamar('POST', `estudantes/${idDe(estudanteId)}/observacoes/`, { conteudo });
 
 export const salvarFicha = async (estudanteId: string, conteudo: string, existe: boolean) =>
   chamar(existe ? 'PATCH' : 'POST', `estudantes/${idDe(estudanteId)}/ficha/`, { informacoes_acompanhamento: conteudo });

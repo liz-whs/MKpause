@@ -2,10 +2,10 @@ import { agir } from '../../state/acoes';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { api } from '../../data/api';
-import { useDados } from '../../data/useDados';
+import { useAtualizacaoAutomatica, useDados } from '../../data/useDados';
 import { ehLeve } from '../../domain/emocoes';
 import { dia, ehHoje, haQuanto, hora, iniciais, nomeCurto, quando } from '../../domain/formatos';
-import { PAPEL_LABEL, type Alerta, type AtividadeId, type Estudante, type Profissional } from '../../domain/tipos';
+import { PAPEL_LABEL, type Alerta, type AtividadeId, type AvisoSaida, type Estudante, type Profissional } from '../../domain/tipos';
 import { profissionalLogado } from '../../state/ProContext';
 import { ProLayout } from '../../components/layout/Layouts';
 import {
@@ -32,12 +32,16 @@ export const NOME_ATIVIDADE: Record<AtividadeId, string> = {
 };
 
 const visto = (a: Alerta, profissionalId: string) => a.vistoPor?.includes(profissionalId) ?? false;
+/** Fora da sala agora: aviso de hoje ainda sem retorno. Avisos esquecidos de outros dias não ficam presos na lista. */
+const foraAgora = (a: AvisoSaida) => !a.voltouEm && ehHoje(a.desde);
 
 /** Menu lateral com pendências: alertas não vistos e estudantes fora da sala. */
 export function EscolaLayout() {
   const eu = profissionalLogado('escola');
+  // Alertas, saídas e retornos chegam sem recarregar a página.
+  useAtualizacaoAutomatica();
   const novos = useDados(() => api.escola.alertas(eu.id).filter((a) => !visto(a, eu.id)).length);
-  const fora = useDados(() => api.escola.avisos(eu.id).filter((a) => !a.voltouEm).length);
+  const fora = useDados(() => api.escola.avisos(eu.id).filter(foraAgora).length);
   return (
     <ProLayout
       perfil={PAPEL_LABEL[eu.papel]}
@@ -59,6 +63,7 @@ function useEstudantePorId(eu: Profissional) {
 
 function AlertaCard({ alerta, estudante, eu }: { alerta: Alerta; estudante: Estudante; eu: Profissional }) {
   const jaVisto = visto(alerta, eu.id);
+  const [confirmando, setConfirmando] = useState(false);
   return (
     <Card as="article" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2.5">
@@ -82,7 +87,18 @@ function AlertaCard({ alerta, estudante, eu }: { alerta: Alerta; estudante: Estu
             {t('Marcar como visto')}
           </Button>
         )}
+        {/* Encerrar tira o alerta da lista de todos que o receberam: pede confirmação na própria tela. */}
+        {!confirmando && <Button size="md" variant="outline" onClick={() => setConfirmando(true)}>
+          {t('Encerrar alerta')}
+        </Button>}
       </div>
+      {confirmando && <div role="group" aria-label={t('Confirmar encerramento')} className="flex flex-wrap items-center gap-2.5 rounded-card bg-bg p-3">
+        <p className="flex-[1_1_220px]">{t('Encerrar este alerta? Ele sai da lista de alertas de todos que o receberam.')}</p>
+        <Button size="md" onClick={() => { void agir(() => api.escola.resolverAlerta(eu.id, alerta.id), 'Alerta encerrado.'); }}>
+          {t('Encerrar')}
+        </Button>
+        <Button size="md" variant="outline" onClick={() => setConfirmando(false)}>{t('Cancelar')}</Button>
+      </div>}
     </Card>
   );
 }
@@ -94,7 +110,7 @@ export function EscolaAlertas() {
   const eu = profissionalLogado('escola');
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const alertas = useDados(() => api.escola.alertas(eu.id));
-  const fora = useDados(() => api.escola.avisos(eu.id).filter((a) => !a.voltouEm));
+  const fora = useDados(() => api.escola.avisos(eu.id).filter(foraAgora));
   const estudantePorId = useEstudantePorId(eu);
 
   const lista = alertas.filter(
@@ -152,7 +168,7 @@ export function EscolaAlertas() {
           </Link>
           <Card padding="compact" className="flex items-start gap-3">
             <Icon name="info" size={22} className="flex-none" />
-            <p className="text-caption text-muted">{t('Em emergência, siga o protocolo da escola. O MKpause não é serviço de emergência.')}</p>
+            <p className="text-caption text-muted">{t('Em emergência, siga o protocolo da escola. O mkpause não é serviço de emergência.')}</p>
           </Card>
         </aside>
       </div>
@@ -165,7 +181,7 @@ export function EscolaAvisos() {
   const avisos = useDados(() => api.escola.avisos(eu.id));
   const alertas = useDados(() => api.escola.alertas(eu.id));
   const estudantePorId = useEstudantePorId(eu);
-  const fora = avisos.filter((a) => !a.voltouEm);
+  const fora = avisos.filter(foraAgora);
   const voltaram = avisos.filter((a) => a.voltouEm && ehHoje(a.voltouEm));
 
   return (
@@ -222,7 +238,7 @@ export function EscolaAvisos() {
                   </span>
                   <span className="text-muted">{e.turma}</span>
                   <span>{t('Saiu {hora}', { hora: hora(a.desde) })}</span>
-                  <span>{t('Voltou {hora}', { hora: hora(a.voltouEm!) })}</span>
+                  <span>{a.voltaSemHorario ? t('Voltou') : t('Voltou {hora}', { hora: hora(a.voltouEm!) })}</span>
                   <span className="text-muted">{t(a.destino ?? 'Não informado')}</span>
                 </li>
               )
@@ -312,7 +328,7 @@ function FichaEscolar({ estudanteId, eu }: { estudanteId: string; eu: Profission
   const sessoes = useDados(() => api.escola.sessoes(eu.id, estudanteId));
   const observacoes = useDados(() => api.escola.observacoes(eu.id, estudanteId));
   const alertas = useDados(() => api.escola.alertas(eu.id).filter((a) => a.estudanteId === estudanteId));
-  const aviso = useDados(() => api.escola.avisos(eu.id).find((a) => a.estudanteId === estudanteId && !a.voltouEm));
+  const aviso = useDados(() => api.escola.avisos(eu.id).find((a) => a.estudanteId === estudanteId && foraAgora(a)));
   const [texto, setTexto] = useState('');
   const [erro, setErro] = useState<string>();
   const [salvo, setSalvo] = useState(false);

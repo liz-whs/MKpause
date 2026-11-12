@@ -49,6 +49,8 @@ export interface AvisoSaida {
   desde: string; // ISO
   destino?: string;
   voltouEm?: string;
+  /** Avisos encerrados antes da V12 não têm a hora da volta: mostra "Voltou" sem horário. */
+  voltaSemHorario?: boolean;
 }
 
 /**

@@ -106,11 +106,10 @@ describe('administração', () => {
     expect(api.estudante.conteudos().map((c) => c.id)).not.toContain('pianopause');
   });
 
-  it('conteúdo já usado não pode ser excluído', () => {
+  it('conteúdos só podem ser ocultados, não excluídos', () => {
     abrir('/admin/conteudos');
-    const excluir = screen.getByRole('button', { name: 'Excluir respire & pause' });
-    expect(excluir).toBeDisabled();
-    expect(excluir).toHaveAccessibleDescription('Já usado em sessões: só pode ser ocultado.');
+    expect(screen.queryByRole('button', { name: /^Excluir / })).not.toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'respire & pause: disponível para estudantes' })).toBeInTheDocument();
   });
 
   it('remover vínculo tira o estudante da lista do profissional', async () => {

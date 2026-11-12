@@ -18,7 +18,7 @@ use RuntimeException;
 class AplicarEsquema extends Command
 {
     protected $signature = 'mkpause:aplicar-esquema';
-    protected $description = 'Aplica V1 a V11 ausentes no banco do MKpause (sem Flyway).';
+    protected $description = 'Aplica V1 a V13 ausentes no banco do mkpause (sem Flyway).';
 
     private const VERSOES = [
         ['V1__criacao_do_esquema_inicial.sql', ['usuario']],
@@ -32,6 +32,8 @@ class AplicarEsquema extends Command
         ['V9__amplia_catalogo_cuidados.sql', ['cuidado_estudante']],
         ['V10__cuidados_adolescentes.sql', ['cuidado_estudante']],
         ['V11__primeiro_acesso_estudante.sql', ['estudante']],
+        ['V12__horario_fim_alerta.sql', ['alerta']],
+        ['V13__observacao_por_estudante.sql', ['observacao']],
     ];
 
     public function handle(): int
@@ -43,8 +45,11 @@ class AplicarEsquema extends Command
             DB::select('SELECT pg_advisory_xact_lock(72843003)');
             $tabelas = array_flip(array_column(Schema::getTables(), 'name'));
             foreach (self::VERSOES as [$nome, $marcas]) {
-                if (str_starts_with($nome, 'V11__')) {
-                    if (Schema::hasColumn('estudante', 'primeiro_acesso_concluido')) {
+                $porColuna = ['V11__' => ['estudante', 'primeiro_acesso_concluido'], 'V12__' => ['alerta', 'finalizado_em'],
+                    'V13__' => ['observacao', 'id_estudante']];
+                if (isset($porColuna[strstr($nome, '__', true).'__'])) {
+                    [$tabela, $coluna] = $porColuna[strstr($nome, '__', true).'__'];
+                    if (Schema::hasColumn($tabela, $coluna)) {
                         $this->line("{$nome}: já aplicado.");
                         continue;
                     }
@@ -105,7 +110,7 @@ class AplicarEsquema extends Command
                 }
             }
         });
-        $this->info('Esquema pronto (V1 a V10).');
+        $this->info('Esquema pronto (V1 a V13).');
         return self::SUCCESS;
     }
 }
