@@ -39,17 +39,29 @@ cpSync(origem, projeto, {
 // O ajuste vai só na cópia temporária; o main.py da Ana continua igual.
 const principal = join(projeto, 'main.py');
 const codigo = readFileSync(principal, 'utf8');
-if (!/^import pygame\b/m.test(codigo)) {
-  writeFileSync(principal, `import pygame  # pygbag: carrega o pygame no navegador\n${codigo}`);
-}
+// Áudio: o jogo chama pygame.init() antes do SoundManager, então o mixer abria com o buffer padrão,
+// pequeno. No navegador, o som é entregue entre um quadro e outro do jogo; quando um quadro atrasa
+// (comum no celular), o buffer esvazia e o som estala ou chia. pre_init antes do init garante um
+// buffer maior (4096 quadros, cerca de 90 ms), sem mudar o código da Ana.
+const preInit = 'pygame.mixer.pre_init(48000, -16, 2, 4096)  # mkpause: buffer maior evita estalos no navegador';
+writeFileSync(principal, [
+  ...(/^import pygame\b/m.test(codigo) ? [] : ['import pygame  # pygbag: carrega o pygame no navegador']),
+  preInit,
+  codigo,
+].join('\n'));
 
 integrarPotion(projeto);
 // A geração fica fora do pacote web; o navegador carrega apenas os Ogg prontos.
 copyFileSync(join(web, 'scripts', 'mkpotion-audio-web.py'), join(projeto, 'game', 'sounds.py'));
 execFileSync(python, [join(web, 'scripts', 'mkpotion-audio.py'), projeto], { stdio: 'inherit' });
+// No navegador os sons tocam pela Web Audio da página (mkpotion-som.js), fora do laço do jogo:
+// os WAV vão para public/jogos/mkpotion/sons/. Os Ogg ficam no pacote para o jogo fora do navegador.
+const sonsWeb = join(trabalho, 'sons-web');
+mkdirSync(sonsWeb, { recursive: true });
 for (const nome of ['select', 'pour', 'undo', 'win']) {
   const wav = join(projeto, 'assets', 'audio', `${nome}.wav`);
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', wav, '-c:a', 'libvorbis', '-q:a', '8', join(projeto, 'assets', 'audio', `${nome}.ogg`)], { stdio: 'inherit' });
+  copyFileSync(wav, join(sonsWeb, `${nome}.wav`));
   rmSync(wav);
 }
 execFileSync(python, ['-c', `import pygame
@@ -73,6 +85,9 @@ for (const arquivo of readdirSync(build)) {
   if (arquivo === 'index.html') continue;
   copyFileSync(join(build, arquivo), join(destino, arquivo));
 }
+mkdirSync(join(destino, 'sons'), { recursive: true });
+for (const arquivo of readdirSync(sonsWeb)) copyFileSync(join(sonsWeb, arquivo), join(destino, 'sons', arquivo));
+copyFileSync(join(web, 'scripts', 'mkpotion-som.js'), join(destino, 'mkpotion-som.js'));
 
 // Página do jogo: idioma, fundo (creme do MKpause) e aviso de carregamento.
 const trocas = [
@@ -82,6 +97,10 @@ const trocas = [
   ['background: green;', 'background: #FFFAF7; border-radius: 999px; padding: 8px 16px; font: 600 16px system-ui, sans-serif;'],
   ['color: blue;', 'color: #594131;'],
   ['Loading, please wait ...', 'Carregando…'],
+  // No celular o navegador exige um toque antes de liberar o som: o pygbag pede esse toque em inglês.
+  ['Ready to start ! Please click/touch page', 'Toque para começar'],
+  // Tocador dos efeitos pela Web Audio: sem ruído, porque não depende do ritmo dos quadros do jogo.
+  ['</head>', '    <script src="mkpotion-som.js"></script>\n</head>'],
   // Sem o aviso 'Sair do site?' ao recarregar ou sair: o progresso já fica salvo.
   ['can_close : 0', 'can_close : 1'],
   // Dentro do iframe do MKpause o jogo ocupa a página toda: sem barras de rolagem

@@ -6,7 +6,7 @@ import { DESTINOS_SAIDA } from '../../domain/tipos';
 import type { EmocaoId } from '../../domain/emocoes';
 import { useEstudante } from '../../state/EstudanteContext';
 import { BackButton, FocusTopBar, TerminarExercicio, NomeAtividade } from '../../components/student/FocusTopBar';
-import { EmergencyLine, PeopleList, ScreenTitle, SectionTitle } from '../../components/student/Bits';
+import { Confirmacao, EmergencyLine, ScreenTitle, SectionTitle } from '../../components/student/Bits';
 import { BreathingCircle, BreathingStage, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
 import { EmotionGrid } from '../../components/student/EmotionGrid';
 import { ChoiceChips } from '../../components/ui/ChoiceChips';
@@ -49,7 +49,6 @@ export function AvisoSaida() {
           autoFocus
         />}
       </section>
-      <PeopleList pessoas={api.estudante.quemAcompanha()} />
       <Button
         block
         disabled={outroSelecionado && !destinoInformado}
@@ -76,7 +75,10 @@ export function AgoraRespira() {
   const [inicial, setInicial] = useState<EmocaoId | null>(null);
   const pronta = Boolean(sessao.nivel3 && sessao.antes && !sessao.concluida);
   const location = useLocation();
-  const semAviso = Boolean((location.state as { semAviso?: boolean } | null)?.semAviso);
+  const estadoRota = location.state as { semAviso?: boolean; relatoRegistrado?: boolean } | null;
+  const semAviso = Boolean(estadoRota?.semAviso);
+  // Veio do "Não estou bem" da pausa com algo escrito em "Quer contar algo?".
+  const relatoRegistrado = Boolean(estadoRota?.relatoRegistrado);
   const reduzir = usePrefersReducedMotion();
   const { t: tempo } = useBreathClock(pronta, reduzir);
 
@@ -122,6 +124,7 @@ export function AgoraRespira() {
           {t('Aviso enviado aos profissionais vinculados que podem receber alertas.')}
         </div>
       )}
+      {relatoRegistrado && !pronta && <Confirmacao>{t('Sua observação foi registrada.')}</Confirmacao>}
       {pronta ? <>
         <BreathingStage>
           <BreathingCircle t={tempo} reduzir={reduzir} tamanho={320} fluido />

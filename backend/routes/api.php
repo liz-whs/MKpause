@@ -116,3 +116,5 @@ Route::middleware($admin)->prefix('admin')->group(function () {
 
 // Observações escolares agrupadas por estudante, sem expor alertas ao clínico.
 Route::get('estudantes/{id}/observacoes', [Alertas::class, 'observacoesDoEstudante'])->middleware('conta:professor,psicologo_escolar,psicologo_clinico');
+// Professor e psicólogo escolar registram observações mesmo sem alerta (V13).
+Route::post('estudantes/{id}/observacoes', [Alertas::class, 'observarEstudante'])->middleware($escolares);

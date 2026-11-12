@@ -16,6 +16,9 @@ const reutilizar = process.argv.includes('--reuse');
 const fonte = process.env.VIDEO_FONT ?? join(web, '..', 'MKpotion', 'mk_potion', 'assets', 'fonts_mkpause', 'Fraunces-SemiBold.ttf');
 if (!existsSync(fonte)) throw new Error('Defina VIDEO_FONT com o caminho de uma fonte TTF.');
 mkdirSync(destino, { recursive: true });
+// Os renders verticais em alta resolução ficam fora do site: servem de origem para as versões publicadas.
+const mestres = join(web, '.videos-mestres');
+mkdirSync(mestres, { recursive: true });
 
 function validar(arquivo, largura, altura, fps, quadros) {
   const stream = JSON.parse(execFileSync(ffprobe, ['-v', 'error', '-select_streams', 'v:0',
@@ -28,7 +31,8 @@ function validar(arquivo, largura, altura, fps, quadros) {
 
 for (const [id, inspirar, expirar] of [['espiral', 5, 7.5], ['chinchila', 4, 6]]) {
   if (escolhido && escolhido !== id) continue;
-  const vertical = join(destino, `${id}-celular.mp4`);
+  const vertical = join(mestres, `${id}-celular.mp4`);
+  const celular = join(destino, `${id}-celular.mp4`);
   const horizontal = join(destino, `${id}-computador.mp4`);
   const fps = id === 'chinchila' ? 60 : 30;
   if (!reutilizar || !existsSync(vertical)) {
@@ -49,7 +53,7 @@ for (const [id, inspirar, expirar] of [['espiral', 5, 7.5], ['chinchila', 4, 6]]
       validar(join(trabalho, 'celular.mp4'), 2880, 3840, fps, Math.round((inspirar + expirar) * fps));
       if (id === 'chinchila') validar(join(trabalho, 'computador.mp4'), 3840, 2160, fps, 600);
       for (const formato of id === 'chinchila' ? ['celular', 'computador'] : ['celular']) {
-        copyFileSync(join(trabalho, `${formato}.mp4`), join(destino, `${id}-${formato}.mp4`));
+        copyFileSync(join(trabalho, `${formato}.mp4`), formato === 'celular' ? vertical : horizontal);
       }
     } finally {
       if (!trabalho.startsWith(join(tmpdir(), 'mkpause-video-'))) throw new Error('Pasta temporária inesperada.');
@@ -60,10 +64,15 @@ for (const [id, inspirar, expirar] of [['espiral', 5, 7.5], ['chinchila', 4, 6]]
   if (id === 'chinchila') validar(horizontal, 3840, 2160, fps, 600);
   if (id !== 'chinchila') execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', vertical, '-vf', 'scale=-2:2160:flags=lanczos,pad=3840:2160:(ow-iw)/2:(oh-ih)/2:color=0xF6EFE4',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '16', '-threads', '2', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', horizontal], { stdio: 'inherit' });
+  // Celulares não decodificam H.264 acima de 4K: a versão publicada sai em 1080 x 1440, nível 4.1.
+  execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-i', vertical, '-vf', 'scale=1080:1440:flags=lanczos',
+    '-c:v', 'libx264', '-profile:v', 'high', '-level', '4.1', '-preset', 'slow', '-crf', '18', '-tune', 'animation',
+    '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', celular], { stdio: 'inherit' });
+  validar(celular, 1080, 1440, fps, Math.round((inspirar + expirar) * fps));
   for (const formato of ['celular', 'computador']) execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-ss', '0.6', '-i', join(destino, `${id}-${formato}.mp4`), '-frames:v', '1', '-q:v', '2', join(destino, `${id}-${formato}.jpg`)], { stdio: 'inherit' });
   const tempo = (n) => new Date(n * 1000).toISOString().slice(11, 23);
   for (const [idioma, antes, depois] of [['pt-BR', 'Inspire devagar', 'Solte o ar devagar'], ['en', 'Breathe in slowly', 'Breathe out slowly'], ['es', 'Inspira despacio', 'Suelta el aire despacio']]) {
     writeFileSync(join(destino, `${id}.${idioma}.vtt`), `WEBVTT\n\n00:00:00.000 --> ${tempo(inspirar)}\n${antes}\n\n${tempo(inspirar)} --> ${tempo(inspirar + expirar)}\n${depois}\n`);
   }
-  console.log(`${id}: versões 4K, capas e legendas prontas.`);
+  console.log(`${id}: versões de computador (4K) e celular (1080 x 1440), capas e legendas prontas.`);
 }

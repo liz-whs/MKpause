@@ -575,15 +575,11 @@ const VISUAL: Record<AtividadeId, { icone: IconName; fundo: string }> = {
 
 export function AdminConteudos() {
   const conteudos = useDados(() => api.admin.conteudos());
-  const [aviso, setAviso] = useState('');
-  const { pedir, dialogo } = useConfirmacao();
 
   return (
     <>
       <PageHeader titulo={t('Conteúdos')} descricao={t('Só os disponíveis aparecem para os estudantes.')} />
-      {aviso && <SuccessBanner>{aviso}</SuccessBanner>}
       <AtividadesPorCategoria atividades={conteudos} gradeClassName="" renderAtividade={(c) => {
-        const usos = api.admin.usos(c.id);
         const v = VISUAL[c.id];
         return (
           <div className="flex flex-wrap items-center gap-4 rounded-card bg-surface px-5 py-4">
@@ -592,9 +588,7 @@ export function AdminConteudos() {
             </span>
             <span className="flex flex-[1_1_240px] flex-col">
               <strong className="text-button">{t(c.nome)}</strong>
-              <span className="text-caption text-muted">
-                {t(c.tipo)} · {usos > 0 ? (usos === 1 ? t('usado em {n} sessão', { n: usos }) : t('usado em {n} sessões', { n: usos })) : t('ainda não usado')}
-              </span>
+              <span className="text-caption text-muted">{t(c.tipo)}</span>
             </span>
             <span className="flex min-w-37.5 items-center gap-2.5 font-semibold">
               <button
@@ -614,37 +608,11 @@ export function AdminConteudos() {
               </button>
               {c.disponivel ? t('Disponível') : t('Oculto')}
             </span>
-            <Button
-              size="md"
-              variant="outline"
-              disabled={usos > 0}
-              aria-label={t('Excluir {nome}', { nome: t(c.nome) })}
-              aria-describedby={usos > 0 ? `uso-${c.id}` : undefined}
-              onClick={() =>
-                pedir({
-                  titulo: t('Excluir este conteúdo?'),
-                  texto: t('Ele some da lista de atividades e não volta.'),
-                  confirmar: t('Excluir'),
-                  acao: async () => {
-                    await api.admin.excluirConteudo(c.id);
-                    setAviso(t('Conteúdo excluído.'));
-                  },
-                })
-              }
-            >
-              <Icon name="lixeira" size={18} />
-              {t('Excluir')}
-            </Button>
-            {usos > 0 && (
-              <span id={`uso-${c.id}`} className="sr-only">
-                {t('Já usado em sessões: só pode ser ocultado.')}
-              </span>
-            )}
           </div>
         );
       }} />
-      <LockNote>{t('Conteúdo já usado em sessões não pode ser excluído, só ocultado.')}</LockNote>
-      {dialogo}
+      {/* O catálogo é fixo: ocultar preserva o histórico das sessões. Não há exclusão. */}
+      <LockNote>{t('Os conteúdos não são excluídos: oculte os que não devem aparecer para os estudantes.')}</LockNote>
     </>
   );
 }

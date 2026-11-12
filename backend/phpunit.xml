@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Os testes cobrem a separação por escola; o modo de escola única (MVP) tem testes próprios. -->
+        <env name="MKPAUSE_ESCOLA_UNICA" value="false"/>
     </php>
 </phpunit>

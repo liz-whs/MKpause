@@ -70,7 +70,19 @@ export function PeopleList({ pessoas, detalhe }: { pessoas: Profissional[]; deta
   );
 }
 
-/** Linha fixa de emergência. O MKpause não é serviço de emergência. */
+/** Confirmação visível de que algo foi enviado ou registrado. */
+export function Confirmacao({ children }: { children: ReactNode }) {
+  return (
+    <div role="status" className="flex w-full items-center gap-2.5 rounded-card bg-surface px-4 py-3.5 text-left font-semibold">
+      <span className="flex size-7 flex-none items-center justify-center rounded-full bg-leaf">
+        <Icon name="check" size={16} strokeWidth={3} />
+      </span>
+      {children}
+    </div>
+  );
+}
+
+/** Linha fixa de emergência. O mkpause não é serviço de emergência. */
 export function EmergencyLine() {
   return (
     <div className="flex items-start gap-3 rounded-[18px] bg-surface px-4 py-3.5">

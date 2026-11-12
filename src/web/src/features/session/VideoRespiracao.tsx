@@ -23,7 +23,7 @@ function useFormatoVideo() {
 /** Vídeo em toda a janela, com início imediato e pausa manual. */
 export function VideoRespiracao({ atividade = 'video' }: { atividade?: 'video' | 'espiral' | 'chinchila' }) {
   const fluxo = useFluxoAtividade();
-  const dados = { video: { titulo: 'mk breath', arquivo: 'respiracao', versao: 4 }, espiral: { titulo: 'spiral pause', arquivo: 'espiral', versao: 2 }, chinchila: { titulo: 'chinchilla pause', arquivo: 'chinchila', versao: 11 } }[atividade];
+  const dados = { video: { titulo: 'mk breath', arquivo: 'respiracao', versao: 5 }, espiral: { titulo: 'spiral pause', arquivo: 'espiral', versao: 3 }, chinchila: { titulo: 'chinchilla pause', arquivo: 'chinchila', versao: 12 } }[atividade];
   const video = useRef<HTMLVideoElement>(null);
   const formato = useFormatoVideo();
   const anterior = useRef(formato);

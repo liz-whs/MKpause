@@ -13,6 +13,9 @@ return [
     'segredo' => $segredo,
 
     'demo_habilitada' => filter_var(env('MKPAUSE_DEMO', false), FILTER_VALIDATE_BOOLEAN),
+    // MVP: todas as contas em uma só escola (o nome da instituição segue como texto em cada perfil).
+    // Desligue (MKPAUSE_ESCOLA_UNICA=false) para voltar a separar os dados por escola.
+    'escola_unica' => filter_var(env('MKPAUSE_ESCOLA_UNICA', true), FILTER_VALIDATE_BOOLEAN),
 
     'debug' => filter_var(env('APP_DEBUG', env('DJANGO_DEBUG', false)), FILTER_VALIDATE_BOOLEAN),
 
@@ -41,7 +44,7 @@ return [
         'senha' => env('EMAIL_HOST_PASSWORD', ''),
         'tls' => env('EMAIL_USE_TLS', '1') === '1',
         'ssl' => env('EMAIL_USE_SSL', '0') === '1',
-        'remetente' => env('DEFAULT_FROM_EMAIL', 'MKpause <nao-responda@mkpause.local>'),
+        'remetente' => env('DEFAULT_FROM_EMAIL', 'mkpause <nao-responda@mkpause.local>'),
         'envio_automatico' => env('EMAIL_ENVIO_AUTOMATICO', '0') === '1',
     ],
 ];

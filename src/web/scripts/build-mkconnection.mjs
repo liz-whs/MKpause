@@ -98,6 +98,8 @@ const trocas = [
   ['background: green;', 'background: #FFFAF7; border-radius: 999px; padding: 8px 16px; font: 600 16px system-ui, sans-serif;'],
   ['color: blue;', 'color: #594131;'],
   ['Loading, please wait ...', 'Carregando…'],
+  // No celular o navegador exige um toque antes de liberar o som: o pygbag pede esse toque em inglês.
+  ['Ready to start ! Please click/touch page', 'Toque para começar'],
   // Sem o aviso 'Sair do site?' ao recarregar ou sair: o progresso já fica salvo.
   ['can_close : 0', 'can_close : 1'],
   // Dentro do iframe do MKpause o jogo ocupa a página toda: sem barras de rolagem

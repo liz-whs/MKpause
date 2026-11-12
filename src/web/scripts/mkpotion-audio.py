@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import wave
 
-TAXA = 44100
+TAXA = 48000  # taxa do áudio do navegador (celular e computador): evita conversão ao tocar
 GANHO = 0.10
 DO, MI, SOL, DO_AGUDO = 261.625565, 329.627557, 391.995436, 523.251131
 EFEITOS = {

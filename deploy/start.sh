@@ -54,6 +54,8 @@ php artisan mkpause:sincronizar-atividades
 if [ "${MKPAUSE_DEMO:-false}" = "true" ]; then
     php artisan mkpause:criar-demo
 fi
+# MVP: todas as contas na mesma escola (desligue com MKPAUSE_ESCOLA_UNICA=false).
+php artisan mkpause:escola-unica
 
 php-fpm8.2 --nodaemonize --fpm-config /app/deploy/php-fpm.conf &
 FPM=$!

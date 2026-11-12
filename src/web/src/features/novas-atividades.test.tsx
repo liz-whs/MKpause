@@ -29,8 +29,8 @@ it.each([
     expect(video.controls).toBe(false);
     expect(video.querySelector('source')?.getAttribute('src')).toContain(`/videos/${id}-`);
     if (id === 'chinchila') {
-      expect(video.querySelector('source')?.getAttribute('src')).toMatch(/\?v=11$/);
-      expect(video.getAttribute('poster')).toMatch(/\?v=11$/);
+      expect(video.querySelector('source')?.getAttribute('src')).toMatch(/\?v=12$/);
+      expect(video.getAttribute('poster')).toMatch(/\?v=12$/);
     }
     expect(container.querySelector('main')).not.toHaveClass('max-w-2xl');
     expect(screen.getByRole('button', { name: 'Reproduzir vídeo' })).toBeInTheDocument();

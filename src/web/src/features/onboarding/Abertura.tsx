@@ -59,7 +59,7 @@ export function Abertura({ terminar, estatica = false }: { terminar: () => void;
     return () => { ativo = false; };
   }, []);
   return <div ref={palco} className="flex flex-1 flex-col items-center gap-6" data-abertura data-estatica={estatica || undefined}>
-    <h1 className="sr-only">make a pause. mk pause.</h1>
+    <h1 className="sr-only">make a pause. mkpause.</h1>
     <div className="abertura-palco" aria-hidden="true">
       <div className="abertura-marca">
         <div className="abertura-nome font-display">

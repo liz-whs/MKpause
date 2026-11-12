@@ -21,7 +21,7 @@ type Area = 'escola' | 'clinico' | 'admin';
 const ESCOLA = 'Escola Modelo';
 const CHAVE_NOTIFICACOES = 'mkpause:profissional:notificacoes';
 
-/** O que cada papel vê e não vê no MKpause (o mesmo que a camada de dados permite). */
+/** O que cada papel vê e não vê no mkpause (o mesmo que a camada de dados permite). */
 const VE: Record<'escola' | 'clinico' | 'admin', { icone: IconName; texto: string; ve: boolean }[]> = {
   escola: [
     { icone: 'alerta', texto: 'Alertas de nível 3 e avisos de saída dos seus estudantes', ve: true },

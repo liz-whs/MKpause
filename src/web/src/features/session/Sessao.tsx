@@ -10,7 +10,7 @@ import { useEstudante } from '../../state/EstudanteContext';
 import { EmotionGrid } from '../../components/student/EmotionGrid';
 import { BackButton, FocusTopBar, SairDaPausa, TerminarExercicio, NomeAtividade } from '../../components/student/FocusTopBar';
 import { AtividadesPorCategoria } from '../../components/student/AtividadesPorCategoria';
-import { ActivityRow, ScreenTitle } from '../../components/student/Bits';
+import { ActivityRow, Confirmacao, ScreenTitle } from '../../components/student/Bits';
 import { BreathingCircle, BreathingStage, useBreathClock, usePrefersReducedMotion } from '../../components/student/Breathing';
 import { ProgressSteps } from '../../components/ui/ProgressSteps';
 import { Button } from '../../components/ui/Button';
@@ -46,7 +46,7 @@ function Desativado({ children }: { children: string }) {
 /** Etapa 1 de 3: Como você está? */
 export function Humor() {
   const navigate = useNavigate();
-  const { iniciarSessao } = useEstudante();
+  const { iniciarSessao, avisoSaida } = useEstudante();
   const [emocao, setEmocao] = useState<EmocaoId | null>(null);
 
   const continuar = () => {
@@ -61,6 +61,8 @@ export function Humor() {
       <FocusTopBar back={<BackButton to="/estudante" />}>
         <SairDaPausa />
       </FocusTopBar>
+      {/* Nível 2: o aviso de saída fica confirmado enquanto o estudante estiver fora da sala. */}
+      {avisoSaida && <Confirmacao>{t('Seu professor foi avisado da sua saída.')}</Confirmacao>}
       <ProgressSteps current={1} total={3} label={t('Como você está')} />
       <ScreenTitle>{t('Como você está?')}</ScreenTitle>
       <EmotionGrid value={emocao} onChange={setEmocao} />
@@ -259,8 +261,8 @@ export function ComoFicou() {
         <Button variant="help" block disabled={!emocao} onClick={() => {
           if (!emocao) return;
           void agir(async () => {
-            await concluirSessao(relato, emocao);
-            navigate('/estudante/agora');
+            const relatoRegistrado = await concluirSessao(relato, emocao);
+            navigate('/estudante/agora', { state: { relatoRegistrado } });
           }, 'Sessão concluída.');
         }}>
           <Icon name="respiracao" size={22} />
@@ -291,8 +293,9 @@ export function PausaFeita() {
   return (
     <div className="flex min-h-[calc(100dvh-2rem)] flex-col items-center gap-4.5 text-center">
       <FocusTopBar />
-      <img src={mascote} alt={t('Chinchila, mascote do MKpause')} className="h-47 w-47.5 object-contain" />
+      <img src={mascote} alt={t('Chinchila, mascote do mkpause')} className="h-47 w-47.5 object-contain" />
       <ScreenTitle>{t('Pausa feita!')}</ScreenTitle>
+      {sessao.relatoRegistrado && <Confirmacao>{t('Sua observação foi registrada.')}</Confirmacao>}
       <div className="flex w-full items-center justify-center gap-3 rounded-card-lg bg-surface p-4.5">
         <EmocaoRegistrada rotulo={t('Antes')} emocao={antes} />
         <Icon name="seta" size={26} className="text-muted" />

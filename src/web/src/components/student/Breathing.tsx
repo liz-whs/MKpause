@@ -5,7 +5,7 @@ import { usePreferencias } from '../../preferencias/preferencias';
 /** Ciclo da respiração: 4 s para inspirar, 4 s para soltar. */
 const FASE = 4;
 
-/** Menos movimento: vale a configuração do sistema ou a opção "Menos movimento" do MKpause. */
+/** Menos movimento: vale a configuração do sistema ou a opção "Menos movimento" do mkpause. */
 export function usePrefersReducedMotion() {
   const { menosMovimento } = usePreferencias();
   const [reduzir, setReduzir] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);

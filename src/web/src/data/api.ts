@@ -88,6 +88,30 @@ async function sincronizar(contaConfirmada?: servidor.Conta) {
   }
 }
 
+let atualizando = false;
+
+/**
+ * Atualização de fundo do painel da escola: só alertas, saídas e retornos (uma requisição).
+ * Uma falha (Wi-Fi instável) não troca a tela por erro: tenta na próxima vez.
+ */
+async function atualizarEmSegundoPlano() {
+  if (OFFLINE || !conta || atualizando || (conta.perfil !== 'professor' && conta.perfil !== 'psicologo_escolar')) return;
+  atualizando = true;
+  try {
+    const contaAtual = conta;
+    const versaoInicial = versao;
+    const novo = await servidor.carregarAlertas();
+    // Descarta se a pessoa saiu, trocou de conta ou salvou algo durante a busca (o dado novo já veio da gravação).
+    if (conta !== contaAtual || versao !== versaoInicial) return;
+    banco = { ...banco, ...novo };
+    mudou();
+  } catch {
+    /* Mantém os dados atuais. */
+  } finally {
+    atualizando = false;
+  }
+}
+
 /** Em produção o cache só muda depois da confirmação da API. */
 function gravar<T>(remoto: () => Promise<unknown>, local: (resposta?: unknown) => T): Promise<T> {
   if (OFFLINE) return Promise.resolve(local());
@@ -196,6 +220,7 @@ export const api = {
 
   /* ───────────── Conta ───────────── */
   sincronizar: () => sincronizar(),
+  atualizarEmSegundoPlano,
   conta: () => conta,
   carregado: () => carregado,
   erroCarga: () => erroCarga,
@@ -242,6 +267,15 @@ export const api = {
         banco.avisos.push(aviso); mudou(); return aviso;
       });
     },
+    /**
+     * Aviso de saída ainda aberto no servidor. Permite tocar em "Voltei para a sala"
+     * em outra aba, depois de entrar de novo ou se o celular fechou a aba.
+     */
+    avisoAberto: (): AvisoSaida | null =>
+      banco.avisos.filter((a) => a.estudanteId === idEstudanteLogado() && !a.voltouEm)
+        .sort(recentesPrimeiro)[0] ?? null,
+    /** O retorno já foi registrado (por exemplo, em outra aba). */
+    avisoEncerrado: (avisoId: string) => Boolean(banco.avisos.find((a) => a.id === avisoId)?.voltouEm),
     registrarRetorno(avisoId: string) {
       return gravar(() => servidor.mudarStatusAlerta(avisoId, 'CANCELADO'), () => {
         const aviso = banco.avisos.find((a) => a.id === avisoId);
@@ -280,6 +314,15 @@ export const api = {
         alerta.vistoPor = [...new Set([...(alerta.vistoPor ?? []), profissionalId])]; mudou();
       });
     },
+    /** Encerra o alerta para todos que o receberam: sai da lista de alertas ativos. */
+    resolverAlerta(profissionalId: string, alertaId: string) {
+      const alerta = banco.alertas.find((a) => a.id === alertaId);
+      if (!alerta || profissional(profissionalId)?.papel === 'psicologo-clinico') return Promise.resolve();
+      exigirVinculo(profissionalId, alerta.estudanteId);
+      return gravar(() => servidor.mudarStatusAlerta(alertaId, 'RESOLVIDO'), () => {
+        alerta.cancelado = true; mudou();
+      });
+    },
     avisos(profissionalId: string) {
       if (profissional(profissionalId)?.papel === 'psicologo-clinico') return [];
       return banco.avisos.filter((a) => vinculado(profissionalId, a.estudanteId)).sort(recentesPrimeiro);
@@ -295,12 +338,7 @@ export const api = {
     },
     adicionarObservacao(profissionalId: string, estudanteId: string, texto: string): Promise<Observacao> {
       exigirVinculo(profissionalId, estudanteId);
-      const alvo = [...banco.alertas, ...banco.avisos.map((a) => ({ ...a, criadoEm: a.desde }))]
-        .filter((a) => a.estudanteId === estudanteId).sort(recentesPrimeiro)[0];
-      return gravar(() => {
-        if (!alvo) throw new Error('Este estudante ainda não tem alertas. Não foi possível salvar a observação.');
-        return servidor.observar(alvo.id, texto);
-      }, () => {
+      return gravar(() => servidor.observar(estudanteId, texto), () => {
         const obs: Observacao = { id: novoId('obs'), estudanteId, autorId: profissionalId, em: agora(), texto };
         banco.observacoes.push(obs); mudou(); return obs;
       });
@@ -414,17 +452,10 @@ export const api = {
       });
     },
     conteudos: () => banco.conteudos,
-    usos: (id: AtividadeId) => banco.sessoes.filter((s) => s.atividade === id).length,
     alternarConteudo(id: AtividadeId) {
       const c = banco.conteudos.find((x) => x.id === id);
       return gravar(() => servidor.chamar('PATCH', `atividades/${servidor.idAtividade(id)}/`, { disponivel: !c?.disponivel }), () => {
         if (c) c.disponivel = !c.disponivel; mudou();
-      });
-    },
-    excluirConteudo(id: AtividadeId) {
-      if (api.admin.usos(id) > 0) throw new Error('Conteúdo já usado: oculte em vez de excluir.');
-      return gravar(() => servidor.chamar('DELETE', `atividades/${servidor.idAtividade(id)}/`), () => {
-        banco.conteudos = banco.conteudos.filter((c) => c.id !== id); mudou();
       });
     },
   },

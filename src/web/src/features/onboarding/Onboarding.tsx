@@ -49,7 +49,7 @@ export function BoasVindas() {
   return (
     <Pagina centro boasVindas>
       <span className="boas-vindas-mascote mt-4.5 flex size-65 items-center justify-center rounded-full bg-surface">
-        <img src={mascote} alt={t('Chinchila, mascote do MKpause')} className="h-54 w-55 object-contain" />
+        <img src={mascote} alt={t('Chinchila, mascote do mkpause')} className="h-54 w-55 object-contain" />
       </span>
       <ScreenTitle className="mt-2.5">{t('Uma pausa no seu ritmo.')}</ScreenTitle>
       <p className="text-muted">{t('Explore atividades, perceba como você está e procure apoio quando precisar.')}</p>
@@ -355,7 +355,7 @@ export function PrimeiroAcesso() {
       <div className="rounded-card bg-surface p-4">
         <Switch
           label={t('Notificações do navegador')}
-          description={t('Para receber os avisos do MKpause.')}
+          description={t('Para receber os avisos do mkpause.')}
           checked={notificacoes}
           onChange={definirNotificacoes}
         />

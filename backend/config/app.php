@@ -2,7 +2,7 @@
 
 return [
 
-    'name' => env('APP_NAME', 'MKpause'),
+    'name' => env('APP_NAME', 'mkpause'),
 
     'env' => env('APP_ENV', 'production'),
 

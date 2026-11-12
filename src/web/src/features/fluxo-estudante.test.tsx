@@ -162,8 +162,8 @@ describe('Nova pausa', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }));
     await router.navigate('/estudante/pausa/video');
     const video = await screen.findByLabelText(/Vídeo de respiração guiada/);
-    expect(video).toHaveAttribute('poster', '/videos/respiracao-celular.jpg?v=4');
-    expect(container.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=4');
+    expect(video).toHaveAttribute('poster', '/videos/respiracao-celular.jpg?v=5');
+    expect(container.querySelector('source')).toHaveAttribute('src', '/videos/respiracao-celular.mp4?v=5');
     expect(container.querySelectorAll('track')).toHaveLength(0);
     expect(container.querySelector('[data-instrucao-respiracao]')).toHaveTextContent('Inspire');
   });

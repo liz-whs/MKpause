@@ -103,8 +103,8 @@ class Emails
             || !Permissoes::estudantesVinculados($conta)->where('e.id_estudante', $d->id_estudante)->exists()) {
             return null;
         }
-        return ['MKpause: novo aviso para acompanhar',
-            "Há um novo aviso no MKpause para você acompanhar. Entre com sua conta para consultar.\n\n"
+        return ['mkpause: novo aviso para acompanhar',
+            "Há um novo aviso no mkpause para você acompanhar. Entre com sua conta para consultar.\n\n"
             .config('mkpause.public_base_url')."/entrar\n\n"
             .'Este e-mail não substitui o acompanhamento presencial. Não contém dados emocionais do estudante.'];
     }

@@ -69,7 +69,7 @@ class CriarDemo extends Command
             return self::FAILURE;
         }
 
-        $escola = DB::table('escola')->where('nome', self::ESCOLA)->value('id_escola');
+        $escola = $this->escolaDasContas();
         if ($escola === null) {
             $this->error('mkpause.demo.migracao Escola Modelo não encontrada.');
             return self::FAILURE;
@@ -102,6 +102,17 @@ class CriarDemo extends Command
         return $contas->isNotEmpty() && $ignoradas === 0 ? self::SUCCESS : self::FAILURE;
     }
 
+    /** Escola das contas demo: a principal no modo de escola única (MVP), senão a Escola Modelo. */
+    private function escolaDasContas(): ?int
+    {
+        if (\App\Mkpause\Escola::unica()) {
+            return \App\Mkpause\Escola::principal();
+        }
+        $id = DB::table('escola')->where('nome', self::ESCOLA)->value('id_escola');
+
+        return $id === null ? null : (int) $id;
+    }
+
     private function usuario(string $email, string $nome, string $senha): int
     {
         $id = DB::table('usuario')->whereRaw('UPPER(email) = UPPER(?)', [$email])->value('id_usuario');
@@ -112,7 +123,7 @@ class CriarDemo extends Command
                 'id_usuario');
             $this->line("  conta {$email} criada");
         }
-        DB::table('usuario')->where('id_usuario', $id)->update(['id_escola' => DB::table('escola')->where('nome', self::ESCOLA)->value('id_escola')]);
+        DB::table('usuario')->where('id_usuario', $id)->update(['id_escola' => $this->escolaDasContas()]);
         return $id;
     }
 

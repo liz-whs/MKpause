@@ -9,6 +9,7 @@ use App\Mkpause\Formato;
 use App\Mkpause\Permissoes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Alertas e observações (RF08, RF14, RF21–RF23, RN11–RN19).
@@ -28,7 +29,10 @@ class AlertasController extends Controller
 {
     public const STATUS = ['ABERTO', 'EM_ACOMPANHAMENTO', 'RESOLVIDO', 'CANCELADO'];
 
-    public const AJUDA_IMEDIATA = 'O MKpause não é um serviço de emergência. Se você estiver em perigo agora, '
+    /** Minutos em que um novo "Não estou bem" reaproveita o alerta de nível 3 ainda aberto. */
+    private const JANELA_NIVEL_3 = 30;
+
+    public const AJUDA_IMEDIATA = 'O mkpause não é um serviço de emergência. Se você estiver em perigo agora, '
         .'procure um adulto por perto ou ligue 192 (SAMU) ou 188 (CVV).';
 
     public function listar(Request $request)
@@ -62,6 +66,19 @@ class AlertasController extends Controller
             }
         }
 
+        // Recarregar a página, abrir outra aba ou tocar duas vezes não deve repetir o alerta nem os e-mails.
+        $aberto = DB::table('alerta')->where('id_estudante', $estudante)->where('nivel', $nivel)->where('status', 'ABERTO')
+            ->when($nivel === 3, fn ($q) => $q->where('criado_em', '>=', Formato::banco(Formato::agora()->subMinutes(self::JANELA_NIVEL_3))))
+            ->orderByDesc('criado_em')->orderByDesc('id_alerta')->first();
+        if ($aberto) {
+            return $this->json([
+                'alerta' => self::varios(collect([$aberto]))[0],
+                'avisados' => [],
+                'repetido' => true,
+                'mensagem' => self::mensagemEmitido($nivel),
+            ]);
+        }
+
         $destinatarios = self::destinatariosPara($estudante, $nivel);
         if (!$destinatarios) {
             throw ErroApi::conflito('Você ainda não tem profissionais vinculados para receber o aviso. '
@@ -91,9 +108,14 @@ class AlertasController extends Controller
         return $this->json([
             'alerta' => self::varios(DB::table('alerta')->where('id_alerta', $id)->get())[0],
             'avisados' => array_map(fn ($d) => $d[0]->nome_completo, $destinatarios),
-            'mensagem' => $nivel === 2 ? 'Seu aviso foi enviado. Você pode fazer sua pausa.'
-                : 'Seu pedido foi enviado. Você não precisa explicar nada agora. '.self::AJUDA_IMEDIATA,
+            'mensagem' => self::mensagemEmitido($nivel),
         ], 201);
+    }
+
+    private static function mensagemEmitido(int $nivel): string
+    {
+        return $nivel === 2 ? 'Seu aviso foi enviado. Você pode fazer sua pausa.'
+            : 'Seu pedido foi enviado. Você não precisa explicar nada agora. '.self::AJUDA_IMEDIATA;
     }
 
     public static function destinatariosPara(int $estudante, int $nivel): array
@@ -135,7 +157,13 @@ class AlertasController extends Controller
         } elseif (!$conta->e(Conta::ADMINISTRADOR) && $this->destinatario($request, $alerta) === null) {
             throw ErroApi::proibido('Só quem recebeu o alerta pode mudar o status.');
         }
-        DB::table('alerta')->where('id_alerta', $alerta->id_alerta)->update(['status' => $novo]);
+        $mudanca = ['status' => $novo];
+        // Guarda quando o alerta terminou (no nível 2, a hora em que o estudante voltou para a sala).
+        if (self::temFinalizadoEm()) {
+            $mudanca['finalizado_em'] = in_array($novo, ['CANCELADO', 'RESOLVIDO'], true)
+                ? ($alerta->finalizado_em ?? Formato::banco(Formato::agora())) : null;
+        }
+        DB::table('alerta')->where('id_alerta', $alerta->id_alerta)->update($mudanca);
         return $this->json(self::varios(DB::table('alerta')->where('id_alerta', $alerta->id_alerta)->get())[0]);
     }
 
@@ -161,7 +189,8 @@ class AlertasController extends Controller
         $lista = DB::table('observacao as o')->join('usuario as u', 'u.id_usuario', '=', 'o.id_autor')
             ->where('o.id_alerta', $alerta->id_alerta)->orderByDesc('o.criado_em')->orderByDesc('o.id_observacao')
             ->select('o.*', 'u.nome_completo as nome_autor')->get();
-        return $this->json($lista->map(fn ($o) => self::observacao($o))->all());
+        $papeis = self::papeisDosAutores($lista);
+        return $this->json($lista->map(fn ($o) => self::observacao($o) + ['papel_autor' => $papeis[$o->id_autor] ?? Conta::PROFESSOR])->all());
     }
 
     /** Leitura das observações escolares preservada pelo RF14, independente de alertas. */
@@ -171,14 +200,26 @@ class AlertasController extends Controller
         if (!Permissoes::pode($this->conta($request), 'ver_observacoes', $id)) {
             throw ErroApi::proibido('Seu perfil não tem acesso a estas observações.');
         }
-        $lista = DB::table('observacao as o')->join('alerta as a', 'a.id_alerta', '=', 'o.id_alerta')
-            ->join('usuario as u', 'u.id_usuario', '=', 'o.id_autor')->where('a.id_estudante', $id)
+        $lista = DB::table('observacao as o')->join('usuario as u', 'u.id_usuario', '=', 'o.id_autor')->where('o.id_estudante', $id)
             ->orderByDesc('o.criado_em')->orderByDesc('o.id_observacao')
             ->select('o.id_observacao', 'o.id_autor', 'o.conteudo', 'o.criado_em', 'u.nome_completo as nome_autor')->get();
+        $papeis = self::papeisDosAutores($lista);
         return $this->json($lista->map(fn ($o) => [
             'id_observacao' => (int) $o->id_observacao, 'autor' => (int) $o->id_autor,
-            'nome_autor' => $o->nome_autor, 'conteudo' => $o->conteudo, 'criado_em' => Formato::local($o->criado_em),
+            'nome_autor' => $o->nome_autor, 'papel_autor' => $papeis[$o->id_autor] ?? Conta::PROFESSOR,
+            'conteudo' => $o->conteudo, 'criado_em' => Formato::local($o->criado_em),
         ])->all());
+    }
+
+    /** Observação escolar direto no estudante, sem depender de um alerta (V13). */
+    public function observarEstudante(Request $request, $id)
+    {
+        $id = self::id($id);
+        $conta = $this->conta($request);
+        if (!Permissoes::pode($conta, 'registrar_observacao', $id) || $conta->e(Conta::ESTUDANTE)) {
+            throw ErroApi::proibido('Seu perfil não registra observações deste estudante.');
+        }
+        return $this->registrarObservacao($request, $conta, $id, null);
     }
 
     public function observar(Request $request, $id)
@@ -188,16 +229,30 @@ class AlertasController extends Controller
         if (!Permissoes::pode($conta, 'registrar_observacao', $alerta->id_estudante)) {
             throw ErroApi::proibido('Seu perfil não registra observações neste alerta.');
         }
+        return $this->registrarObservacao($request, $conta, (int) $alerta->id_estudante, (int) $alerta->id_alerta);
+    }
+
+    private function registrarObservacao(Request $request, Conta $conta, int $estudante, ?int $alerta)
+    {
         $e = $this->entrada($request);
         $conteudo = $e->texto('conteudo', max: 5000);
         $e->falharSeHouverErros();
         $idObs = DB::table('observacao')->insertGetId([
-            'id_alerta' => $alerta->id_alerta, 'id_autor' => $conta->id(), 'conteudo' => $conteudo,
+            'id_alerta' => $alerta, 'id_estudante' => $estudante, 'id_autor' => $conta->id(), 'conteudo' => $conteudo,
             'criado_em' => Formato::banco(Formato::agora()),
         ], 'id_observacao');
         $o = DB::table('observacao as o')->join('usuario as u', 'u.id_usuario', '=', 'o.id_autor')
             ->where('o.id_observacao', $idObs)->select('o.*', 'u.nome_completo as nome_autor')->first();
         return $this->json(self::observacao($o) + ['mensagem' => 'Observação salva.'], 201);
+    }
+
+    /** Professor ou psicólogo escolar, para a interface mostrar o cargo certo de quem escreveu. */
+    private static function papeisDosAutores($lista): array
+    {
+        $ids = $lista->pluck('id_autor')->unique()->values();
+        if ($ids->isEmpty()) return [];
+        $escolares = DB::table('psicologo_escolar')->whereIn('id_usuario', $ids)->pluck('id_usuario')->map(fn ($i) => (int) $i)->all();
+        return $ids->mapWithKeys(fn ($i) => [$i => in_array((int) $i, $escolares, true) ? Conta::PSICOLOGO_ESCOLAR : Conta::PROFESSOR])->all();
     }
 
     private function consulta(Request $request)
@@ -245,9 +300,15 @@ class AlertasController extends Controller
             'nome_estudante' => $nomes[$a->id_estudante] ?? null,
             'sessao' => $a->id_sessao === null ? null : (int) $a->id_sessao,
             'nivel' => (int) $a->nivel, 'criado_em' => Formato::local($a->criado_em), 'status' => $a->status,
-            'descricao' => $a->descricao,
+            'descricao' => $a->descricao, 'finalizado_em' => Formato::local($a->finalizado_em ?? null),
             'destinatarios' => ($destinatarios[$a->id_alerta] ?? collect())->map(fn ($d) => self::destinatarioDados($d))->values()->all(),
         ])->values()->all();
+    }
+
+    /** A coluna vem da V12; até ela ser aplicada, o status muda sem guardar o horário. */
+    private static function temFinalizadoEm(): bool
+    {
+        return Schema::hasColumn('alerta', 'finalizado_em');
     }
 
     private static function destinatarioDados(object $d): array
@@ -259,7 +320,8 @@ class AlertasController extends Controller
 
     private static function observacao(object $o): array
     {
-        return ['id_observacao' => (int) $o->id_observacao, 'alerta' => (int) $o->id_alerta, 'autor' => (int) $o->id_autor,
+        return ['id_observacao' => (int) $o->id_observacao, 'alerta' => $o->id_alerta === null ? null : (int) $o->id_alerta,
+            'estudante' => isset($o->id_estudante) ? (int) $o->id_estudante : null, 'autor' => (int) $o->id_autor,
             'nome_autor' => $o->nome_autor, 'conteudo' => $o->conteudo, 'criado_em' => Formato::local($o->criado_em),
             'atualizado_em' => Formato::local($o->atualizado_em)];
     }

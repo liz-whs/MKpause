@@ -14,7 +14,7 @@ PostgreSQL (local ou Neon).
 cd backend
 copy .env.example .env                    # preencha banco e uma MKPAUSE_SECRET_KEY aleatória
 composer install
-php artisan mkpause:aplicar-esquema       # cria/atualiza as tabelas (V1 a V11) sem Flyway
+php artisan mkpause:aplicar-esquema       # cria/atualiza as tabelas (V1 a V13) sem Flyway
 php artisan mkpause:verificar-esquema     # confere se o backend e o banco batem
 php artisan mkpause:criar-admin --email=admin@escola.br --nome="Administração" --escola="Nome da escola"
 ```
@@ -38,7 +38,7 @@ O `npm run backend` liga as extensões do PHP que faltarem (no XAMPP, por exempl
 
 | Comando | O que faz |
 |---|---|
-| `php artisan mkpause:aplicar-esquema` | Aplica V1 a V11 que faltam. Usa transação e bloqueio; não reaplica o que existe; para em esquema parcial. A V2 exige `responsavel` vazia. |
+| `php artisan mkpause:aplicar-esquema` | Aplica V1 a V13 que faltam. Usa transação e bloqueio; não reaplica o que existe; para em esquema parcial. A V2 exige `responsavel` vazia. |
 | `php artisan mkpause:verificar-esquema` | Compara as colunas que o backend usa com o banco. `ERRO` quebra o backend; `AVISO` não. |
 | `php artisan mkpause:criar-demo` | Requer `MKPAUSE_DEMO=true` em ambiente isolado. Contas, vínculos e atividades de demonstração (senha: `DEMO_SENHA` ou `--senha`). |
 | `php artisan mkpause:sincronizar-atividades` | Acrescenta as sete atividades do catálogo, sem criar contas ou alterar senhas. Preserva atividades ocultadas e nomes personalizados. |
