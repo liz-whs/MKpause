@@ -3,7 +3,7 @@
 API JSON em **PHP 8.2 + Laravel 12**, sobre o banco PostgreSQL criado pelo Flyway
 (`database/migrations/`). Não tem HTML nem CSS: a interface (`src/web`) consome esta API.
 
-O backend usa Laravel mantendo as rotas, os formatos de resposta e as mensagens públicas. As senhas usam PBKDF2; os códigos de cadastro e vínculo usam HMAC com a `MKPAUSE_SECRET_KEY`. A configuração anterior `DJANGO_SECRET_KEY` continua aceita para preservar os códigos existentes.
+O backend usa Laravel mantendo as rotas, os formatos de resposta e as mensagens públicas. As senhas novas usam Argon2id; as antigas em PBKDF2 continuam aceitas e são convertidas para Argon2id no próximo login; os códigos de cadastro e vínculo usam HMAC com a `MKPAUSE_SECRET_KEY`. A configuração anterior `DJANGO_SECRET_KEY` continua aceita para preservar os códigos existentes.
 
 ## Como rodar
 
